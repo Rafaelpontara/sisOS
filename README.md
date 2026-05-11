@@ -1,5 +1,4 @@
-
-![SISOS](https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/assets/img/logo.png)
+![SISOS](https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/assets/img/logo-sisos-laranja-grande.png)
 
 ![version](https://img.shields.io/badge/version-4.53.2-blue.svg?longCache=true&style=flat-square)
 ![license](https://img.shields.io/badge/license-Apache-green.svg?longCache=true&style=flat-square)
@@ -50,6 +49,7 @@ O **SISOS** é um projeto de código aberto **mantido e desenvolvido pela empres
 O SISOS possui integração nativa com **múltiplos provedores de Inteligência Artificial**, configuráveis diretamente no painel em **Configurações → IA / Assistente**.
 
 ### Provedores suportados:
+
 | Provedor | Modelos disponíveis |
 |---|---|
 | 🔵 **Google Gemini** | gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-flash e outros |
@@ -60,6 +60,7 @@ O SISOS possui integração nativa com **múltiplos provedores de Inteligência 
 | ⚪ **Mistral AI** | mistral-small, mistral-medium, mistral-large |
 
 ### Funcionalidades da IA:
+
 - 🔧 **Sugestão de diagnóstico em OS** — sugere diagnósticos ao abrir/editar uma ordem de serviço
 - 📧 **Rascunho de e-mail ao cliente** — gera e-mail automático para comunicar o cliente
 - 💬 **Assistente para funcionários** — chat interno com IA para tirar dúvidas
@@ -69,98 +70,108 @@ Para configurar, acesse **Configurações → IA / Assistente**, selecione o pro
 
 ---
 
-## Instalação
+## Requerimentos
 
-### Instalação Manual
-
-1. Faça o download dos arquivos.
-2. Extraia o pacote e copie para seu webserver.
-3. Rode o comando `composer install --no-dev` a partir da raiz do projeto.
-4. Acesse sua URL e inicie a instalação pelo assistente.
-5. Configure o e-mail de envio em **Configurações → Sistema → E-mail**.
-6. Configure os cron jobs para envio de e-mail:
-
-```
-# Enviar e-mails pendentes a cada 2 minutos
-*/2 * * * * php /var/www/index.php email/process
-
-# Enviar e-mails com falha a cada 5 minutos
-*/5 * * * * php /var/www/index.php email/retry
-```
-> O path `/var/www/` deve ser ajustado conforme seu ambiente.
+- PHP >= 8.4
+- MySQL >= 5.7 ou >= 8.0
+- Composer >= 2
 
 ---
 
-### Instalação via Docker
+## Instalação Manual
 
-1. Faça o download dos arquivos.
-2. Instale o [Docker](https://docs.docker.com/install/) e o [Docker Compose](https://docs.docker.com/compose/install/).
-3. Entre na pasta `docker` e rode `docker-compose up --force-recreate`.
-4. Acesse `http://localhost:8000/` e inicie a instalação com as configurações abaixo:
-
+1. Faça o download dos arquivos pela [página de releases](https://github.com/Rafaelpontara/sisOS/releases) ou clone o repositório:
+```bash
+git clone https://github.com/Rafaelpontara/sisOS.git
 ```
-Host: mysql
-Usuário: sisos
-Senha: sisos
+
+2. Copie os arquivos para a pasta do seu servidor web:
+   - Windows (XAMPP): `C:\xampp\htdocs\sisos`
+   - Linux: `/var/www/html/sisos`
+
+3. Na raiz do projeto, instale as dependências:
+```bash
+composer install --no-dev
+```
+
+4. Acesse a URL do sistema no navegador e siga o assistente de instalação.
+
+5. Configure o e-mail de envio em **Configurações → Sistema → E-mail**.
+
+6. Configure os cron jobs para envio de e-mail:
+```
+# Enviar e-mails pendentes a cada 2 minutos
+*/2 * * * * php /var/www/html/sisos/index.php email/process
+
+# Enviar e-mails com falha a cada 5 minutos
+*/5 * * * * php /var/www/html/sisos/index.php email/retry
+```
+> ⚠️ Ajuste o caminho conforme seu ambiente.
+
+---
+
+## Instalação via Docker
+
+1. Faça o download ou clone o repositório.
+
+2. Instale o [Docker](https://docs.docker.com/install/) e o [Docker Compose](https://docs.docker.com/compose/install/).
+
+3. Entre na pasta `docker` e execute:
+```bash
+docker-compose up --force-recreate
+```
+
+4. Acesse `http://localhost:8000/` e siga o assistente com as configurações:
+```
+Host:           mysql
+Usuário:        sisos
+Senha:          sisos
 Banco de Dados: sisos
-URL: http://localhost:8000/
+URL:            http://localhost:8000/
 ```
 
 5. Configure o e-mail em **Configurações → Sistema → E-mail**.
 
-> A pasta `docker/data` contém os dados do MySQL — não a delete.
+> ⚠️ A pasta `docker/data` contém os dados do MySQL — não a delete ou perderá o banco.
 > O PhpMyAdmin fica disponível em `http://localhost:8080/`.
-
----
-
-### Instalação Automatizada
-
-#### Windows 10/11
-1. Abra o Prompt de Comando ou PowerShell como Administrador.
-2. Execute:
-```powershell
-PowerShell -command "& { iwr https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/install.bat -OutFile SISOS_Install.bat }; .\SISOS_Install.bat"
-```
-3. Siga as instruções na tela.
-
-#### Linux (Ubuntu/Debian)
-1. Abra o terminal ou acesse via SSH.
-2. Execute:
-```bash
-curl -o SISOS_Install.sh -L https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/install.sh && chmod +x SISOS_Install.sh && ./SISOS_Install.sh
-```
-3. Siga as instruções na tela.
 
 ---
 
 ## Atualização
 
 ### Manual
-1. Faça backup dos arquivos e do banco de dados em **Configurações → Backup**.
-2. Copie as pastas `anexos`, `arquivos`, `uploads`, `userimage` de dentro de `Assets`.
-3. Copie o arquivo `application/.env`.
+
+1. Faça backup dos arquivos e banco em **Configurações → Backup**.
+2. Salve as pastas `anexos`, `arquivos`, `uploads`, `userimage` de dentro de `assets/`.
+3. Salve o arquivo `application/.env`.
 4. Substitua os arquivos pela nova versão.
-5. Rode `composer install --no-dev`.
-6. Restaure os backups.
+5. Execute `composer install --no-dev`.
+6. Restaure os backups nos locais originais.
 7. Acesse **Configurações → Sistema** e clique em **Atualizar Banco de Dados**.
 
+> Também é possível atualizar o banco via terminal:
+> ```bash
+> php index.php tools migrate
+> ```
+
 ### Via Docker
+
 1. Pare o Docker.
 2. Faça backup conforme acima.
 3. Substitua os arquivos.
-4. Rode `docker-compose up --force-recreate` na pasta `docker`.
+4. Execute `docker-compose up --force-recreate` na pasta `docker`.
 5. Clique em **Atualizar Banco de Dados** nas configurações.
 
-### Via Sistema
-1. Atualize manualmente para a versão v4.4.0 ou superior.
-2. Acesse **Sistema → Configurações** e clique em **Atualizar Sisos**.
-3. Todos os arquivos serão atualizados automaticamente, exceto `config.php`, `database.php` e `email.php`.
+### Via Sistema (a partir da v4.4.0)
+
+1. Acesse **Configurações → Sistema** e clique em **Atualizar Sisos**.
+2. Todos os arquivos serão atualizados automaticamente, exceto `config.php`, `database.php` e `email.php`.
 
 ---
 
 ## Comandos de Terminal
 
-Para listar todos os comandos disponíveis, execute a partir da raiz do projeto:
+Para listar todos os comandos disponíveis, execute na raiz do projeto:
 ```bash
 php index.php tools
 ```
@@ -179,22 +190,14 @@ Em parceria com o Projeto SISOS, a **SysGO** oferece hospedagem de qualidade e s
 
 ## Frameworks e Bibliotecas
 
-* [bcit-ci/CodeIgniter](https://github.com/bcit-ci/CodeIgniter)
-* [twbs/bootstrap](https://github.com/twbs/bootstrap)
-* [jquery/jquery](https://github.com/jquery/jquery)
-* [jquery/jquery-ui](https://github.com/jquery/jquery-ui)
-* [mpdf/mpdf](https://github.com/mpdf/mpdf)
-* [Matrix Admin](http://wrappixel.com/demos/free-admin-templates/matrix-admin/index.html)
-* [filp/whoops](https://github.com/filp/whoops)
-* [ezyang/htmlpurifier](https://github.com/ezyang/htmlpurifier)
-
----
-
-## Requerimentos
-
-* PHP >= 8.4
-* MySQL >= 5.7 ou >= 8.0
-* Composer >= 2
+- [bcit-ci/CodeIgniter](https://github.com/bcit-ci/CodeIgniter)
+- [twbs/bootstrap](https://github.com/twbs/bootstrap)
+- [jquery/jquery](https://github.com/jquery/jquery)
+- [jquery/jquery-ui](https://github.com/jquery/jquery-ui)
+- [mpdf/mpdf](https://github.com/mpdf/mpdf)
+- [Matrix Admin](http://wrappixel.com/demos/free-admin-templates/matrix-admin/index.html)
+- [filp/whoops](https://github.com/filp/whoops)
+- [ezyang/htmlpurifier](https://github.com/ezyang/htmlpurifier)
 
 ---
 
