@@ -45,7 +45,8 @@ Para configurar, acesse **Configurações → IA / Assistente**, selecione o pro
 
 ## Requerimentos
 
-- PHP >= 8.4
+- PHP >= 8.2 (recomendado 8.4)
+- Extensões PHP: `cURL`, `MySQLi`, `GD`, `zip`
 - MySQL >= 5.7 ou >= 8.0
 - Composer >= 2
 
@@ -59,19 +60,25 @@ git clone https://github.com/Rafaelpontara/sisOS.git
 ```
 
 2. Copie os arquivos para a pasta do seu servidor web:
-   - Windows (XAMPP): `C:\xampp\htdocs\sisos`
-   - Linux: `/var/www/html/sisos`
+   - **Windows (XAMPP):** `C:\xampp\htdocs\sisos`
+   - **Linux:** `/var/www/html/sisos`
 
-3. Na raiz do projeto, instale as dependências:
+3. Na raiz do projeto, instale as dependências via Composer:
 ```bash
+cd sisos
 composer install --no-dev
 ```
+> As dependências serão instaladas em `application/vendor/`.
 
-4. Acesse a URL do sistema no navegador e siga o assistente de instalação.
+4. Acesse o assistente de instalação no navegador:
+   - **Windows (XAMPP):** `http://localhost/sisos/install/`
+   - **Linux:** `http://seudominio.com/sisos/install/`
 
-5. Configure o e-mail de envio em **Configurações → Sistema → E-mail**.
+5. Preencha as informações do banco de dados, usuário administrador e URL do sistema e clique em **Instalar**.
 
-6. Configure os cron jobs para envio de e-mail:
+6. Após a instalação, configure o e-mail em **Configurações → Sistema → E-mail**.
+
+7. *(Opcional)* Configure os cron jobs para envio de e-mail automático:
 ```
 # Enviar e-mails pendentes a cada 2 minutos
 */2 * * * * php /var/www/html/sisos/index.php email/process
