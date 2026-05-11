@@ -1,0 +1,648 @@
+/* ======================================*/
+/*  Thomas Lage - lage.thomas@gmail.com  */
+/*=======================================*/
+/* ===========================> FOCUS <=========================== */
+input[type="search"],
+select,
+input[type="text"],
+.row-fluid input[class*="span"],
+input[type="number"],
+select[class*="span"],
+.row-fluid select[class*="span"] {
+  background  : var(--white-blak-side);
+  border-color: var(--cinza0);
+  color: var(--white-blak);
+}
+
+.bemv {
+    color: var(--white-blak);
+    font-weight: 600;
+}
+
+h1, h2, h3, h4, h6 {
+    color      : var(--white-blak);
+    font-weight: 600;
+}
+
+/* BODY E CONTENT */
+body {
+    background: var(--white-blak-cont);
+  }
+
+#content {
+    background: var(--white-blak-cont);
+}
+
+/* NAVEBAR */
+.navebarn {
+    background-color: var(--white-blak-cont);
+}
+
+#breadcrumb a {
+    background: transparent;
+    color: var(--white-blak);
+    border: 1px solid var(--white-blak-tit);
+}
+
+#breadcrumb a:hover {
+    color: var(--white);
+    background: var(--white-blak);
+}
+
+#breadcrumb a.current {
+    color: var(--white);
+    background: var(--white-blak-tit);
+    border: 1px solid var(--white-blak-tit);
+}
+
+#breadcrumb a.current:hover {
+    color: var(--white-gre2);
+    background: var(--white-gre0);
+    border: 1px solid var(--white-gre0);
+}
+
+#userr .userT0 {
+    color: var(--white-blak);
+}
+
+/* WIDGETS */
+.new122,
+.widget-box0,
+.widget-box1,
+.widget-box2,
+.widget-box-new,
+.widget-box-statist {
+  background: var(--white-blak-cont);
+  border    : 0 solid var(--white-gre0);
+  box-shadow: none;
+}
+
+.widget-box {
+  background   : var(--white-blak-cont);
+  border       : 0 solid var(--white-gre0);
+  box-shadow   : none;
+}
+
+.widbox-blak {
+    background   : var(--white-blak-side);
+}
+
+.cardHeader {
+    padding: 0 0 5px 13px;
+}
+
+.widget-title h5 {
+    color: var(--white-blak);
+    font-weight: 600;
+}
+
+/* SIDEBAR */
+#sidebar {
+    background  : var(--white-blak-side);
+    border-right: 0 solid var(--white-blak-side);
+    box-shadow: 15px 0 16px rgb(64 70 96 / 8%) !important;
+}
+
+#sidebar.open {
+    box-shadow: 15px 0 16px rgb(64 70 96 / 20%) !important;
+}
+
+#sidebar > ul > li.active a {
+    background-color: #525a64;
+    color        : #ffffff;
+    border-radius: 5px;
+}
+
+#sidebar .search-box {
+    background: var(--white-blak-side);
+    border: 1px solid #74757426;
+}
+
+#user-nav > ul > li > a:hover,#user-nav > ul > li.open > a {
+    color: #090909;
+}
+
+#sidebar > ul > li > a:hover {
+    background-color: #909eb5;
+    color        : #fff;
+    border-radius: 5px;
+}
+
+#sidebar li .title-tooltip {
+    background   : var(--white-blak);
+    color        : var(--white);
+}
+
+#newlog {
+    filter: invert(100%);
+}
+
+#newlog .icon2,
+#newlog .title1 {
+    filter: saturate(0);
+}
+
+#sidebar li .iconX, #sidebar li .title {
+    color: var(--white-blak-tit);
+    transition: var(--tran-02);
+}
+
+#sidebar li .icon,
+#sidebar li .title {
+    color     : var(--white-blak-tit);
+    transition: var(--tran-02);
+}
+
+#sidebar > ul li ul li a:hover {
+    background-color: var(--white-gre2);
+}
+
+#user-nav > ul > li > a:hover {
+    opacity: 0.7;
+}
+
+#sidebar > ul > li > a > .label:hover {
+    background-color: #ffffff;
+}
+
+.quick-actions li a:hover {
+    border-radius: 5px;
+}
+
+#sidebar .mode {
+    background: var(--white-blak-side);
+    border    : 2px solid var(--white-blak-tit);
+    color     : var(--white-blak);
+}
+
+#sidebar > ul > li {
+    border: none !important;
+}
+
+#sidebar > ul > li > ul {
+    background-color: #fbfcff;
+}
+
+#sidebar > ul li ul li a {
+    color: black;
+}
+
+#sidebar > ul {
+    border: none;
+}
+
+#user-nav > ul > li > a > i,
+#sidebar li a i {
+    opacity: 0.99;
+    color  : var(--white-blak-tit)
+}
+
+#sidebar > ul > li > a {
+    color: #72737a;
+}
+
+#sidebar.open li a:hover .iconX,
+#sidebar.open li a:hover .title {
+    color: var(--white-gre0);
+}
+
+#sidebar.open li a:hover {
+    background: var(--white-gre2);
+}
+
+#sidebar li a:hover {
+    background: var(--white);
+}
+
+#sidebar li a:hover .iconX,
+#sidebar li a:hover .title {
+    color: var(--white-blak);
+}
+
+#sidebar li.active {
+    background: var(--white-blak-side);
+}
+
+#sidebar li.active .iconX,
+#sidebar li.active .title {
+    color: var(--white-blak);
+}
+
+/* CARDS */
+.cardBox .card {
+    background: var(--white) !important;
+    border       : 0 solid var(--white-gre);
+    box-shadow: 0 15px 21px rgb(0 0 0 / 5%);
+}
+
+.lord-icon01, .lord-icon02, .lord-icon03, .lord-icon04, .lord-icon05, .lord-icon06 {
+    padding        : 3px;
+    background     : #f5f5fd;
+    padding        : 3px;
+    border-radius  : 50%;
+    width          : 40px;
+    height         : 40px;
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+}
+
+.lord-icon01, .lord-icon02, .lord-icon03, .lord-icon04, .lord-icon05, .lord-icon06 {
+    border: 1px solid #525a6a17 !important;
+}
+
+.lord-icon:hover {
+    opacity: 0.8;
+}
+
+.cardBox .card .iconBx {
+    color      : var(--white-blak);
+    font-size  : 2.5em;
+    text-shadow: 0 10px 17px #eae7e7ac;
+}
+
+.cardBox .card .numbers {
+    color: var(--white-blak);
+}
+
+.cardBox .card .cardName {
+    color: var(--white-blak);
+}
+
+/* CORLOR TITLES */
+.fc .fc-toolbar-title {
+    color: var(--white-blak);
+    font-weight: 600;
+}
+
+.cardHeader {
+    color: var(--white-blak-tit);
+}
+
+/* CORLOR TITLES Estatísticas do Sistema*/
+.new-bottons .card .iconBx,
+.new-bottons .card .iconBx1,
+.new-bottons .card .iconBx2,
+.new-bottons .card .iconBx3,
+.new-bottons .card .iconBx4,
+.new-bottons .card .iconBx5,
+.new-bottons .card .iconBx6,
+.new-bottons .card .iconBx7,
+.new-bottons .card .iconBx8 {
+    color        : var(--white-blak);
+    text-shadow  : none;
+    background   : var(--white-blak-cont);
+    padding      : 8px;
+    font-size    : 1.7rem;
+    border-radius: 35%;
+}
+
+.new-bottons .card .cardName2 {
+    color      : var(--white-blak);
+    font-weight: 600;
+}
+
+.new-bottons .card .cardName {
+    color      : var(--white-blak-tit);
+    font-weight: 500;
+}
+
+.new-bottons .card {
+    border         : 0 solid var(--white-bran);
+    background     : var(--white-blak-side);
+    justify-content: space-around;
+}
+
+.new-bottons .card:hover {
+    opacity: 0.8;
+}
+
+/* TABELAS */
+.table td {
+    color: var(--white-blak);
+}
+
+table tbody tr:hover {
+    color: var(--white-blak-tit);
+}
+
+/* TABELA CALENDAR */
+.fc .fc-button-primary:disabled {
+    color: var(--white) !important;
+    background-color: #4c4c4e !important;
+    border-color: var(--white-blak-tit);
+}
+
+.row-fluid select[class*="span"], .row-fluid textarea[class*="span"], .row-fluid .uneditable-input[class*="span"] {
+    margin-top: 10px;
+}
+
+.fc .fc-button:disabled {
+    opacity: 0.85 !important;
+}
+
+.fc .fc-button:not(:disabled), .fc a[data-navlink], .fc-event.fc-event-draggable, .fc-event[href] {
+    color: var(--white-blak);
+    background-color: var(--white-blak-side) !important;
+    border-color: var(--white-blak-tit);
+}
+
+.fc .fc-button .fc-icon {
+    color: var(--white-blak);
+}
+
+.fc .fc-button .fc-icon:hover {
+    color: var(--white-blak-tit);
+}
+
+/* BOTÕES DE AÇÂO */
+
+
+/* RODAPÉ */
+#footer {
+    background: var(--white-blak-cont);
+    border-top: 1px solid var(--white-bran);
+}
+
+/* PAGINAS EDITAR OS */
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
+    color: var(--white);
+    background-color: var(--white-blak);
+    border: 1px solid var(--white-blak-side);
+}
+
+.nav-tabs {
+    border-bottom: 1px solid var(--cinza0);
+}
+
+.nav-tabs > li > a {
+    color: var(--white-blak-tit);
+}
+
+.nav-tabs > li > a:hover {
+    color     : var(--white-blak);
+    background: var(--white-blak-side);
+    border    : 1px solid var(--cinza0);
+}
+
+label {
+    color: var(--white-blak-tit);
+}
+
+.trumbowyg-box svg, .trumbowyg-modal svg {
+    fill: var(--white-blak) !important;
+    color: var(--white-blak) !important;
+}
+
+.trumbowyg-button-pane {
+    background: var(--white-blak-side) !important;
+    border-bottom: 0 solid var(--white-bran) !important;
+}
+
+.trumbowyg-box, .trumbowyg-editor {
+    border: 1px solid var(--cinza0) !important;
+}
+
+.trumbowyg-button-pane .trumbowyg-button-group::after {
+    background: var(--cinza0) !important;
+}
+
+.trumbowyg-button-pane::after {
+    background: var(--cinza0) !important;
+}
+
+.trumbowyg-editor, .trumbowyg-textarea {
+    color: var(--white-blak);
+}
+
+.trumbowyg-button-pane button.trumbowyg-active {
+    background-color: var(--white-blak-cont) !important;
+}
+
+.trumbowyg-button-pane button:not(.trumbowyg-disable):hover, .trumbowyg-button-pane button:not(.trumbowyg-disable):focus, .trumbowyg-button-pane button.trumbowyg-active {
+    background-color: var(--white-blak-cont) !important;
+    outline: none;
+}
+
+.trumbowyg-editor {
+    background: var(--white-blak-cont) !important;
+}
+
+.trumbowyg-box {
+    margin-top: 0;
+    margin-bottom: 0;
+    background: var(--white-blak-side);
+}
+
+.well {
+    background-color: var(--white-blak-cont);
+    border: 0 solid #e3e3e3;
+}
+
+.dataTables_info {
+    color: var(--cinza0);
+}
+
+.widget-title .buttons {
+    opacity: 1;
+}
+
+.button {
+    opacity: 1;
+}
+
+.form-actions {
+    background-color: var(--white-bran);
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* MODAL */
+.modal-header {
+    background: var(--white-blak);
+    color: var(--white);
+}
+
+.modal-body {
+    background: var(--white-blak-side);
+    color: var(--white-blak);
+}
+
+.modal-footer {
+    background-color: var(--white-blak);
+    border-top: 1px solid var(--white-blak);
+    box-shadow: inset 0 1px 0 var(--white-blak);
+}
+
+.close {
+    color: #fffdfd;
+    text-shadow: 0 1px 0 #000;
+    opacity: 0.5;
+}
+
+.pass-user {
+    color: var(--white-blak-tit);
+}
+
+@media (max-width: 480px) {
+    #sidebar.open {
+        background: var(--white-blak-side);
+    }
+
+    .new122, .widget-box0, .widget-box1, .widget-box2, .widget-box-new, .widget-box-statist {
+        box-shadow: 0px 3px 10px rgb(0 0 0 / 21%);
+    }
+
+    .cardBox .card .iconBx {
+        color: var(--white-blak-side);
+        font-size: 2.3em;
+        text-shadow: 0 10px 17px #050505ac;
+    }
+}
+
+/* ========================================================
+   SISOS — Cards & Sidebar — Global Upgrade (all themes)
+   ======================================================== */
+
+/* ── Action Cards ── */
+.cardBox {
+    gap: 10px;
+}
+
+.cardBox .card {
+    border-radius: 14px !important;
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease, border-color .22s ease !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    overflow: hidden !important;
+    position: relative;
+}
+
+.cardBox .card:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    border-color: rgba(249,115,22,0.45) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(249,115,22,0.15) !important;
+    z-index: 2;
+}
+
+.cardBox .cardLink {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 16px !important;
+    height: 100% !important;
+    min-height: 110px !important;
+    text-decoration: none !important;
+    gap: 0 !important;
+}
+
+.cardBox .grid-blak {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    margin-bottom: 12px !important;
+}
+
+.cardBox .card .numbers {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    letter-spacing: -.2px !important;
+    line-height: 1.2 !important;
+}
+
+.cardBox .card .cardName {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.2px !important;
+    opacity: 0.5 !important;
+    text-transform: uppercase !important;
+}
+
+.lord-icon01, .lord-icon02, .lord-icon03,
+.lord-icon04, .lord-icon05, .lord-icon06 {
+    border-radius: 12px !important;
+    border: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1) !important;
+    align-self: flex-end !important;
+}
+
+.cardBox .card:hover .lord-icon01,
+.cardBox .card:hover .lord-icon02,
+.cardBox .card:hover .lord-icon03,
+.cardBox .card:hover .lord-icon04,
+.cardBox .card:hover .lord-icon05,
+.cardBox .card:hover .lord-icon06 {
+    transform: scale(1.15) rotate(-5deg) !important;
+}
+
+/* ── Sidebar Upgrade ── */
+#sidebar {
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+#sidebar > ul > li > a {
+    border-radius: 10px !important;
+    margin: 2px 8px !important;
+    padding: 10px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    transition: background .18s ease, color .18s ease, padding-left .18s ease !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+}
+
+#sidebar > ul > li > a:hover {
+    background: rgba(249,115,22,0.12) !important;
+    color: #f97316 !important;
+    border-radius: 10px !important;
+    padding-left: 16px !important;
+}
+
+#sidebar > ul > li > a:hover .icon,
+#sidebar > ul > li > a:hover .title,
+#sidebar > ul > li > a:hover i {
+    color: #f97316 !important;
+}
+
+#sidebar > ul > li.active > a {
+    background: linear-gradient(135deg, rgba(249,115,22,0.25), rgba(251,146,60,0.1)) !important;
+    border-left: 3px solid #f97316 !important;
+    color: #fb923c !important;
+    border-radius: 10px !important;
+}
+
+#sidebar > ul > li.active > a .icon,
+#sidebar > ul > li.active > a .title,
+#sidebar > ul > li.active > a i {
+    color: #fb923c !important;
+}
+
+#sidebar li a i {
+    font-size: 18px !important;
+    min-width: 20px !important;
+    text-align: center !important;
+}
+
+#sidebar > ul > li {
+    border: none !important;
+    margin: 1px 0 !important;
+}
+
+#sidebar .search-box {
+    border-radius: 10px !important;
+    margin: 8px !important;
+}
+
+/* Search input inside sidebar */
+#sidebar .search-box input {
+    background: transparent !important;
+    border: none !important;
+    font-size: 13px !important;
+}
+
+/* Fix search box margin */
+#sidebar .search-box {
+    margin: 6px 10px 4px 10px !important;
+}

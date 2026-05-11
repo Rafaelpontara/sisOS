@@ -1,0 +1,374 @@
+/* Personalização da DIV com os campos de usuário e senha na área de login */
+
+.div-login {
+    background-color: rgba(242, 242, 242, 0.1);
+}
+
+.div-form {
+    background-color: rgba(242, 242, 242, 0.1);
+    border-radius: 15px;
+}
+
+.botao-enviar {
+    background-color: rgba(127, 127, 127, 0.5);
+    border-radius: 15px;
+    color: #cccccc;
+}
+
+.campo-digita {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 15px;
+    border: none;
+}
+
+.campo-digita:active {
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.campo-digita:focus {
+    border: 1px solid;
+    border-color: #1E22F4;
+}
+
+.botao-enviar:hover {
+    background-color: #666666;
+    border: none;
+}
+
+.erro {
+    color: #FFFFFF !important;
+}
+
+/* FIM DA PERSONALIZAÇÃO DA DIV LOGIN */
+
+/* Personalização da calsse visualizar OS */
+
+#valores {
+    color: green;
+}
+
+/* FIM DA PERSONALZIAÇÃODA CLASSE VISUALIZAR OS */
+
+/* PERSONALIZAR DATA E HORA NO TOP DA PÁGINA */
+
+.date-time-top {
+    margin-left: 5px!important;
+    margin-top: 9px!important;
+}
+
+.date-time-top-text {
+    font-size: 11px!important;
+    color: #888!important;
+}
+
+.modal-body .control-group .help-inline {
+    margin-bottom: 8px!important;
+}
+
+/* Correção do Mini Caledário */
+.ui-datepicker {
+    z-index: 99999 !important;
+}
+
+.trumbowyg-box {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.trumbowyg-editor {
+    background-color: #fff;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.ui-menu {
+    z-index: 9999 !important;
+}
+
+.numero-col {
+    width: 3%;
+}
+
+.data-inicial-col {
+    width: 10%;
+}
+
+.data-final-col {
+    width: 10%;
+}
+
+.acoes-col {
+    width: 5%;
+}
+
+.tipo-col {
+    width: 10%;
+}
+
+.cliente-col {
+    width: 20%;
+}
+
+.status-col {
+    width: 12%;
+}
+
+.descricao-col {
+    width: 20%;
+}
+
+.vencimento-col {
+    width: 10%;
+}
+
+.valor-col {
+    width: 10%;
+}
+
+.text-truncate {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lanc-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.lanc-table tbody > tr > td,
+.lanc-table tbody > tr > th {
+    padding: 7px;
+}
+
+/* ============================================================
+   SISOS Dashboard — Visual Upgrade
+   ============================================================ */
+
+/* ── Action Cards (quick access) ── */
+.cardBox {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 12px !important;
+    padding: 0 0 20px 0 !important;
+    list-style: none !important;
+    margin: 0 !important;
+}
+
+.cardBox .card {
+    flex: 1 1 140px;
+    min-width: 130px;
+    max-width: 180px;
+    background: #1e2235 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    transition: transform .18s, border-color .18s, box-shadow .18s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+}
+
+.cardBox .card:hover {
+    transform: translateY(-4px) !important;
+    border-color: rgba(249,115,22,0.4) !important;
+    box-shadow: 0 8px 28px rgba(249,115,22,0.18) !important;
+}
+
+.cardBox .cardLink {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px 16px 14px !important;
+    text-decoration: none !important;
+    height: 100%;
+    gap: 10px;
+}
+
+.cardBox .numbers {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #e8eaf0 !important;
+    letter-spacing: .2px;
+}
+
+.cardBox .cardName {
+    font-size: 11px !important;
+    color: rgba(249,115,22,0.8) !important;
+    font-weight: 600 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase;
+}
+
+.cardBox .lord-icon02,
+.cardBox .lord-icon03,
+.cardBox .lord-icon04,
+.cardBox .lord-icon05,
+.cardBox .lord-icon06 {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    background: rgba(249,115,22,0.12) !important;
+}
+
+.cardBox .iconBx02 { color: #60a5fa !important; font-size: 20px !important; }
+.cardBox .iconBx03 { color: #a78bfa !important; font-size: 20px !important; }
+.cardBox .iconBx04 { color: #34d399 !important; font-size: 20px !important; }
+.cardBox .iconBx05 { color: #f97316 !important; font-size: 20px !important; }
+.cardBox .iconBx06 { color: #fbbf24 !important; font-size: 20px !important; }
+
+/* ── Stat boxes ── */
+.new-bottons .card {
+    background: #1e2235 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    transition: border-color .18s, transform .18s;
+    text-decoration: none !important;
+}
+
+.new-bottons .card:hover {
+    border-color: rgba(249,115,22,0.35) !important;
+    transform: translateY(-2px) !important;
+}
+
+.new-bottons .cardName2 {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #e8eaf0 !important;
+    line-height: 1.1 !important;
+}
+
+.new-bottons .cardName {
+    font-size: 11px !important;
+    color: #6b7280 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .5px !important;
+}
+
+.new-bottons .iconBx  { color: #60a5fa !important; font-size: 22px !important; }
+.new-bottons .iconBx2 { color: #f97316 !important; font-size: 22px !important; }
+.new-bottons .iconBx3 { color: #a78bfa !important; font-size: 22px !important; }
+.new-bottons .iconBx4 { color: #34d399 !important; font-size: 22px !important; }
+.new-bottons .iconBx5 { color: #fbbf24 !important; font-size: 22px !important; }
+.new-bottons .iconBx6 { color: #fb7185 !important; font-size: 22px !important; }
+.new-bottons .iconBx7 { color: #34d399 !important; font-size: 22px !important; }
+.new-bottons .iconBx8 { color: #f87171 !important; font-size: 22px !important; }
+
+/* ── Table headers ── */
+.cardHeader {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #9ca3af !important;
+    text-transform: uppercase !important;
+    letter-spacing: .8px !important;
+    padding: 14px 16px 10px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* ── Tables inside OS sections ── */
+.widget-box0 .table thead th {
+    background: #252a3a !important;
+    color: #9ca3af !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .6px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 10px 12px !important;
+}
+
+.widget-box0 .table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    transition: background .15s;
+}
+
+.widget-box0 .table tbody tr:hover {
+    background: rgba(249,115,22,0.05) !important;
+}
+
+.widget-box0 .table tbody td {
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    color: #c9cad6 !important;
+    vertical-align: middle !important;
+    border: none !important;
+}
+
+/* ── Status badges ── */
+.widget-box0 .badge {
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: .3px !important;
+}
+
+/* ── Dashboard title ── */
+#content-bemv .bemv {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #e8eaf0 !important;
+    letter-spacing: -0.5px !important;
+}
+
+/* ── Widget boxes ── */
+.widget-box0,
+.widget-box2,
+.widget-box-new {
+    background: #1a1d2e !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    margin-bottom: 14px !important;
+}
+
+.widbox-blak {
+    background: #1a1d2e !important;
+}
+
+/* ── View btn ── */
+.btn-nwe {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 7px !important;
+    background: rgba(99,102,241,0.15) !important;
+    color: #a78bfa !important;
+    transition: background .15s;
+}
+
+.btn-nwe:hover {
+    background: rgba(99,102,241,0.3) !important;
+    color: #c4b5fd !important;
+}
+
+.btn-nwe3 {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 7px !important;
+    background: rgba(59,130,246,0.15) !important;
+    color: #60a5fa !important;
+}
+
+.btn-nwe5 {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 7px !important;
+    background: rgba(34,197,94,0.15) !important;
+    color: #4ade80 !important;
+}
