@@ -63,7 +63,9 @@ git clone https://github.com/Rafaelpontara/sisOS.git
    - **Windows (XAMPP):** `C:\xampp\htdocs\sisos`
    - **Linux:** `/var/www/html/sisos`
 
-3. Na raiz do projeto, instale as dependências via Composer:
+3. *(Somente XAMPP)* Ative o `mod_rewrite` no Apache — abra `C:\xampp\apache\conf\httpd.conf`, localize `#LoadModule rewrite_module` e remova o `#`. Reinicie o Apache.
+
+4. Na raiz do projeto, instale as dependências via Composer:
 ```bash
 cd sisos
 composer install --no-dev
