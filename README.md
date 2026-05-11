@@ -6,7 +6,7 @@
 ![issues](https://img.shields.io/github/issues/Rafaelpontara/sisOS.svg?longCache=true&style=flat-square)
 ![contributors](https://img.shields.io/github/contributors/Rafaelpontara/sisOS.svg?longCache=true&style=flat-square)
 
-### Contato: contato@sisos.com.br
+### Contato: techcelbalsas@gmail.com
 ### [Feedback](https://github.com/Rafaelpontara/sisOS/discussions) - Vote ou sugira melhorias
 
 ---
