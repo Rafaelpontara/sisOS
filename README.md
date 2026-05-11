@@ -1,4 +1,4 @@
-![SISOS](https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/assets/img/logo-sisos-laranja-grande.png)
+# SISOS — Sistema de Ordens de Serviço
 
 ![version](https://img.shields.io/badge/version-4.53.2-blue.svg?longCache=true&style=flat-square)
 ![license](https://img.shields.io/badge/license-Apache-green.svg?longCache=true&style=flat-square)
@@ -9,38 +9,11 @@
 ### Contato: contato@sisos.com.br
 ### [Feedback](https://github.com/Rafaelpontara/sisOS/discussions) - Vote ou sugira melhorias
 
-![SISOS Dashboard](https://raw.githubusercontent.com/Rafaelpontara/sisOS/main/docs/dashboard.png)
-
 ---
 
 ## O que é o SISOS?
 
 O **SISOS** é um sistema web open source para **gerenciamento de ordens de serviço**, desenvolvido para assistências técnicas, oficinas e prestadores de serviço. Controle clientes, OS, estoque, financeiro, cobranças, compras e muito mais em um único sistema.
-
----
-
-### Apoie o Projeto SISOS
-
-O **SISOS** é um projeto open source mantido com muito esforço, dedicação e tempo.
-Se ele te ajuda no dia a dia, considere apoiar o desenvolvimento para que o sistema continue evoluindo, recebendo melhorias, correções e novos recursos.
-
-**Faça uma doação:** https://donate.sisos.com.br
-
-Toda contribuição, independente do valor, faz a diferença. Obrigado por apoiar o SISOS!
-
----
-
-### Comunidade no WhatsApp
-
-Participe da comunidade oficial do **SISOS** no WhatsApp para tirar dúvidas, trocar experiências e acompanhar novidades do projeto:
-
-**Entre na comunidade:** https://chat.whatsapp.com/GVSg8tPQzXy0grfYpRfQps
-
----
-
-### Manutenção do Projeto
-
-O **SISOS** é um projeto de código aberto **mantido e desenvolvido pela empresa [MountBit](https://mountbit.com.br)**, responsável pela sua evolução contínua, correções e apoio à comunidade.
 
 ---
 
