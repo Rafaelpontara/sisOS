@@ -144,7 +144,7 @@ URL:            http://localhost:8000/
 4. Execute `docker-compose up --force-recreate` na pasta `docker`.
 5. Clique em **Atualizar Banco de Dados** nas configurações.
 
-### Via Sistema (a partir da v4.4.0)
+### Via Sistema
 
 1. Acesse **Configurações → Sistema** e clique em **Atualizar Sisos**.
 2. Todos os arquivos serão atualizados automaticamente, exceto `config.php`, `database.php` e `email.php`.
@@ -162,11 +162,11 @@ php index.php tools
 
 ## Hospedagem Parceira
 
-Em parceria com o Projeto SISOS, a **SysGO** oferece hospedagem de qualidade e suporte personalizado com custo justo e confiabilidade.
+A **SysGO** oferece hospedagem de qualidade e suporte personalizado com custo justo e confiabilidade.
 
 [Solicite sua hospedagem aqui!](https://sysgo.com.br/sisos)
 
-<p><img src="https://sysgo.com.br/img-externo/sisos-github.jpg" alt="SysGO - SISOS Cloud Hosting" style="width:50%;"></p>
+<p><img src="https://sysgo.com.br" alt="SysGO - SISOS Cloud Hosting" style="width:50%;"></p>
 
 ---
 
@@ -183,9 +183,6 @@ Em parceria com o Projeto SISOS, a **SysGO** oferece hospedagem de qualidade e s
 
 ---
 
-## Estrelas
-
-[![Estrelas](https://api.star-history.com/svg?repos=Rafaelpontara/sisOS&type=Date)](https://star-history.com/#Rafaelpontara/sisOS&Date)
 
 ---
 
