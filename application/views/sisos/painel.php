@@ -246,19 +246,17 @@
         </li>
     <?php endif ?>
 
-    <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vServico')) : ?>
         <li class="card">
-            <a class="cardLink" href="<?= site_url('servicos') ?>">
+            <a class="cardLink" href="<?= site_url('promissoria') ?>">
                 <div class="grid-blak">
-                    <div class="numbers">Serviços</div>
+                    <div class="numbers">Promissória</div>
                     <div class="cardName">F3</div>
                 </div>
                 <div class="lord-icon03">
-                    <i class='bx bx-wrench iconBx03'></i>
+                    <i class='bx bx-file-blank iconBx03'></i>
                 </div>
             </a>
         </li>
-    <?php endif ?>
 
     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
         <li class="card">
@@ -759,8 +757,12 @@
 
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
-                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
+                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
+                                            <i class="bx bx-shield-quarter"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -848,8 +850,12 @@
 
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
-                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
+                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
+                                            <i class="bx bx-shield-quarter"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -938,8 +944,12 @@
 
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
-                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
+                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
+                                            <i class="bx bx-shield-quarter"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1027,8 +1037,12 @@
 
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
-                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
+                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
+                                            <i class="bx bx-shield-quarter"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1114,8 +1128,12 @@
                                     </td>
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
-                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
+                                        <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
+                                            <i class="bx bx-shield-quarter"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1199,9 +1217,12 @@
                                     </td>
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')) : ?>
-                                        <a href="<?= base_url() ?>index.php/vendas/visualizar/<?= $v->idVendas ?>" class="btn-nwe tip-top" title="Visualizar">
-                                            <i class="bx bx-show"></i> </a>
-                                   
+                                        <a href="<?= base_url() ?>index.php/vendas/visualizar/<?= $v->idVendas ?>" class="btn-nwe tip-top" title="Visualizar Venda" style="margin-right:3px;">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="<?= base_url() ?>index.php/vendas/imprimirPromissoria/<?= $v->idVendas ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Promissória" style="background:#1e3a5f;border-color:#2563eb;">
+                                            <i class="bx bx-file-blank"></i>
+                                        </a>
                                     <?php endif ?>
                                 </td>
                             </tr>
