@@ -10,7 +10,7 @@ fi
 ##############################################################
 ## Script desenvolvido por Bruno Barreto e Leonardo Bernardi
 ## Versao Instalador: v2.7.20250303
-## Publicado na versao 4.52.0 do MapOS
+##
 ##############################################################
 
 # <=== Controle de STEPs ===>
@@ -20,7 +20,7 @@ fi
 # etapa2 - Selecao de Versao
 # etapa3 - Download de Dependências
 # etapa4 - Instalação XAMPP
-# etapa5 - Instalação MAP-OS
+# etapa5 - Instalação SISOS
 # etapa6 - Instalação Composer
 # etapa7 - Configuração pelo Browser
 # etapa8 - Configuração de dados de E-mail
@@ -30,10 +30,10 @@ fi
 
 # <=== Inicio SET Diretorios ===>
     installCommand="sudo apt-get -y"
-    dirDefault=/opt/InstaladorMAPOS
+    dirDefault=/opt/InstaladorSISOS
     urlXampp="https://sourceforge.net/projects/xampp/files/XAMPP%20Linux/8.2.12/xampp-linux-x64-8.2.12-0-installer.run/download"
     dirXampp=/opt/lampp
-    dirMaposConfig=/opt/lampp/htdocs/mapos/application/.env
+    dirSisosConfig=/opt/lampp/htdocs/sisos/application/.env
     dirHtdocs=/opt/lampp/htdocs
     dirMySQL=/opt/lampp/bin/mysql
 # <=== Fim SET Diretorios ===>
@@ -46,7 +46,7 @@ fi
     echo "**                                              **"
     echo "**                                              **"
     echo "**           SCRIPT AUTO INSTALADOR             **"
-    echo "**    MAP-OS - SISTEMA DE ORDEM DE SERVICO      **"
+    echo "**    SIS-OS - SISTEMA DE ORDEM DE SERVICO      **"
     echo "**        LINUX (Debian / Ubuntu) x64           **"
     echo "**                                              **"
     echo "**                                              **"
@@ -58,7 +58,7 @@ fi
 
 # <=== Inicio Boas Vindas ===>
     echo "Ola, seja bem vindo."
-    echo "Esse script foi desenvolvido com o intuito de auxiliar na instalacao automatizada do Sistema MAP-OS e os componentes necessarios."
+    echo "Esse script foi desenvolvido com o intuito de auxiliar na instalacao automatizada do Sistema SIS-OS e os componentes necessarios."
     echo "Reforcamos que nao recomendamos a instalacao em localhost para uso em PRODUCAO, apenas para TESTE ou DESENVOLVIMENTO devido a riscos de perdas de dados e seguranca."
     echo
     echo "Video Tutorial: https://www.youtube.com/watch?v=3J9Q6J9Z9ZQ"
@@ -71,9 +71,9 @@ fi
     fi
 # <=== Fim Boas Vindas ===>
 
-# <=== Inicio Boas Vindas ===>
+# <=== Inicio Selecao de Versao ===>
     clear
-    echo "# DESEJA INSTALAR O MAP-OS RELEASE OU MASTER?"
+    echo "# DESEJA INSTALAR O SIS-OS RELEASE OU MASTER?"
     echo "1- Release (Versao Estavel)"
     echo "2- Master (Versao Desenvolvimento)"
     echo "9 - Sair"
@@ -86,7 +86,7 @@ fi
     elif [ "$resposta" = "9" ]; then
         exit 0
     fi
-# <=== Fim Termos de Aceite ===>
+# <=== Fim Selecao de Versao ===>
 
 # <=== Inicio Download de Dependências ===>
     clear
@@ -136,45 +136,45 @@ fi
     fi
 # <=== Fim Instalação XAMPP ===>
 
-#  <=== Inicio Instalação MAP-OS ===>
+#  <=== Inicio Instalação SISOS ===>
     clear
-    echo "# INSTALACAO SISTEMA MAP-OS..."
-    if [ -d "$dirHtdocs/mapos" ]
+    echo "# INSTALACAO SISTEMA SIS-OS..."
+    if [ -d "$dirHtdocs/sisos" ]
     then
-        echo "* Map-OS presente no sistema."
+        echo "* Sis-OS presente no sistema."
     else
         echo "* Baixando a ultima versao do projeto."
 
         if [ "$downMapos" = "release" ]; then
-            wget --quiet --show-progress -O $dirDefault/MapOS.zip $(curl -s https://api.github.com/repos/RamonSilva20/mapos/releases/latest | grep "zipball_url" | awk -F\" '{print $4}')
+            wget --quiet --show-progress -O $dirDefault/SisOS.zip $(curl -s https://api.github.com/repos/Rafaelpontara/sisos/releases/latest | grep "zipball_url" | awk -F\" '{print $4}')
         elif [ "$downMapos" = "master" ]; then
-            wget --quiet --show-progress -O $dirDefault/MapOS.zip https://github.com/RamonSilva20/mapos/archive/refs/heads/master.zip
+            wget --quiet --show-progress -O $dirDefault/SisOS.zip https://github.com/Rafaelpontara/sisos/archive/refs/heads/master.zip
         fi
         echo
         echo "* Extraindo projeto."
-        unzip -q $dirDefault/MapOS.zip -d $dirHtdocs/
-        mv -i $dirHtdocs/*mapos* $dirHtdocs/mapos
+        unzip -q $dirDefault/SisOS.zip -d $dirHtdocs/
+        mv -i $dirHtdocs/*sisos* $dirHtdocs/sisos
         echo
         echo "* Atribuindo permissões."
-        sudo chmod 777 $dirHtdocs/mapos/updates/
-        sudo chmod 777 $dirHtdocs/mapos/application/
-        sudo chmod 777 $dirHtdocs/mapos/index.php
-        sudo chmod 777 $dirHtdocs/mapos/application/config/config.php
-        sudo chmod 777 $dirHtdocs/mapos/application/config/database.php
-        sudo chmod 777 $dirHtdocs/mapos/application/config/.env
-        sudo chmod 777 $dirHtdocs/mapos/application/config/.env.example
-        sudo rm -f $dirHtdocs/mapos/.htaccess
+        sudo chmod 777 $dirHtdocs/sisos/updates/
+        sudo chmod 777 $dirHtdocs/sisos/application/
+        sudo chmod 777 $dirHtdocs/sisos/index.php
+        sudo chmod 777 $dirHtdocs/sisos/application/config/config.php
+        sudo chmod 777 $dirHtdocs/sisos/application/config/database.php
+        sudo chmod 777 $dirHtdocs/sisos/application/config/.env
+        sudo chmod 777 $dirHtdocs/sisos/application/config/.env.example
+        sudo rm -f $dirHtdocs/sisos/.htaccess
         echo
         echo "* Criando banco de dados."
-        $dirMySQL -u root -e "CREATE DATABASE mapos;"
+        $dirMySQL -u root -e "CREATE DATABASE sisos;"
     fi
-# <=== Fim Instalação MAP-OS ===>
+# <=== Fim Instalação SIS-OS ===>
 
 # <=== Inicio Instalação Composer ===>
     clear
-    echo "04 COMPLEMENTO COMPOSER..."
+    echo "# COMPLEMENTO COMPOSER..."
     echo
-    echo "04.1 Executando instalador COMPOSER"
+    echo "* Executando instalador COMPOSER"
     if command -v composer &> /dev/null
     then
         echo "* Composer ja esta instalado."
@@ -184,32 +184,32 @@ fi
     fi
     echo
     echo "* Verificando complemento"
-    if [ -f "$dirHtdocs/mapos/application/vendor" ]
+    if [ -d "$dirHtdocs/sisos/application/vendor" ]
     then
         echo "* Complementos ja instalados."
     else
         echo "* Instalando complementos."
-        cd $dirHtdocs/mapos
+        cd $dirHtdocs/sisos
         composer install --no-dev -n --ignore-platform-reqs &> /dev/null
     fi
 # <=== Fim Instalação Composer ===>
 
-# <=== Inicio Configuração pelo Browser ===>
+# <=== Fim Configuração pelo Browser ===>
     clear
-    echo "# CONFIGURANDO MAPOS..."
-    echo "Acesse o Map-OS via navegador http://localhost/mapos/install"
+    echo "# CONFIGURANDO SISOS..."
+    echo "Acesse o SISOS via navegador http://localhost/sisos/install"
     echo "Clique me PROXIMO e insira os dados abaixo:"
     echo
     echo "Host: localhost"
     echo "Usuario: root"
     echo "Senha: \"Em Branco\""
-    echo "Banco de Dados: mapos"
+    echo "Banco de Dados: sisos"
     echo
     echo Nome: "Digite seu Nome Completo"
     echo Email: "Informe seu E-mail para Login"
     echo Senha: "Insira sua senha para acesso"
     echo
-    echo "URL: http://localhost/mapos/"
+    echo "URL: http://localhost/sisos/"
     echo
     echo "Obs: Caso a instalacao nao tenha sido bem sucedida, encerre o script e execute novamente."
     read -p "Gostaria de realizar a configuracao personalizada? (S/N)" resposta
@@ -218,7 +218,7 @@ fi
     elif [ "$resposta" = "S" ] || [ "$resposta" = "s" ]; then
         echo
     fi
-# <=== Inicio Configuração pelo Browser ===>
+# <=== Fim Configuração pelo Browser ===>
 
 # <=== Inicio Configurações Personalizadas ===>
     clear
@@ -240,12 +240,12 @@ fi
             read -p "Informe o Email (Ex: nome@seudominio.com): " email
             read -p "Informe a Senha (****): " senha
 
-            sed -i "s/\EMAIL_PROTOCOL.*/\EMAIL_PROTOCOL='$protocolo'/" $dirMaposConfig
-            sed -i "s/\EMAIL_SMTP_HOST.*/\EMAIL_SMTP_HOST='$hostsmtp'/" $dirMaposConfig
-            sed -i "s/\EMAIL_SMTP_CRYPTO.*/\EMAIL_SMTP_CRYPTO='$criptografia'/" $dirMaposConfig
-            sed -i "s/\EMAIL_SMTP_PORT.*/\EMAIL_SMTP_PORT='$porta'/" $dirMaposConfig
-            sed -i "s/\EMAIL_SMTP_USER.*/\EMAIL_SMTP_USER='$email'/" $dirMaposConfig
-            sed -i "s/\EMAIL_SMTP_PASS.*/\EMAIL_SMTP_PASS='$senha'/" $dirMaposConfig
+            sed -i "s/\EMAIL_PROTOCOL.*/\EMAIL_PROTOCOL='$protocolo'/" $dirSisosConfig
+            sed -i "s/\EMAIL_SMTP_HOST.*/\EMAIL_SMTP_HOST='$hostsmtp'/" $dirSisosConfig
+            sed -i "s/\EMAIL_SMTP_CRYPTO.*/\EMAIL_SMTP_CRYPTO='$criptografia'/" $dirSisosConfig
+            sed -i "s/\EMAIL_SMTP_PORT.*/\EMAIL_SMTP_PORT='$porta'/" $dirSisosConfig
+            sed -i "s/\EMAIL_SMTP_USER.*/\EMAIL_SMTP_USER='$email'/" $dirSisosConfig
+            sed -i "s/\EMAIL_SMTP_PASS.*/\EMAIL_SMTP_PASS='$senha'/" $dirSisosConfig
             echo
             echo "* Dados de Email alterados com sucesso."
         fi
@@ -258,8 +258,8 @@ fi
             echo "* Nao configurado disparo automatico."
         elif [ "$resposta" = "S" ] || [ "$resposta" = "s" ]; then
             echo "* Disparo automatico configurado com sucesso."
-            (crontab -l ; echo "*/2 * * * * php $dirHtdocs/mapos/index.php email/process") | crontab -
-            (crontab -l ; echo "*/5 * * * * php $dirHtdocs/mapos/index.php email/retry") | crontab -
+            (crontab -l ; echo "*/2 * * * * php $dirHtdocs/sisos/index.php email/process") | crontab -
+            (crontab -l ; echo "*/5 * * * * php $dirHtdocs/sisos/index.php email/retry") | crontab -
         fi
     # <=== Fim Configuracao da Cron ===>
 
@@ -270,7 +270,7 @@ fi
             echo "* Nao alterado valor da primeira OS."
     elif [ "$resposta" = "S" ] || [ "$resposta" = "s" ]; then
         read -p "Informe o numero (Padrao: 1):" nOS
-        $dirMySQL -u root -e "USE mapos; ALTER TABLE os AUTO_INCREMENT=$nOS;"
+        $dirMySQL -u root -e "USE sisos; ALTER TABLE os AUTO_INCREMENT=$nOS;"
         echo "* Número da próxima OS alterado para $nOS"
     fi
     # <=== Fim Configuracao da Cron ===>
