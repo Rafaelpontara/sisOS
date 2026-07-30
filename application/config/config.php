@@ -5,7 +5,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /**
  * App current version
  */
-$config['app_version'] = '1.0.0';
+$config['app_version'] = '2.0.0';
 
 /**
  * Nome do sistema

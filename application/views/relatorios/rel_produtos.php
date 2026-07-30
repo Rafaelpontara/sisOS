@@ -9,22 +9,48 @@ function _sanitizeEnum($v, $allowed, $def='') {
 }
 ?>
 <?php
-$de  = _sanitizeDate($this->input->get('de'), date('Y-m-01'));
-$ate = _sanitizeDate($this->input->get('ate'), date('Y-m-d'));
+$de          = _sanitizeDate($this->input->get('de'), date('Y-m-01'));
+$ate         = _sanitizeDate($this->input->get('ate'), date('Y-m-d'));
+$cat_id      = (int)($this->input->get('categoria') ?: 0);
+
+// Todas as categorias de produto para o filtro
+$categorias_lista = $this->db->where('status', 1)->where('tipo', 'produto')->order_by('categoria')->get('categorias')->result();
+
+// Montar WHERE de categoria
+$where_cat_sql  = $cat_id ? "AND p.categorias_id = $cat_id" : '';
+$where_cat_solo = $cat_id ? "AND categorias_id = $cat_id"   : '';
+
 $mais_usados = $this->db->query("SELECT p.descricao,p.precoVenda,p.estoque,
+    c.categoria,
     COUNT(po.idProdutos_os) as vezes_usado,SUM(po.quantidade) as qtd_total,
     SUM(po.preco*po.quantidade) as receita_gerada
     FROM produtos_os po LEFT JOIN produtos p ON p.idProdutos=po.produtos_id
-    LEFT JOIN os ON os.idOs=po.os_id WHERE os.dataInicial BETWEEN '$de' AND '$ate'
+    LEFT JOIN categorias c ON c.idCategorias=p.categorias_id
+    LEFT JOIN os ON os.idOs=po.os_id
+    WHERE os.dataInicial BETWEEN '$de' AND '$ate' $where_cat_sql
     GROUP BY po.produtos_id ORDER BY vezes_usado DESC LIMIT 20")->result();
-$estoque_critico = $this->db->query("SELECT descricao,estoque,estoqueMinimo,precoVenda,precoCompra,
-    (precoVenda-precoCompra) as margem FROM produtos
-    WHERE estoque<=estoqueMinimo AND estoqueMinimo>0 ORDER BY estoque ASC")->result();
+$estoque_critico = $this->db->query("SELECT p.descricao,p.estoque,p.estoqueMinimo,p.precoVenda,p.precoCompra,
+    c.categoria,
+    (p.precoVenda-p.precoCompra) as margem FROM produtos p
+    LEFT JOIN categorias c ON c.idCategorias=p.categorias_id
+    WHERE p.estoque<=p.estoqueMinimo AND p.estoqueMinimo>0 $where_cat_sql
+    ORDER BY p.estoque ASC")->result();
 $totais_prod = $this->db->query("SELECT COUNT(*) as total,
     SUM(estoque*precoVenda) as valor_estoque,SUM(estoque*precoCompra) as custo_estoque,
     SUM(CASE WHEN estoque=0 THEN 1 ELSE 0 END) as zerados,
     SUM(CASE WHEN estoque<=estoqueMinimo AND estoqueMinimo>0 THEN 1 ELSE 0 END) as criticos
-    FROM produtos")->row();
+    FROM produtos WHERE 1=1 $where_cat_solo")->row();
+// Relatório por categoria
+$por_categoria = $this->db->query("SELECT c.categoria, c.idCategorias,
+    COUNT(p.idProdutos) as qtd_produtos,
+    SUM(p.estoque) as estoque_total,
+    SUM(p.estoque*p.precoVenda) as valor_estoque,
+    SUM(p.estoque*p.precoCompra) as custo_estoque,
+    SUM(CASE WHEN p.estoque=0 THEN 1 ELSE 0 END) as zerados
+    FROM produtos p
+    LEFT JOIN categorias c ON c.idCategorias=p.categorias_id
+    WHERE 1=1 $where_cat_solo
+    GROUP BY p.categorias_id ORDER BY valor_estoque DESC")->result();
 $sem_saida = $this->db->query("SELECT p.descricao,p.estoque,p.precoVenda FROM produtos p
     WHERE p.idProdutos NOT IN (
         SELECT DISTINCT po.produtos_id FROM produtos_os po
@@ -114,14 +140,114 @@ $sem_saida = $this->db->query("SELECT p.descricao,p.estoque,p.precoVenda FROM pr
 
     <div class="rel-header">
         <div class="rel-title"><i class='bx bx-package' style="color:#8b5cf6;"></i><h2>Relatório de Produtos</h2></div>
-        <a href="<?= site_url('relatorios/produtosRapid') ?>" target="_blank" class="rel-btn rel-btn-print"><i class='bx bx-file-pdf'></i> Gerar PDF/Imprimir</a>
+
     </div>
 
     <form method="get" class="rel-filters">
         <div class="rel-filter-item"><label class="rel-filter-label">De</label><input type="date" name="de" class="rel-input" value="<?= $de ?>"></div>
         <div class="rel-filter-item"><label class="rel-filter-label">Até</label><input type="date" name="ate" class="rel-input" value="<?= $ate ?>"></div>
+        <div class="rel-filter-item">
+            <label class="rel-filter-label">Categoria</label>
+            <select name="categoria" class="rel-select" style="min-width:160px;">
+                <option value="">Todas as categorias</option>
+                <?php foreach ($categorias_lista as $cat): ?>
+                    <option value="<?= $cat->idCategorias ?>" <?= $cat_id == $cat->idCategorias ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($cat->categoria) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
         <button type="submit" class="rel-btn rel-btn-filter"><i class='bx bx-filter-alt'></i> Filtrar</button>
+        <?php if ($cat_id): ?>
+        <a href="<?= current_url() ?>" class="rel-btn" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25);height:36px;">
+            <i class='bx bx-x'></i> Limpar
+        </a>
+        <?php endif; ?>
+        <a href="<?= site_url('relatorios/produtosRapid') ?>?de=<?= $de ?>&ate=<?= $ate ?>&categoria=<?= $cat_id ?>" target="_blank" class="rel-btn rel-btn-print" style="margin-left:auto;height:36px;">
+            <i class='bx bx-printer'></i> Imprimir
+        </a>
     </form>
+
+    <!-- Filtro ativo -->
+    <?php if ($cat_id && !empty($categorias_lista)): ?>
+    <?php $cat_nome = ''; foreach($categorias_lista as $cl) if($cl->idCategorias==$cat_id) $cat_nome=$cl->categoria; ?>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:8px;font-size:12px;color:#c084fc;margin-bottom:14px;">
+        <i class='bx bx-filter-alt'></i>
+        Filtrando por categoria: <strong><?= htmlspecialchars($cat_nome) ?></strong>
+        <a href="<?= current_url() ?>" style="margin-left:auto;color:#f87171;font-size:11px;"><i class='bx bx-x'></i> remover filtro</a>
+    </div>
+    <?php endif; ?>
+
+    <!-- Relatório por Categoria -->
+    <?php if (!empty($por_categoria)): ?>
+    <div class="rel-card" style="margin-bottom:14px;">
+        <div class="rel-card-head">
+            <i class='bx bx-category' style="color:#a78bfa;"></i>
+            <span>Estoque por Categoria</span>
+            <button onclick="exportarCSV('tblCat','categorias_<?= date('Y-m-d') ?>')" class="rel-btn-export"><i class='bx bx-export'></i> CSV</button>
+        </div>
+        <div class="rel-card-body" style="padding:0;overflow-x:auto;">
+            <table class="rel-tbl" id="tblCat" style="min-width:600px;">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th class="c">Produtos</th>
+                        <th class="c">Estoque Total</th>
+                        <th class="r">Valor Venda</th>
+                        <th class="r">Valor Custo</th>
+                        <th class="c">Zerados</th>
+                        <th class="c">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($por_categoria as $row):
+                    $pct_zero = $row->qtd_produtos > 0 ? round($row->zerados/$row->qtd_produtos*100) : 0;
+                ?>
+                <tr>
+                    <td>
+                        <span style="font-weight:700;color:#e8eaf0;">
+                            <?= htmlspecialchars($row->categoria ?: 'Sem categoria') ?>
+                        </span>
+                    </td>
+                    <td class="c"><span class="rel-badge rb-blue"><?= $row->qtd_produtos ?></span></td>
+                    <td class="c"><?= number_format($row->estoque_total ?? 0) ?></td>
+                    <td class="r" style="color:#4ade80;font-weight:700;">
+                        R$ <?= number_format($row->valor_estoque ?? 0, 2, ',', '.') ?>
+                    </td>
+                    <td class="r" style="color:#fb923c;font-weight:700;">
+                        R$ <?= number_format($row->custo_estoque ?? 0, 2, ',', '.') ?>
+                    </td>
+                    <td class="c">
+                        <?php if ($row->zerados > 0): ?>
+                        <span class="rel-badge rb-red"><?= $row->zerados ?> (<?= $pct_zero ?>%)</span>
+                        <?php else: ?>
+                        <span class="rel-badge rb-green">Nenhum</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="c">
+                        <a href="?de=<?= $de ?>&ate=<?= $ate ?>&categoria=<?= $row->idCategorias ?>"
+                           class="rel-badge rb-purple" style="text-decoration:none;cursor:pointer;">
+                            <i class='bx bx-filter-alt'></i> Filtrar
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr style="background:#252a3a;border-top:2px solid #4f46e5;">
+                        <td style="padding:10px 14px;font-weight:800;color:#e8eaf0;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Total Geral</td>
+                        <td style="padding:10px 14px;text-align:center;font-weight:700;color:#e8eaf0;"><?= array_sum(array_column($por_categoria,'qtd_produtos')) ?></td>
+                        <td style="padding:10px 14px;text-align:center;font-weight:700;color:#e8eaf0;"><?= number_format(array_sum(array_column($por_categoria,'estoque_total'))) ?></td>
+                        <td style="padding:10px 14px;text-align:right;color:#4ade80;font-weight:800;">R$ <?= number_format(array_sum(array_column($por_categoria,'valor_estoque')),2,',','.') ?></td>
+                        <td style="padding:10px 14px;text-align:right;color:#fb923c;font-weight:800;">R$ <?= number_format(array_sum(array_column($por_categoria,'custo_estoque')),2,',','.') ?></td>
+                        <td style="padding:10px 14px;text-align:center;font-weight:700;color:#e8eaf0;"><?= array_sum(array_column($por_categoria,'zerados')) ?></td>
+                        <td style="padding:10px 14px;"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- KPIs -->
     <?php $tp = $totais_prod; ?>
@@ -132,7 +258,13 @@ $sem_saida = $this->db->query("SELECT p.descricao,p.estoque,p.precoVenda FROM pr
         </div>
         <div class="rel-kpi" style="border-color:rgba(34,197,94,0.3);">
             <div class="rel-kpi-icon" style="background:rgba(34,197,94,0.15);"><i class='bx bx-dollar' style="color:#22c55e;"></i></div>
-            <div><div class="rel-kpi-val" style="font-size:14px;color:#4ade80;">R$ <?= number_format($tp->valor_estoque??0,2,',','.') ?></div><div class="rel-kpi-label">Valor em Estoque</div></div>
+            <div><div class="rel-kpi-val" style="font-size:14px;color:#4ade80;">R$ <?= number_format($tp->valor_estoque??0,2,',','.') ?></div><div class="rel-kpi-label">Valor em Estoque (Venda)</div></div>
+        </div>
+        <div class="rel-kpi" style="border-color:rgba(251,146,60,0.3);">
+            <div class="rel-kpi-icon" style="background:rgba(251,146,60,0.15);font-size:20px;">
+                <i class='bx bx-purchase-tag' style="color:#fb923c;"></i>
+            </div>
+      <div><div class="rel-kpi-val" style="font-size:14px;color:#fb923c;">R$ <?= number_format($tp->custo_estoque??0,2,',','.') ?></div><div class="rel-kpi-label">Valor em Estoque (Custo)</div></div>
         </div>
         <div class="rel-kpi" style="border-color:rgba(239,68,68,0.3);">
             <div class="rel-kpi-icon" style="background:rgba(239,68,68,0.15);"><i class='bx bx-error' style="color:#ef4444;"></i></div>

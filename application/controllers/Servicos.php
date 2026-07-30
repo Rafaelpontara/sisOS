@@ -28,23 +28,53 @@ class Servicos extends MY_Controller
         }
 
         $pesquisa = $this->input->get('pesquisa');
+        $perPage = 24;
 
-        $this->load->library('pagination');
+        $this->_aplicarFiltrosServicos($pesquisa);
+        $this->db->order_by('idServicos', 'DESC');
+        $this->db->limit($perPage, 0);
+        $this->data['results'] = $this->db->get('servicos')->result();
 
-        $this->data['configuration']['base_url'] = site_url('servicos/gerenciar/');
-        $this->data['configuration']['total_rows'] = $this->servicos_model->count('servicos');
-        if ($pesquisa) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}";
-            $this->data['configuration']['first_url'] = base_url("index.php/servicos")."\?pesquisa={$pesquisa}";
-        }
+        $this->_aplicarFiltrosServicos($pesquisa);
+        $this->data['statTotalFiltrado'] = $this->db->count_all_results('servicos');
 
-        $this->pagination->initialize($this->data['configuration']);
-
-        $this->data['results'] = $this->servicos_model->get('servicos', '*', $pesquisa, $this->data['configuration']['per_page'], $this->uri->segment(3));
-
+        $this->data['perPage'] = $perPage;
+        $this->data['pesquisa'] = $pesquisa;
         $this->data['view'] = 'servicos/servicos';
 
         return $this->layout();
+    }
+
+    /**
+     * Endpoint AJAX chamado pela rolagem infinita da lista de serviços.
+     */
+    public function carregarMais()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vServico')) {
+            return;
+        }
+
+        $pesquisa = $this->input->get('pesquisa');
+        $antesDe = (int) $this->input->get('antes_de');
+        $perPage = 24;
+
+        $this->_aplicarFiltrosServicos($pesquisa);
+        if ($antesDe > 0) $this->db->where('idServicos <', $antesDe);
+        $this->db->order_by('idServicos', 'DESC');
+        $this->db->limit($perPage, 0);
+        $results = $this->db->get('servicos')->result();
+
+        echo $this->load->view('servicos/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+    }
+
+    private function _aplicarFiltrosServicos($pesquisa)
+    {
+        if ($pesquisa) {
+            $this->db->group_start();
+            $this->db->like('nome', $pesquisa);
+            $this->db->or_like('descricao', $pesquisa);
+            $this->db->group_end();
+        }
     }
 
     public function adicionar()
@@ -64,8 +94,8 @@ class Servicos extends MY_Controller
             $preco = str_replace(',', '', $preco);
 
             $data = [
-                'nome' => set_value('nome'),
-                'descricao' => set_value('descricao'),
+                'nome' => $this->input->post('nome'),
+                'descricao' => $this->input->post('descricao'),
                 'preco' => $preco,
             ];
 

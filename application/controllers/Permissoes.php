@@ -76,6 +76,16 @@ class Permissoes extends MY_Controller
                 'dOs' => $this->input->post('dOs'),
                 'vOs' => $this->input->post('vOs'),
 
+                'aSolucao' => $this->input->post('aSolucao'),
+                'eSolucao' => $this->input->post('eSolucao'),
+                'dSolucao' => $this->input->post('dSolucao'),
+                'vSolucao' => $this->input->post('vSolucao'),
+
+                'aPedido' => $this->input->post('aPedido'),
+                'ePedido' => $this->input->post('ePedido'),
+                'dPedido' => $this->input->post('dPedido'),
+                'vPedido' => $this->input->post('vPedido'),
+
                 'aVenda' => $this->input->post('aVenda'),
                 'eVenda' => $this->input->post('eVenda'),
                 'dVenda' => $this->input->post('dVenda'),
@@ -176,6 +186,16 @@ class Permissoes extends MY_Controller
                 'eOs' => $this->input->post('eOs'),
                 'dOs' => $this->input->post('dOs'),
                 'vOs' => $this->input->post('vOs'),
+
+                'aSolucao' => $this->input->post('aSolucao'),
+                'eSolucao' => $this->input->post('eSolucao'),
+                'dSolucao' => $this->input->post('dSolucao'),
+                'vSolucao' => $this->input->post('vSolucao'),
+
+                'aPedido' => $this->input->post('aPedido'),
+                'ePedido' => $this->input->post('ePedido'),
+                'dPedido' => $this->input->post('dPedido'),
+                'vPedido' => $this->input->post('vPedido'),
 
                 'aVenda' => $this->input->post('aVenda'),
                 'eVenda' => $this->input->post('eVenda'),

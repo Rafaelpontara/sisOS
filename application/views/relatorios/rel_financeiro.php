@@ -1,9 +1,24 @@
 <?php
-$de   = $this->input->get('de')  ?: date('Y-m-01');
-$ate  = $this->input->get('ate') ?: date('Y-m-d');
-$tipo_raw = $this->input->get('tipo');
-$tipo = in_array($tipo_raw, ['receita', 'despesa', ''], true) ? $tipo_raw : '';
-$wb   = "data_vencimento BETWEEN '$de' AND '$ate'" . ($tipo ? " AND tipo='$tipo'" : '');
+$de        = $this->input->get('de')        ?: date('Y-m-01');
+$ate       = $this->input->get('ate')       ?: date('Y-m-d');
+$tipo_raw  = $this->input->get('tipo');
+$tipo      = in_array($tipo_raw, ['receita', 'despesa', ''], true) ? $tipo_raw : '';
+$situacao  = $this->input->get('situacao'); // '' = todos | '1' = pago | '0' = pendente
+$forma     = $this->input->get('forma_pgto') ?: '';
+$cliente_f = trim($this->input->get('cliente_fornecedor') ?: '');
+$categoria = $this->input->get('categoria_id') ?: '';
+
+// Where base
+$wb = "data_vencimento BETWEEN '$de' AND '$ate'";
+if ($tipo)      $wb .= " AND tipo='" . $this->db->escape_str($tipo) . "'";
+if ($situacao !== null && $situacao !== '') $wb .= " AND baixado=" . ($situacao === '1' ? 1 : 0);
+if ($forma)     $wb .= " AND forma_pgto='" . $this->db->escape_str($forma) . "'";
+if ($cliente_f) $wb .= " AND cliente_fornecedor LIKE '%" . $this->db->escape_like_str($cliente_f) . "%'";
+if ($categoria) $wb .= " AND categorias_id=" . intval($categoria);
+
+// Listas para os selects
+$formas_pgto = $this->db->query("SELECT DISTINCT forma_pgto FROM lancamentos WHERE forma_pgto IS NOT NULL AND forma_pgto<>'' ORDER BY forma_pgto")->result();
+$categorias  = $this->db->query("SELECT idCategorias, categoria FROM categorias ORDER BY categoria")->result();
 
 $totais = $this->db->query("SELECT
     SUM(CASE WHEN tipo='receita' AND baixado=1 THEN IF(valor_desconto>0,valor_desconto,valor) ELSE 0 END) as rec_paga,
@@ -40,6 +55,7 @@ $inadimplentes = $this->db->query("SELECT cliente_fornecedor,descricao,valor,dat
 <?php
 $t = $totais;
 $saldo = ($t->rec_paga ?? 0) - ($t->desp_paga ?? 0);
+$emitente = $this->Sisos_model->getEmitente();
 ?>
 <style>/* ══════════════════════════════════════
    ESTILO COMPARTILHADO — RELATÓRIOS
@@ -116,18 +132,51 @@ $saldo = ($t->rec_paga ?? 0) - ($t->desp_paga ?? 0);
     .rel-card-head{background:#f5f5f5!important;}
     .rel-card-head span,.rel-kpi-label,.rel-tbl thead th{color:#555!important;}
     .rel-kpi-val,.rel-tbl tbody td{color:#111!important;}
+    .print-header{display:flex!important;}
+}
+.print-header{
+    display:none;
+    align-items:center;
+    gap:16px;
+    padding-bottom:14px;
+    margin-bottom:16px;
+    border-bottom:2px solid #ddd;
 }
 </style>
 
 <div class="rel-wrap new122">
 
+    <!-- Cabeçalho visível só na impressão -->
+    <div class="print-header">
+        <?php if (!empty($emitente->url_logo)): ?>
+        <img src="<?= base_url($emitente->url_logo) ?>" alt="Logo" style="max-height:60px;max-width:160px;object-fit:contain;">
+        <?php endif; ?>
+        <div>
+            <div style="font-size:16px;font-weight:800;color:#111;"><?= htmlspecialchars($emitente->nome ?? '') ?></div>
+            <?php if (!empty($emitente->cnpj)): ?>
+            <div style="font-size:12px;color:#555;">CNPJ: <?= htmlspecialchars($emitente->cnpj) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($emitente->telefone)): ?>
+            <div style="font-size:12px;color:#555;">Tel: <?= htmlspecialchars($emitente->telefone) ?></div>
+            <?php endif; ?>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+            <div style="font-size:13px;font-weight:700;color:#111;">Relatório Financeiro</div>
+            <div style="font-size:11px;color:#555;">
+                Período: <?= date('d/m/Y', strtotime($de)) ?> até <?= date('d/m/Y', strtotime($ate)) ?>
+            </div>
+            <div style="font-size:11px;color:#555;">Emitido em: <?= date('d/m/Y H:i') ?></div>
+        </div>
+    </div>
+
     <div class="rel-header">
         <div class="rel-title"><i class='bx bx-bar-chart-alt-2' style="color:#fbbf24;"></i><h2>Relatório Financeiro</h2></div>
-        <a href="<?= site_url('relatorios/financeiroRapid') ?>" target="_blank" class="rel-btn rel-btn-print"><i class='bx bx-file-pdf'></i>Gerar PDF/Imprimir</a>
+        <a id="btnPdf" href="#" target="_blank" class="rel-btn rel-btn-print"><i class='bx bx-file-pdf'></i>Gerar PDF/Imprimir</a>
     </div>
 
     <!-- Filtros -->
-    <form method="get" class="rel-filters">
+    <form method="get" class="rel-filters" id="formFiltros">
+        <!-- Linha 1: datas + tipo -->
         <div class="rel-filter-item">
             <label class="rel-filter-label">De</label>
             <input type="date" name="de" class="rel-input" value="<?= $de ?>">
@@ -144,7 +193,46 @@ $saldo = ($t->rec_paga ?? 0) - ($t->desp_paga ?? 0);
                 <option value="despesa" <?= $tipo=='despesa'?'selected':'' ?>>Despesas</option>
             </select>
         </div>
-        <button type="submit" class="rel-btn rel-btn-filter"><i class='bx bx-filter-alt'></i> Filtrar</button>
+        <div class="rel-filter-item">
+            <label class="rel-filter-label">Situação</label>
+            <select name="situacao" class="rel-select">
+                <option value="">Todos</option>
+                <option value="1" <?= $situacao==='1'?'selected':'' ?>>Pago</option>
+                <option value="0" <?= $situacao==='0'?'selected':'' ?>>Pendente</option>
+            </select>
+        </div>
+        <div class="rel-filter-item">
+            <label class="rel-filter-label">Forma de Pgto</label>
+            <select name="forma_pgto" class="rel-select">
+                <option value="">Todas</option>
+                <?php foreach ($formas_pgto as $f): ?>
+                <option value="<?= htmlspecialchars($f->forma_pgto) ?>" <?= $forma===$f->forma_pgto?'selected':'' ?>>
+                    <?= htmlspecialchars($f->forma_pgto) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="rel-filter-item">
+            <label class="rel-filter-label">Categoria</label>
+            <select name="categoria_id" class="rel-select">
+                <option value="">Todas</option>
+                <?php foreach ($categorias as $c): ?>
+                <option value="<?= $c->idCategorias ?>" <?= $categoria==$c->idCategorias?'selected':'' ?>>
+                    <?= htmlspecialchars($c->categoria) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="rel-filter-item" style="min-width:160px;position:relative;">
+            <label class="rel-filter-label">Cliente / Fornecedor</label>
+            <input type="text" id="inputClienteForn" name="cliente_fornecedor" class="rel-input" style="min-width:160px;"
+                   placeholder="Digite para buscar..." value="<?= htmlspecialchars($cliente_f) ?>" autocomplete="off">
+            <ul id="acListaClientes" style="display:none;position:absolute;top:100%;left:0;right:0;background:#252a3a;border:1px solid #444860;border-radius:0 0 8px 8px;z-index:999;margin:0;padding:0;list-style:none;max-height:200px;overflow-y:auto;"></ul>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-left:auto;">
+            <button type="submit" class="rel-btn rel-btn-filter"><i class='bx bx-filter-alt'></i> Filtrar</button>
+            <a href="<?= site_url('relatorios/financeiro') ?>" class="rel-btn rel-btn-print" title="Limpar filtros"><i class='bx bx-x'></i> Limpar</a>
+        </div>
     </form>
 
     <!-- KPIs -->
@@ -307,6 +395,80 @@ new Chart(ctxC, {
     },
     options: { plugins:{ legend:{ position:'bottom', labels:{color:'#9ca3af',usePointStyle:true} } } }
 });
+
+// Autocomplete Cliente/Fornecedor
+(function() {
+    var input = document.getElementById('inputClienteForn');
+    var lista = document.getElementById('acListaClientes');
+    var timer = null;
+
+    if (!input || !lista) return;
+
+    input.addEventListener('input', function() {
+        clearTimeout(timer);
+        var term = this.value.trim();
+        if (term.length < 2) { lista.style.display = 'none'; return; }
+        timer = setTimeout(function() {
+            fetch('<?= site_url('clientes/autoCompleteCliente') ?>?term=' + encodeURIComponent(term))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    lista.innerHTML = '';
+                    if (!data || data.length === 0) { lista.style.display = 'none'; return; }
+                    data.forEach(function(item) {
+                        var li = document.createElement('li');
+                        var nome = item.nomeCliente || item.label || item.value || '';
+                        li.textContent = nome;
+                        li.style.cssText = 'padding:8px 12px;cursor:pointer;color:#e8eaf0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.05);';
+                        li.addEventListener('mouseenter', function() { this.style.background='rgba(251,191,36,0.1)'; });
+                        li.addEventListener('mouseleave', function() { this.style.background=''; });
+                        li.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            input.value = nome;
+                            lista.style.display = 'none';
+                            atualizarBtnPdf();
+                        });
+                        lista.appendChild(li);
+                    });
+                    lista.style.display = 'block';
+                })
+                .catch(function() { lista.style.display = 'none'; });
+        }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== input) lista.style.display = 'none';
+    });
+
+    input.addEventListener('blur', function() {
+        setTimeout(function() { lista.style.display = 'none'; }, 200);
+    });
+})();
+
+// Atualiza href do botão PDF com os filtros da tela
+(function() {
+    function atualizarBtnPdf() {
+        var form   = document.getElementById('formFiltros');
+        var btn    = document.getElementById('btnPdf');
+        if (!form || !btn) return;
+        var base   = '<?= site_url('relatorios/financeiroCustom') ?>';
+        var params = new URLSearchParams();
+        params.set('dataInicial',        form.querySelector('[name=de]').value);
+        params.set('dataFinal',          form.querySelector('[name=ate]').value);
+        params.set('tipo',               form.querySelector('[name=tipo]').value);
+        params.set('situacao',           form.querySelector('[name=situacao]').value);
+        params.set('forma_pgto',         form.querySelector('[name=forma_pgto]').value);
+        params.set('categoria_id',       form.querySelector('[name=categoria_id]').value);
+        params.set('cliente',            form.querySelector('[name=cliente_fornecedor]').value);
+        btn.href = base + '?' + params.toString();
+    }
+    document.addEventListener('DOMContentLoaded', atualizarBtnPdf);
+    // Também atualiza ao mudar qualquer campo do filtro
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('formFiltros');
+        if (form) form.addEventListener('change', atualizarBtnPdf);
+        if (form) form.addEventListener('input',  atualizarBtnPdf);
+    });
+})();
 
 function exportarCSV(tblId, nome) {
     var rows = document.querySelectorAll('#'+tblId+' tr');

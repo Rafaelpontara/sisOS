@@ -1,5 +1,13 @@
 <?php $totalServico = 0;
-$totalProdutos = 0; ?>
+$totalProdutos = 0;
+
+// Mesma correção do imprimirOs.php — caminho relativo da logo quebra
+// dependendo da URL da página atual.
+$logoSrc = $emitente->url_logo ?? '';
+if ($logoSrc && !preg_match('#^(https?:)?//#i', $logoSrc)) {
+    $logoSrc = base_url() . ltrim($logoSrc, '/');
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -89,12 +97,12 @@ $totalProdutos = 0; ?>
                                     <tr>
                                         <td colspan="5" class="alert">Você precisa configurar os dados do emitente. >>><a href="<?php echo base_url(); ?>index.php/sisos/emitente">Configurar</a>
                                             <<<</td> </tr> <?php } else { ?>
-                                    <td style="width: 25% ;text-align: center" ><img src="<?php echo $emitente->url_logo; ?>" style="max-height: 100px"></td>
+                                    <td style="width: 25% ;text-align: center" ><img src="<?php echo $logoSrc; ?>" style="max-height: 100px"></td>
                                     <tr>
                                         <td colspan="5" style="text-align: center; font-size: 11px;" >
                                             <span style="font-size: 12px; text-transform: uppercase"><b><?php echo $emitente->nome; ?></b></br></span>
                                             <?php if ($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span><?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
+                                            <span>Endereço: <?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
                                             <span><?php echo $emitente->email; ?> - <?php echo $emitente->telefone; ?></span>
                                         </td>
                                     </tr>
@@ -109,7 +117,7 @@ $totalProdutos = 0; ?>
                                             <li>
                                                 <span><b>CLIENTE</b></br></span>
                                                 <span><?php echo $result->nomeCliente ?></br></span>
-                                                <?= !empty($result->contato_cliente) ? '<span>' . $result->contato_cliente . ' </span>' : '' ?>
+                                                <?= !empty($result->contato_cliente) ? '<span>Contato: ' . $result->contato_cliente . ' </span>' : '<span>Contato: </span>' ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
                                                         <span><?= $result->celular_cliente ?></span></br>
                                                     <?php } else { ?>
@@ -119,13 +127,13 @@ $totalProdutos = 0; ?>
                                                     <?php } ?>
                                                 </span>
                                                 <?php if (!empty($result->email)) : ?>
-                                                        <span><?php echo $result->email ?></span><br>
+                                                        <span>E-mail: <?php echo $result->email ?></span><br>
                                                 <?php endif; ?>
                                                 <span><?php
                                                     $retorno_end = array_filter([$result->rua, $result->numero, $result->complemento, $result->bairro]);
 $endereco = implode(', ', $retorno_end);
 if (!empty($endereco)) {
-    echo $endereco . '<br>';
+    echo 'Endereço: ' . $endereco . '<br>';
 }
 if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) {
     echo "<span>{$result->cidade} - {$result->estado}, {$result->cep}</span><br>";
@@ -155,6 +163,70 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                         <?php if ($result->garantia != null) { ?><td><b>Garantia:</b></br><?php echo $result->garantia . ' dia(s)'; ?><?php } ?></td>
                                     </tr>
                                 <?php } ?>
+
+                                <?php if (!empty($result->equipamento) || !empty($result->numeroSerie) || !empty($result->modelo)): ?>
+                                    <tr>
+                                        <td colspan="5" style="background:#f5f5f5;"><b>EQUIPAMENTO</b></td>
+                                    </tr>
+                                    <?php if (!empty($result->equipamento)): ?>
+                                    <tr>
+                                        <td colspan="5"><b>Equipamento: </b><?= htmlspecialchars((string)$result->equipamento) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($result->modelo)): ?>
+                                    <tr>
+                                        <td colspan="5"><b>Modelo: </b><?= htmlspecialchars((string)$result->modelo) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($result->numeroSerie)): ?>
+                                    <tr>
+                                        <td colspan="5"><b>Nº Série / IMEI: </b><?= htmlspecialchars((string)$result->numeroSerie) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+
+
+
+                                <?php
+                                // ── Checklist resumido (só se ?checklist=1) ──────────────
+                                $exibirChecklistT = ($this->input->get('checklist') == '1');
+                                if ($exibirChecklistT && !empty($result->checklist)):
+                                    $_ckT2 = json_decode($result->checklist, true) ?: [];
+                                    $_ckT2v = $_ckT2['v'] ?? 1;
+                                    if (!empty($_ckT2['itens'])):
+                                ?>
+                                <tr><td colspan="5" style="background:#f5f5f5;font-size:11px;"><b>CHECKLIST DE ENTRADA</b></td></tr>
+                                <?php if ($_ckT2v == 2): ?>
+                                <?php foreach($_ckT2['itens'] as $_itN => $_itE):
+                                    $s = $_itE==='ok' ? '✓' : ($_itE==='defeito' ? '⚠' : '—'); ?>
+                                <tr><td colspan="5" style="font-size:10px;"><?= $s ?> <?= htmlspecialchars($_itN) ?><?= $_itE==='defeito' ? ' <b style="color:#dc2626">[DEFEITO]</b>' : '' ?></td></tr>
+                                <?php endforeach; ?>
+                                <?php else: ?>
+                                <?php foreach($_ckT2['itens'] as $_ckT2i): ?>
+                                <tr><td colspan="5" style="font-size:10px;">✓ <?= htmlspecialchars($_ckT2i) ?></td></tr>
+                                <?php endforeach; ?>
+                                <?php endif; ?>
+                                <?php if (!empty($_ckT2['obs'])): ?>
+                                <tr><td colspan="5" style="font-size:10px;color:#555;"><b>Obs:</b> <?= htmlspecialchars($_ckT2['obs']) ?></td></tr>
+                                <?php endif; endif; endif; ?>
+
+                                <?php
+                                // Senha do celular
+                                $tipoLabelT = ['pin'=>'PIN','padrao'=>'Padrão Android','face'=>'Rec. Facial','digital'=>'Digital','iphone_face'=>'Face ID','iphone_digital'=>'Touch ID'];
+                                if (!empty($result->senha_tipo)):
+                                    $labelT = $tipoLabelT[$result->senha_tipo] ?? $result->senha_tipo;
+                                ?>
+                                <tr><td colspan="5" style="background:#f5f5f5;font-size:11px;"><b>SENHA DO CELULAR</b></td></tr>
+                                <tr>
+                                    <td colspan="5" style="font-size:11px;">
+                                        <b>Tipo:</b> <?= htmlspecialchars($labelT) ?>
+                                        <?php if (!empty($result->senha_valor)): ?>
+                                        &nbsp;&nbsp;<b>Código:</b> <span style="font-family:monospace;font-weight:700;"><?= htmlspecialchars($result->senha_valor) ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+
 
                                 <?php if ($result->descricaoProduto != null) { ?>
                                     <tr>
@@ -204,7 +276,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     $totalProdutos = $totalProdutos + $p->subTotal;
                                     echo '<tr>';
                                     echo '<td>' . $p->quantidade . '</td>';
-                                    echo '<td>' . $p->descricao . '</td>';
+                                    echo '<td>' . htmlspecialchars($p->descricao ?? '') . '</td>';
                                     echo '<td>R$ ' . $p->preco ?: $p->precoVenda . '</td>';
                                     echo '<td>R$ ' . number_format($p->subTotal, 2, ',', '.') . '</td>';
                                     echo '</tr>';
@@ -235,7 +307,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                             $totalServico = $totalServico + $subtotal;
                             echo '<tr>';
                             echo '<td>' . ($s->quantidade ?: 1) . '</td>';
-                            echo '<td>' . $s->nome . '</td>';
+                            echo '<td>' . htmlspecialchars($s->nome ?? '') . '</td>';
                             echo '<td>R$ ' . $preco . '</td>';
                             echo '<td>R$ ' . number_format($subtotal, 2, ',', '.') . '</td>';
                             echo '</tr>';
@@ -297,12 +369,12 @@ $totalProdutos = 0; ?>
                                             <td colspan="5" class="alert">Você precisa configurar os dados do emitente. >>><a href="<?php echo base_url(); ?>index.php/sisos/emitente">Configurar</a><<<</td>
                                         </tr>
                                     <?php } else { ?>
-                                        <td style="width: 25% ;text-align: center" ><img src="<?php echo $emitente->url_logo; ?>" style="max-height: 100px"></td>
+                                        <td style="width: 25% ;text-align: center" ><img src="<?php echo $logoSrc; ?>" style="max-height: 100px"></td>
                                     <tr>
                                         <td colspan="5" style="text-align: center; font-size: 11px;" >
                                             <span style="font-size: 12px; text-transform: uppercase"><b><?php echo $emitente->nome; ?></b></br></span>
                                             <?php if ($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span><?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
+                                            <span>Endereço: <?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
                                             <span><?php echo $emitente->email; ?> - <?php echo $emitente->telefone; ?></span>
                                         </td>
                                     </tr>
@@ -317,7 +389,7 @@ $totalProdutos = 0; ?>
                                             <li>
                                                 <span><b>CLIENTE</b></br></span>
                                                 <span><?php echo $result->nomeCliente ?></br></span>
-                                                <?= !empty($result->contato_cliente) ? '<span>' . $result->contato_cliente . ' </span>' : '' ?>
+                                                <?= !empty($result->contato_cliente) ? '<span>Contato: ' . $result->contato_cliente . ' </span>' : '<span>Contato: </span>' ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
                                                         <span><?= $result->celular_cliente ?></span></br>
                                                     <?php } else { ?>
@@ -327,13 +399,13 @@ $totalProdutos = 0; ?>
                                                     <?php } ?>
                                                 </span>
                                                 <?php if (!empty($result->email)) : ?>
-                                                        <span><?php echo $result->email ?></span><br>
+                                                        <span>E-mail: <?php echo $result->email ?></span><br>
                                                 <?php endif; ?>
                                                 <span><?php
                                     $retorno_end = array_filter([$result->rua, $result->numero, $result->complemento, $result->bairro]);
 $endereco = implode(', ', $retorno_end);
 if (!empty($endereco)) {
-    echo $endereco . '<br>';
+    echo 'Endereço: ' . $endereco . '<br>';
 }
 if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) {
     echo "<span>{$result->cidade} - {$result->estado}, {$result->cep}</span><br>";
@@ -427,7 +499,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                         $totalProdutos = $totalProdutos + $p->subTotal;
                                         echo '<tr>';
                                         echo '<td>' . $p->quantidade . '</td>';
-                                        echo '<td>' . $p->descricao . '</td>';
+                                        echo '<td>' . htmlspecialchars($p->descricao ?? '') . '</td>';
                                         echo '<td>R$ ' . $p->preco ?: $p->precoVenda . '</td>';
                                         echo '<td>R$ ' . number_format($p->subTotal, 2, ',', '.') . '</td>';
                                         echo '</tr>';
@@ -459,7 +531,7 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                 $totalServico = $totalServico + $subtotal;
                                 echo '<tr>';
                                 echo '<td>' . ($s->quantidade ?: 1) . '</td>';
-                                echo '<td>' . $s->nome . '</td>';
+                                echo '<td>' . htmlspecialchars($s->nome ?? '') . '</td>';
                                 echo '<td>R$ ' . $preco . '</td>';
                                 echo '<td>R$ ' . number_format($subtotal, 2, ',', '.') . '</td>';
                                 echo '</tr>';
@@ -508,7 +580,22 @@ if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) 
                                     </td>
 
                                 </tr>
-                            </tbody>
+                            
+                                <?php
+                                // ── Checklist de Saída ─────────────────────
+                                if (!empty($result->checklist_saida)):
+                                    $_ckSt = json_decode($result->checklist_saida, true) ?: [];
+                                    if (!empty($_ckSt['itens'])):
+                                ?>
+                                <tr><td colspan="5" style="background:#f5f5f5;font-size:11px;"><b>CHECKLIST DE SAÍDA</b></td></tr>
+                                <?php foreach($_ckSt['itens'] as $_stN => $_stE):
+                                    $stS = $_stE==='ok' ? '✓' : ($_stE==='defeito' ? '⚠' : '—'); ?>
+                                <tr><td colspan="5" style="font-size:10px;"><?= $stS ?> <?= htmlspecialchars($_stN) ?><?= $_stE==='defeito' ? ' <b style="color:#dc2626">[DEFEITO]</b>' : '' ?></td></tr>
+                                <?php endforeach; ?>
+                                <?php if (!empty($_ckSt['obs'])): ?>
+                                <tr><td colspan="5" style="font-size:10px;color:#555;"><b>Obs:</b> <?= htmlspecialchars($_ckSt['obs']) ?></td></tr>
+                                <?php endif; endif; endif; ?>
+</tbody>
                         </table>
                         </div>
                     </div>

@@ -92,7 +92,11 @@
 #pdv-right {
     width: 400px; background: #1a1d27; border-left: 1px solid #2a2d3a;
     display: flex; flex-direction: column; flex-shrink: 0;
+    overflow-y: auto; max-height: 100vh;
 }
+#pdv-right::-webkit-scrollbar { width: 4px; }
+#pdv-right::-webkit-scrollbar-track { background: #1a1d27; }
+#pdv-right::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 2px; }
 
 /* Cliente */
 #pdv-cliente-area { padding: 12px 16px; border-bottom: 1px solid #2a2d3a; }
@@ -348,6 +352,14 @@
                     <input type="number" id="pdv-recebido" placeholder="0,00" min="0" step="0.01">
                 </div>
                 <div id="pdv-troco">Troco: R$ 0,00</div>
+                <!-- Toggle Lançamento Financeiro -->
+                <div style="margin-top:10px;padding:9px 12px;background:#0f1117;border-radius:8px;border:1px solid #2a2d3a;display:flex;align-items:center;justify-content:space-between;">
+                    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:#8b8fa8;font-weight:600;margin:0;">
+                        <input type="checkbox" id="pdv-criar-lancamento" checked style="width:15px;height:15px;accent-color:#3ecf8e;cursor:pointer;">
+                        <i class='bx bx-bar-chart-alt-2' style="color:#fbbf24;"></i> Criar lançamento financeiro
+                    </label>
+                    <a href="<?= site_url('financeiro/lancamentos') ?>" target="_blank" style="font-size:10px;color:#6b7280;text-decoration:none;"><i class='bx bx-link-external'></i> Ver lançamentos</a>
+                </div>
             </div>
 
             <!-- Ações -->
@@ -640,7 +652,8 @@ $('#btn-finalizar').on('click', function(){
     var rec=parseFloat($('#pdv-recebido').val()||0);
     var troco=Math.max(0,rec-tot);
 
-    var d={itens:JSON.stringify(carrinho),clientes_id:$('#pdv-cliente-id').val(),forma_pgto:formaPgto,desconto:desc,tipo_desconto:tipo,valor_recebido:rec};
+    var criarLanc=$('#pdv-criar-lancamento').is(':checked')?'1':'0';
+    var d={itens:JSON.stringify(carrinho),clientes_id:$('#pdv-cliente-id').val(),forma_pgto:formaPgto,desconto:desc,tipo_desconto:tipo,valor_recebido:rec,criar_lancamento:criarLanc};
     d[CSRF_NAME]=CSRF_HASH;
 
     $.post('<?= site_url('pdv/finalizar') ?>',d,function(res){

@@ -28,23 +28,63 @@ class Produtos extends MY_Controller
         }
 
         $pesquisa = $this->input->get('pesquisa');
+        $estoqueBaixo = $this->input->get('estoqueBaixo');
+        $perPage = 24;
 
-        $this->load->library('pagination');
+        $this->_aplicarFiltrosProdutos($pesquisa, $estoqueBaixo);
+        $this->db->order_by('idProdutos', 'DESC');
+        $this->db->limit($perPage, 0);
+        $this->data['results'] = $this->db->get('produtos')->result();
 
-        $this->data['configuration']['base_url'] = site_url('produtos/gerenciar/');
-        $this->data['configuration']['total_rows'] = $this->produtos_model->count('produtos');
-        if ($pesquisa) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}";
-            $this->data['configuration']['first_url'] = base_url("index.php/produtos")."\?pesquisa={$pesquisa}";
-        }
+        $this->_aplicarFiltrosProdutos($pesquisa, $estoqueBaixo);
+        $this->data['statTotalFiltrado'] = $this->db->count_all_results('produtos');
 
-        $this->pagination->initialize($this->data['configuration']);
-
-        $this->data['results'] = $this->produtos_model->get('produtos', '*', $pesquisa, $this->data['configuration']['per_page'], $this->uri->segment(3));
-
+        $this->data['perPage'] = $perPage;
+        $this->data['pesquisa'] = $pesquisa;
+        $this->data['estoqueBaixo'] = $estoqueBaixo;
         $this->data['view'] = 'produtos/produtos';
 
         return $this->layout();
+    }
+
+    /**
+     * Endpoint AJAX chamado pela rolagem infinita da lista de produtos.
+     */
+    public function carregarMais()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vProduto')) {
+            return;
+        }
+
+        $pesquisa = $this->input->get('pesquisa');
+        $estoqueBaixo = $this->input->get('estoqueBaixo');
+        $antesDe = (int) $this->input->get('antes_de');
+        $perPage = 24;
+
+        $this->_aplicarFiltrosProdutos($pesquisa, $estoqueBaixo);
+        if ($antesDe > 0) $this->db->where('idProdutos <', $antesDe);
+        $this->db->order_by('idProdutos', 'DESC');
+        $this->db->limit($perPage, 0);
+        $results = $this->db->get('produtos')->result();
+
+        echo $this->load->view('produtos/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+    }
+
+    /**
+     * Aplica os filtros de pesquisa/estoqueBaixo na query builder atual.
+     */
+    private function _aplicarFiltrosProdutos($pesquisa, $estoqueBaixo)
+    {
+        if ($pesquisa) {
+            $this->db->group_start();
+            $this->db->like('descricao', $pesquisa);
+            $this->db->or_like('codDeBarra', $pesquisa);
+            $this->db->group_end();
+        }
+        if ($estoqueBaixo) {
+            $this->db->where('estoque <= estoqueMinimo', null, false);
+            $this->db->where('estoqueMinimo >', 0);
+        }
     }
 
     public function adicionar()
@@ -66,8 +106,8 @@ class Produtos extends MY_Controller
             $precoVenda = $this->input->post('precoVenda');
             $precoVenda = str_replace(',', '', $precoVenda);
             $data = [
-                'codDeBarra'    => set_value('codDeBarra'),
-                'descricao'     => set_value('descricao'),
+                'codDeBarra'    => $this->input->post('codDeBarra'),
+                'descricao'     => $this->input->post('descricao'),
                 'marca'         => $this->input->post('marca'),
                 'modelo'        => $this->input->post('modelo'),
                 'localizacao'   => $this->input->post('localizacao'),
@@ -75,13 +115,16 @@ class Produtos extends MY_Controller
                 'garantia_dias' => (int)$this->input->post('garantia_dias'),
                 'ncm'           => $this->input->post('ncm'),
                 'observacoes'   => $this->input->post('observacoes'),
-                'unidade'       => set_value('unidade'),
+                'unidade'       => $this->input->post('unidade'),
                 'precoCompra'   => $precoCompra,
                 'precoVenda'    => $precoVenda,
-                'estoque'       => set_value('estoque'),
-                'estoqueMinimo' => set_value('estoqueMinimo'),
-                'saida'         => set_value('saida'),
-                'entrada'       => set_value('entrada'),
+                // Começa em 0 de propósito: o valor digitado é aplicado logo abaixo via
+                // estoque_model->registrar(), que também soma ao campo 'estoque'. Salvar
+                // o valor aqui E somar de novo no registrar() era o que dobrava o estoque.
+                'estoque'       => 0,
+                'estoqueMinimo' => $this->input->post('estoqueMinimo'),
+                'saida'         => $this->input->post('saida'),
+                'entrada'       => $this->input->post('entrada'),
             ];
 
             // Upload de foto
@@ -101,10 +144,16 @@ class Produtos extends MY_Controller
 
             if ($this->produtos_model->add('produtos', $data) == true) {
                 // Registrar movimentação de estoque inicial
-                if ((int)set_value('estoque') > 0) {
+                // (o registrar() abaixo já soma ao estoque do produto — ver ajuste em $data)
+                if ((int)$this->input->post('estoque') > 0) {
                     $this->load->model('estoque_model');
                     $pid = $this->db->insert_id();
-                    $this->estoque_model->registrar($pid, 'entrada', 'inventario', null, (float)set_value('estoque'), 'Estoque inicial');
+                    if (method_exists($this->estoque_model, 'registrar')) {
+                        $this->estoque_model->registrar($pid, 'entrada', 'inventario', null, (float)$this->input->post('estoque'), 'Estoque inicial');
+                    } else {
+                        // Fallback: se o model não tiver o método, seta direto (sem duplicar)
+                        $this->db->where('idProdutos', $pid)->update('produtos', ['estoque' => (float)$this->input->post('estoque')]);
+                    }
                 }
                 $this->session->set_flashdata('success', 'Produto adicionado com sucesso!');
                 log_info('Adicionou um produto');
@@ -141,7 +190,7 @@ class Produtos extends MY_Controller
             $precoVenda = $this->input->post('precoVenda');
             $precoVenda = str_replace(',', '', $precoVenda);
             $data = [
-                'codDeBarra'    => set_value('codDeBarra'),
+                'codDeBarra'    => $this->input->post('codDeBarra'),
                 'descricao'     => $this->input->post('descricao'),
                 'marca'         => $this->input->post('marca'),
                 'modelo'        => $this->input->post('modelo'),
@@ -155,8 +204,8 @@ class Produtos extends MY_Controller
                 'precoVenda'    => $precoVenda,
                 'estoque'       => $this->input->post('estoque'),
                 'estoqueMinimo' => $this->input->post('estoqueMinimo'),
-                'saida'         => set_value('saida'),
-                'entrada'       => set_value('entrada'),
+                'saida'         => $this->input->post('saida'),
+                'entrada'       => $this->input->post('entrada'),
             ];
 
             // Upload de foto

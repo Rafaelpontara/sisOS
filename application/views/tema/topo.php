@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap-responsive.min.css" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-style.css" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
+  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/mobile.css" />
   <link href="<?= base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/fullcalendar.css" />
   <?php if ($configuration['app_theme'] == 'white') { ?>
@@ -52,7 +53,11 @@
       location.href = '<?= site_url('produtos'); ?>';
     });
     shortcut.add("F3", function() {
-      location.href = '<?= site_url('servicos'); ?>';
+      <?php if (($this->data['configuration']['pdv_enabled'] ?? '0') == '1'): ?>
+        location.href = '<?= site_url('pdv'); ?>';
+      <?php else: ?>
+        location.href = '<?= site_url('servicos'); ?>';
+      <?php endif; ?>
     });
     shortcut.add("F4", function() {
       location.href = '<?= site_url('os'); ?>';
@@ -100,6 +105,11 @@ $(document).ready(function() {
 </head>
 
 <body>
+<!-- Mobile: hamburguer + overlay -->
+<button id="mob-toggle" onclick="mobToggle()" aria-label="Menu">
+    <i class="bx bx-menu"></i>
+</button>
+<div id="mob-overlay" onclick="mobClose()"></div>
   <!--top-Header-menu-->
   <div class="navebarn">
     <div id="user-nav" class="navbar navbar-inverse">
@@ -127,10 +137,14 @@ $(document).ready(function() {
           <ul class="dropdown-menu">
             <li><a href="<?= site_url('relatorios/clientes') ?>">Clientes</a></li>
             <li><a href="<?= site_url('relatorios/produtos') ?>">Produtos</a></li>
+            <li><a href="<?= site_url('relatorios/produtosMaisVendidosRapid') ?>">Produtos Mais Vendidos</a></li>
             <li><a href="<?= site_url('relatorios/servicos') ?>">Serviços</a></li>
+            <li><a href="<?= site_url('relatorios/servicosMaisFeitosRapid') ?>">Serviços Mais Feitos</a></li>
             <li><a href="<?= site_url('relatorios/os') ?>">Ordens de Serviço</a></li>
+            <li><a href="<?= site_url('relatorios/comissao') ?>">Comissão por Técnico</a></li>
             <li><a href="<?= site_url('relatorios/vendas') ?>">Vendas</a></li>
             <li><a href="<?= site_url('relatorios/financeiro') ?>">Financeiro</a></li>
+            <li><a href="<?= site_url('relatorios/lucratividade') ?>">Lucratividade</a></li>
             <li><a href="<?= site_url('relatorios/sku') ?>">SKU</a></li>
             <li><a href="<?= site_url('relatorios/receitasBrutasMei') ?>">Receitas Brutas - MEI</a></li>
           </ul>

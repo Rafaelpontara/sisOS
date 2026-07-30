@@ -1,3 +1,123 @@
+
+<style>
+/* ── Agenda Card ──────────────────────────────────────── */
+.sisos-agenda-card{
+    background:linear-gradient(135deg,#1a1d2e 0%,#1e2235 100%);
+    border-radius:16px;
+    border:1px solid rgba(249,115,22,0.15);
+    overflow:hidden;
+    margin-bottom:14px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.3);
+}
+.sisos-agenda-header{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    padding:12px 16px;
+    background:rgba(249,115,22,0.05);
+    border-bottom:1px solid rgba(249,115,22,0.1);
+}
+.sisos-agenda-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#e8eaf0;letter-spacing:.3px;}
+.sisos-agenda-title i{font-size:16px;color:#f97316;filter:drop-shadow(0 0 6px rgba(249,115,22,0.5));}
+.sisos-agenda-filtro{display:flex;align-items:center;gap:6px;}
+.sisos-agenda-select-wrap{position:relative;display:flex;align-items:center;}
+.sisos-agenda-select-wrap i{position:absolute;left:8px;color:#6b7280;font-size:12px;pointer-events:none;}
+.sisos-agenda-select-wrap select{
+    appearance:none;background:#252a3a;border:1px solid rgba(249,115,22,0.2);border-radius:8px;
+    color:#e8eaf0;font-size:12px;padding:6px 12px 6px 26px;cursor:pointer;min-width:145px;transition:border-color .2s;
+}
+.sisos-agenda-select-wrap select:focus{outline:none;border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,0.15);}
+.sisos-agenda-btn-filtrar{
+    display:flex;align-items:center;gap:4px;
+    background:linear-gradient(135deg,#f97316,#ea580c);
+    color:#fff;border:none;border-radius:8px;
+    padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;
+    transition:opacity .2s,transform .1s;
+    box-shadow:0 2px 8px rgba(249,115,22,0.3);
+}
+.sisos-agenda-btn-filtrar:hover{opacity:.88;}
+.sisos-agenda-btn-filtrar:active{transform:scale(.97);}
+/* Legendas compactas */
+.sisos-agenda-legenda{
+    display:flex;flex-wrap:wrap;gap:4px 8px;
+    padding:6px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    background:rgba(0,0,0,0.12);
+}
+.sisos-leg{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:10px;font-weight:700;color:#9ca3af;
+    padding:2px 7px;border-radius:10px;
+    background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+}
+.sisos-leg::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c,#888);}
+.sisos-fullcalendar-wrap{padding:10px 12px 12px;}
+/* FullCalendar overrides */
+.sisos-fullcalendar-wrap .fc{font-family:'Inter','Segoe UI',sans-serif;font-size:12px;color:#e8eaf0;}
+.sisos-fullcalendar-wrap .fc-toolbar{margin-bottom:10px!important;}
+.sisos-fullcalendar-wrap .fc-toolbar-title{font-size:14px;font-weight:800;color:#e8eaf0;text-transform:capitalize;letter-spacing:.3px;}
+.sisos-fullcalendar-wrap .fc-button,.sisos-fullcalendar-wrap .fc-button-primary{
+    background:#252a3a!important;border:1px solid rgba(255,255,255,0.08)!important;
+    color:#9ca3af!important;border-radius:7px!important;font-size:11px!important;
+    padding:4px 10px!important;box-shadow:none!important;font-weight:600!important;}
+.sisos-fullcalendar-wrap .fc-button:hover{background:#2e3447!important;color:#e8eaf0!important;}
+.sisos-fullcalendar-wrap .fc-button-active,
+.sisos-fullcalendar-wrap .fc-button-primary:not(:disabled).fc-button-active{
+    background:linear-gradient(135deg,#f97316,#ea580c)!important;
+    border-color:#f97316!important;color:#fff!important;
+    box-shadow:0 2px 8px rgba(249,115,22,0.3)!important;}
+.sisos-fullcalendar-wrap .fc-col-header-cell{
+    background:rgba(249,115,22,0.06);border-color:rgba(255,255,255,0.06)!important;
+    color:#6b7280;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:5px 0;}
+.sisos-fullcalendar-wrap .fc-daygrid-day{border-color:rgba(255,255,255,0.04)!important;transition:background .15s;}
+.sisos-fullcalendar-wrap .fc-daygrid-day:hover{background:rgba(249,115,22,0.05)!important;}
+.sisos-fullcalendar-wrap .fc-daygrid-day-number{color:#6b7280;font-size:11px;padding:3px 6px;font-weight:600;}
+.sisos-fullcalendar-wrap .fc-day-today{background:rgba(249,115,22,0.08)!important;}
+.sisos-fullcalendar-wrap .fc-day-today .fc-daygrid-day-number{
+    background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border-radius:50%;
+    width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+    margin:3px;padding:0;font-weight:800;font-size:10px;
+    box-shadow:0 2px 6px rgba(249,115,22,0.4);}
+.sisos-fullcalendar-wrap .fc-event{
+    border-radius:5px!important;border:none!important;border-left-width:3px!important;
+    padding:1px 5px;font-size:10px;font-weight:700;cursor:pointer;
+    transition:transform .15s,opacity .15s;letter-spacing:.1px;}
+.sisos-fullcalendar-wrap .fc-event:hover{transform:translateY(-1px);opacity:1;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.sisos-fullcalendar-wrap .fc-more-link{color:#f97316;font-size:10px;font-weight:800;padding:1px 4px;}
+.sisos-fullcalendar-wrap .fc-scrollgrid{border-color:rgba(255,255,255,0.04)!important;border-radius:10px;overflow:hidden;}
+.sisos-fullcalendar-wrap .fc-scrollgrid td,.sisos-fullcalendar-wrap .fc-scrollgrid th{border-color:rgba(255,255,255,0.04)!important;}
+.sisos-fullcalendar-wrap .fc-daygrid-body{background:transparent!important;}
+/* ── Modal Moderno ─────────────────────────────────────── */
+.sisos-modal-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
+    display:flex;align-items:center;justify-content:center;padding:16px;animation:sisosOvIn .15s ease;}
+@keyframes sisosOvIn{from{opacity:0}to{opacity:1}}
+.sisos-modal-box{background:#1e2235;border:1px solid #252a3a;border-radius:18px;width:100%;max-width:480px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);animation:sisosBoxIn .2s ease;overflow:hidden;}
+@keyframes sisosBoxIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.sisos-modal-head{display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;background:#1a1d2e;border-bottom:1px solid #252a3a;}
+.sisos-modal-badge-id{background:rgba(249,115,22,.15);color:#f97316;font-size:13px;font-weight:800;
+    padding:4px 12px;border-radius:20px;border:1px solid rgba(249,115,22,.3);}
+.sisos-modal-status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.sisos-modal-close{background:rgba(255,255,255,.06);border:none;color:#9ca3af;width:30px;height:30px;
+    border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;}
+.sisos-modal-close:hover{background:rgba(248,113,113,.15);color:#f87171;}
+.sisos-modal-body{padding:16px 18px;}
+.sisos-modal-row{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#e8eaf0;margin-bottom:12px;}
+.sisos-modal-row i{color:#f97316;font-size:16px;}
+.sisos-modal-divider{height:1px;background:#252a3a;margin:12px 0;}
+.sisos-modal-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+.sisos-modal-info label{display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.sisos-modal-info span{font-size:13px;font-weight:600;color:#e8eaf0;}
+.sisos-modal-info-full{margin-bottom:10px;}
+.sisos-modal-info-full label{display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sisos-modal-info-full p{font-size:13px;color:#9ca3af;margin:0;line-height:1.5;}
+.sisos-modal-total{display:flex;align-items:center;gap:8px;background:rgba(74,222,128,.07);
+    border:1px solid rgba(74,222,128,.2);border-radius:10px;padding:10px 14px;
+    font-size:15px;font-weight:800;color:#4ade80;margin-top:6px;}
+.sisos-modal-foot{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid #252a3a;background:#1a1d2e;}
+.vos-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;
+    font-size:12px;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.vos-btn:hover{transform:translateY(-1px);text-decoration:none;opacity:.85;}
+</style>
 <style>
 /* ── Action Cards: compact, side-by-side layout ── */
 .cardBox {
@@ -171,6 +291,24 @@
 </div>
 
 
+<?php
+// Calcula variação percentual "vs ontem" com segurança (sem divisão por zero)
+if (!function_exists('sisosPctVsOntem')) {
+    function sisosPctVsOntem($hoje, $ontem)
+    {
+        $hoje = floatval($hoje);
+        $ontem = floatval($ontem);
+        if ($ontem == 0) {
+            return $hoje == 0 ? 0 : 100;
+        }
+        return round((($hoje - $ontem) / $ontem) * 100);
+    }
+}
+$pctOs       = sisosPctVsOntem($os_hoje ?? 0, $os_ontem ?? 0);
+$pctReceita  = sisosPctVsOntem($receita_hoje ?? 0, $receita_ontem ?? 0);
+$pctVencidas = sisosPctVsOntem($os_vencidas ?? 0, $os_vencidas_ontem ?? 0);
+?>
+
 <!-- KPI Cards Row -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
 
@@ -181,17 +319,32 @@
         <div>
             <div style="font-size:26px;font-weight:800;color:#e8eaf0;line-height:1;"><?= $os_hoje ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">OS abertas hoje</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+                <span style="color:<?= $pctOs > 0 ? '#4ade80' : ($pctOs < 0 ? '#f87171' : '#6b7280') ?>;">●</span>
+                <?= ($pctOs > 0 ? '+' : '') . $pctOs ?>% vs ontem
+            </div>
         </div>
     </div>
 
     <div style="background:#1e2235;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
         <div style="width:46px;height:46px;border-radius:12px;background:rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class='bx bx-trending-up' style="font-size:22px;color:#22c55e;"></i>
+            <i class='bx <?= ($pode_ver_financeiro ?? false) ? "bx-trending-up" : "bx-lock-alt" ?>' style="font-size:22px;color:#22c55e;"></i>
         </div>
+        <?php if ($pode_ver_financeiro ?? false): ?>
         <div>
             <div style="font-size:22px;font-weight:800;color:#e8eaf0;line-height:1;">R$ <?= number_format($receita_hoje ?? 0, 2, ',', '.') ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">Receita de hoje</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+                <span style="color:<?= $pctReceita > 0 ? '#4ade80' : ($pctReceita < 0 ? '#f87171' : '#6b7280') ?>;">●</span>
+                <?= ($pctReceita > 0 ? '+' : '') . $pctReceita ?>% vs ontem
+            </div>
         </div>
+        <?php else: ?>
+        <div>
+            <div style="font-size:16px;font-weight:700;color:#6b7280;line-height:1;">Sem permissão</div>
+            <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">Receita de hoje</div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <div style="background:#1e2235;border:1px solid <?= ($os_vencidas ?? 0) > 0 ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.07)' ?>;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
@@ -201,6 +354,10 @@
         <div>
             <div style="font-size:26px;font-weight:800;color:<?= ($os_vencidas ?? 0) > 0 ? '#ef4444' : '#e8eaf0' ?>;line-height:1;"><?= $os_vencidas ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">OS vencidas</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+                <span style="color:<?= $pctVencidas > 0 ? '#f87171' : ($pctVencidas < 0 ? '#4ade80' : '#6b7280') ?>;">●</span>
+                <?= ($pctVencidas > 0 ? '+' : '') . $pctVencidas ?>% vs ontem
+            </div>
         </div>
     </div>
 
@@ -211,6 +368,10 @@
         <div>
             <div style="font-size:26px;font-weight:800;color:<?= ($estoque_baixo ?? 0) > 0 ? '#f59e0b' : '#e8eaf0' ?>;line-height:1;"><?= $estoque_baixo ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">Estoque baixo</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+                <span style="color:<?= ($estoque_zerado ?? 0) > 0 ? '#f59e0b' : '#6b7280' ?>;">●</span>
+                <?= $estoque_zerado ?? 0 ?> itens críticos
+            </div>
         </div>
     </div>
 
@@ -246,6 +407,19 @@
         </li>
     <?php endif ?>
 
+    <?php if (($this->data['configuration']['pdv_enabled'] ?? '0') == '1' && $this->permission->checkPermission($this->session->userdata('permissao'), 'aVenda')): ?>
+        <li class="card">
+            <a class="cardLink" href="<?= site_url('pdv') ?>">
+                <div class="grid-blak">
+                    <div class="numbers">PDV</div>
+                    <div class="cardName">F3</div>
+                </div>
+                <div class="lord-icon03">
+                    <i class='bx bx-store iconBx03' style="color:#22c55e;"></i>
+                </div>
+            </a>
+        </li>
+    <?php else: ?>
         <li class="card">
             <a class="cardLink" href="<?= site_url('promissoria') ?>">
                 <div class="grid-blak">
@@ -257,6 +431,7 @@
                 </div>
             </a>
         </li>
+    <?php endif; ?>
 
     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
         <li class="card">
@@ -318,31 +493,47 @@
 
 <div class="row-fluid" style="margin-top: 0; display: flex">
     <div class="Sspan12">
-        <div class="widget-box2">
-            <div>
-                <h5 class="cardHeader">Agenda</h5>
-            </div>
-            <div class="widget-content">
-                <table>
-                    <div id='source-calendar'>
-                        <form method="post">
-                            <select style="padding-left: 30px" class="span12" name="statusOsGet" id="statusOsGet" value="">
-                                <option value="">Todos os Status</option>
-                                <option value="Aberto">Aberto</option>
-                                <option value="Faturado">Faturado</option>
-                                <option value="Negociação">Negociação</option>
-                                <option value="Orçamento">Orçamento</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Finalizado">Finalizado</option>
-                                <option value="Cancelado">Cancelado</option>
-                                <option value="Aguardando Peças">Aguardando Peças</option>
-                                <option value="Aprovado">Aprovado</option>
-                            </select>
-                            <button type="button" class="btn-xs" id="btn-calendar"><i class="bx bx-search iconX2"></i></button>
-                        </form>
+        <div class="sisos-agenda-card">
+            <div class="sisos-agenda-header">
+                <div class="sisos-agenda-title">
+                    <i class='bx bx-calendar-check'></i>
+                    <span>Agenda de OS</span>
+                </div>
+                <div class="sisos-agenda-filtro">
+                    <div class="sisos-agenda-select-wrap">
+                        <i class='bx bx-filter-alt'></i>
+                        <select id="statusOsGet" name="statusOsGet">
+                            <option value="">Todos os Status</option>
+                            <option value="Aberto">Aberto</option>
+                            <option value="Faturado">Faturado</option>
+                            <option value="Negociação">Negociação</option>
+                            <option value="Orçamento">Orçamento</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                            <option value="Aguardando Peças">Aguardando Peças</option>
+                            <option value="Aprovado">Aprovado</option>
+                        </select>
                     </div>
-                </table>
+                    <button type="button" id="btn-calendar" class="sisos-agenda-btn-filtrar" title="Filtrar">
+                        <i class='bx bx-search'></i> Filtrar
+                    </button>
+                </div>
             </div>
+
+            <!-- Legenda resumida de status -->
+            <div class="sisos-agenda-legenda">
+                <span class="sisos-leg" style="--c:#22c55e">Aberto</span>
+                <span class="sisos-leg" style="--c:#436eee">Em Andamento</span>
+                <span class="sisos-leg" style="--c:#f97316">Ag. Peças</span>
+                <span class="sisos-leg" style="--c:#a78bfa">Faturado</span>
+                <span class="sisos-leg" style="--c:#22d3ee">Aprovado</span>
+                <span class="sisos-leg" style="--c:#4ade80">Finalizado</span>
+                <span class="sisos-leg" style="--c:#f87171">Cancelado</span>
+                <span class="sisos-leg" style="--c:#CDB380">Orçamento</span>
+            </div>
+
+            <div id='source-calendar' class="sisos-fullcalendar-wrap"></div>
         </div>
 
         <!-- New widget right -->
@@ -503,7 +694,8 @@
                         <?php echo($financeiro_mes->VALOR_DEZ_REC - $financeiro_mes->VALOR_DEZ_DES); ?>
                     ],
 
-                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    hoverBackgroundColor: 'rgba(16, 185, 129, 1)',
                     borderRadius: 15,
                 },
 
@@ -523,7 +715,8 @@
                         <?php echo($financeiro_mes->VALOR_DEZ_REC); ?>
                     ],
 
-                    backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                    backgroundColor: 'rgba(245, 158, 11, 0.75)',
+                    hoverBackgroundColor: 'rgba(245, 158, 11, 1)',
                     borderRadius: 15,
                 },
 
@@ -543,7 +736,8 @@
                         <?php echo($financeiro_mes->VALOR_DEZ_DES); ?>
                     ],
 
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                    hoverBackgroundColor: 'rgba(239, 68, 68, 1)',
                     borderRadius: 15,
                 },
 
@@ -563,7 +757,8 @@
                         <?php echo($financeiro_mesinadipl->VALOR_DEZ_REC); ?>
                     ],
 
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    backgroundColor: 'rgba(96, 165, 250, 0.75)',
+                    hoverBackgroundColor: 'rgba(96, 165, 250, 1)',
                     borderRadius: 15,
                 }
             ]
@@ -573,9 +768,14 @@
         type: 'bar',
         options: {
             locale: 'pt-BR',
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
             scales: {
                 y: {
                     ticks: {
+                        color: '#9ca3af',
                         callback: (value, index, values) => {
                             return new Intl.NumberFormat('pt-BR', {
                                 style: 'currency',
@@ -583,19 +783,37 @@
                                 maximumSignificantDidits: 1
                             }).format(value);
                         }
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.06)'
                     }
                 },
                 x: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Meses'
+                        text: 'Meses',
+                        color: '#9ca3af'
+                    },
+                    ticks: {
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        display: false
                     }
                 }
             },
 
             plugins: {
                 tooltip: {
+                    backgroundColor: '#1e2235',
+                    titleColor: '#e8eaf0',
+                    bodyColor: '#c9cad6',
+                    borderColor: 'rgba(16,185,129,0.35)',
+                    borderWidth: 1,
+                    cornerRadius: 10,
+                    padding: 12,
+                    usePointStyle: true,
                     callbacks: {
                         beforeTitle: function(context) {
                             return 'Referente ao mês de';
@@ -607,6 +825,8 @@
                     position: "bottom",
                     labels: {
                         usePointStyle: true,
+                        color: '#9ca3af',
+                        padding: 16
                     }
                 }
             }
@@ -632,14 +852,24 @@
                 ],
 
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.5)',
-                    'rgba(54, 162, 235, 0.5)',
-                    'rgba(255, 206, 86, 0.5)',
-                    'rgba(255, 99, 132, 0.5)',
-                    'rgba(255, 159, 64, 0.5)',
-                    'rgba(153, 102, 255, 0.5)'
+                    'rgba(16, 185, 129, 0.75)',
+                    'rgba(96, 165, 250, 0.75)',
+                    'rgba(245, 158, 11, 0.75)',
+                    'rgba(239, 68, 68, 0.75)',
+                    'rgba(251, 146, 60, 0.75)',
+                    'rgba(5, 150, 105, 0.75)'
                 ],
-                borderWidth: 1
+                hoverBackgroundColor: [
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(96, 165, 250, 1)',
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(251, 146, 60, 1)',
+                    'rgba(5, 150, 105, 1)'
+                ],
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.15)',
+                hoverOffset: 10
             }]
         },
 
@@ -647,6 +877,10 @@
         type: 'polarArea',
         options: {
             locale: 'pt-BR',
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
             scales: {
                 r: {
                     ticks: {
@@ -656,16 +890,37 @@
                                 currency: 'BRL',
                                 maximumSignificantDidits: 1
                             }).format(value);
-                        }
+                        },
+                        backdropColor: 'rgba(0,0,0,0)',
+                        color: '#9ca3af',
+                        count: 5
                     },
                     beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255,255,255,0.08)'
+                    },
+                    angleLines: {
+                        color: 'rgba(255,255,255,0.08)'
+                    }
                 }
             },
             plugins: {
+                tooltip: {
+                    backgroundColor: '#1e2235',
+                    titleColor: '#e8eaf0',
+                    bodyColor: '#c9cad6',
+                    borderColor: 'rgba(16,185,129,0.35)',
+                    borderWidth: 1,
+                    cornerRadius: 10,
+                    padding: 12,
+                    usePointStyle: true
+                },
                 legend: {
                     position: "bottom",
                     labels: {
                         usePointStyle: true,
+                        color: '#9ca3af',
+                        padding: 14
 
                     }
                 }
@@ -760,9 +1015,7 @@
                                         <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
                                             <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
-                                            <i class="bx bx-shield-quarter"></i>
-                                        </a>
+
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -853,9 +1106,7 @@
                                         <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
                                             <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
-                                            <i class="bx bx-shield-quarter"></i>
-                                        </a>
+
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -947,9 +1198,7 @@
                                         <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
                                             <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
-                                            <i class="bx bx-shield-quarter"></i>
-                                        </a>
+
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1040,9 +1289,7 @@
                                         <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
                                             <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
-                                            <i class="bx bx-shield-quarter"></i>
-                                        </a>
+
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1131,9 +1378,7 @@
                                         <a href="<?= base_url() ?>index.php/os/visualizar/<?= $o->idOs ?>" class="btn-nwe tip-top" title="Visualizar OS" style="margin-right:3px;">
                                             <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="<?= base_url() ?>index.php/garantias/imprimir/<?= $o->idOs ?>" target="_blank" class="btn-nwe tip-top" title="Imprimir Termo de Garantia" style="background:#1a3a2a;border-color:#16a34a;">
-                                            <i class="bx bx-shield-quarter"></i>
-                                        </a>
+
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -1379,42 +1624,59 @@
 
 <!-- Fim Staus OS -->
 
-<!-- Modal Status OS Calendar -->
-<div id="calendarModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Status OS Detalhada</h3>
+<!-- ════ Agenda: Modal Moderno ════ -->
+<div id="sisosCalModal" class="sisos-modal-overlay" style="display:none;" onclick="if(event.target===this)sisosCloseModal()">
+    <div class="sisos-modal-box">
+        <div class="sisos-modal-head">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sisos-modal-badge-id">OS #<span id="modalId"></span></span>
+                <span id="modalStatusBadge" class="sisos-modal-status-badge"></span>
+            </div>
+            <button onclick="sisosCloseModal()" class="sisos-modal-close" title="Fechar"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="sisos-modal-body">
+            <div class="sisos-modal-row"><i class='bx bxs-user-circle'></i><span id="modalCliente"></span></div>
+            <div class="sisos-modal-divider"></div>
+            <div class="sisos-modal-grid2">
+                <div class="sisos-modal-info"><label>Data Inicial</label><span id="modalDataInicial"></span></div>
+                <div class="sisos-modal-info"><label>Prev. Entrega</label><span id="modalDataFinal"></span></div>
+                <div class="sisos-modal-info"><label>Garantia</label><span id="modalGarantia"></span></div>
+                <div class="sisos-modal-info"><label>Faturado</label><span id="modalFaturado"></span></div>
+            </div>
+            <div class="sisos-modal-divider"></div>
+            <div class="sisos-modal-info-full"><label>Descrição</label><p id="modalDescription"></p></div>
+            <div class="sisos-modal-info-full"><label>Defeito</label><p id="modalDefeito"></p></div>
+            <div class="sisos-modal-info-full" id="wrapObs" style="display:none"><label>Observações</label><p id="modalObservacoes"></p></div>
+            <div class="sisos-modal-divider"></div>
+            <div class="sisos-modal-grid2">
+                <div class="sisos-modal-info"><label>Subtotal</label><span id="modalSubtotal" style="color:#9ca3af;"></span></div>
+                <div class="sisos-modal-info"><label>Desconto</label><span id="modalDesconto" style="color:#f87171;"></span></div>
+            </div>
+            <div class="sisos-modal-total"><i class='bx bx-money'></i><span id="modalTotal"></span></div>
+        </div>
+        <div class="sisos-modal-foot">
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')): ?>
+            <a id="modalIdVisualizar" href="" class="vos-btn" style="background:#252a3a;color:#e8eaf0;">
+                <i class='bx bx-show'></i> Ver OS
+            </a>
+            <?php endif; ?>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')): ?>
+            <a id="modalIdEditar" href="" class="vos-btn" style="display:none;background:rgba(251,191,36,0.15);color:#fbbf24;">
+                <i class='bx bx-edit'></i> Editar
+            </a>
+            <?php endif; ?>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs')): ?>
+            <form id="formExcluirCal" method="post" action="<?= base_url() ?>index.php/os/excluir" style="display:none;">
+                <input type="hidden" name="id" id="modalIdExcluir">
+                <button type="submit" class="vos-btn" style="background:rgba(248,113,113,0.12);color:#f87171;"
+                    onclick="return confirm('Excluir esta OS?')">
+                    <i class='bx bx-trash'></i> Excluir
+                </button>
+            </form>
+            <?php endif; ?>
+        </div>
     </div>
-    <div class="modal-body">
-        <div class="span5" id="divFormStatusOS" style="margin-left: 0"></div>
-        <h4><b>OS:</b> <span id="modalId" class="modal-id"></span></h4>
-        <h5 id="modalCliente" class="modal-cliente"></h5>
-        <div id="modalDataInicial" class="modal-DataInicial"></div>
-        <div id="modalDataFinal" class="modal-DataFinal"></div>
-        <div id="modalGarantia" class="modal-Garantia"></div>
-        <div id="modalStatus" class="modal-Status"></div>
-        <div id="modalDescription" class="modal-Description"></div>
-        <div id="modalDefeito" class="modal-Defeito"></div>
-        <div id="modalObservacoes" class="modal-Observacoes"></div>
-        <div id="modalSubtotal" class="modal-Subtotal"></div>
-        <div id="modalDesconto" class="modal-Desconto"></div>
-        <div id="modalTotal" class="modal-Total"></div>
-        <div id="modalFaturado" class="modal-Faturado"></div>
-    </div>
-    <div class="modal-footer">
-        <?php
-            if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                echo '<a id="modalIdVisualizar" style="margin-right: 1%" href="" class="btn tip-top" title="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
-            }
-if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-    echo '<a id="modalIdEditar" style="margin-right: 1%" href="" class="btn btn-info tip-top" title="Editar OS"><i class="fas fa-edit"></i></a>';
-}
-if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs')) {
-    echo '<a id="linkExcluir" href="#modal-excluir-os" role="button" data-toggle="modal" os="" class="btn btn-danger tip-top" title="Excluir OS"><i class="fas fa-trash-alt"></i></a>  ';
-}
-?>
-    </div>
-</div>
+</div></div>
 
 <!-- Modal Excluir Os -->
 <div id="modal-excluir-os" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1499,61 +1761,83 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'd
             }
         });
 
+        // ── Agenda Moderna ──────────────────────────────────────
+        var STATUS_COLORS = {
+            'Aberto':'#22c55e','Negociação':'#AEB404','Em Andamento':'#436eee',
+            'Orçamento':'#CDB380','Cancelado':'#f87171','Finalizado':'#4ade80',
+            'Faturado':'#a78bfa','Aguardando Peças':'#f97316','Aprovado':'#22d3ee'
+        };
+        function getStatusColor(s){ return STATUS_COLORS[s]||'#9ca3af'; }
+
         var srcCalendarEl = document.getElementById('source-calendar');
         var srcCalendar = new FullCalendar.Calendar(srcCalendarEl, {
             locale: 'pt-br',
-            height: 500,
+            height: 420,
             editable: false,
             selectable: false,
             businessHours: true,
-            dayMaxEvents: true, // allow "more" link when too many events
+            dayMaxEvents: true,
             displayEventTime: false,
+            headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,dayGridWeek' },
+            buttonText: { today:'Hoje', month:'Mês', week:'Semana' },
             events: {
-                url: "<?= base_url() . "index.php/sisos/calendario"; ?>",
+                url: "<?= base_url() . 'index.php/sisos/calendario'; ?>",
                 method: 'GET',
-                extraParams: function() { // a function that returns an object
-                    return {
-                        status: $("#statusOsGet").val(),
-                    };
-                },
-                failure: function() {
-                    alert('Falha ao buscar OS de calendário!');
-                },
+                extraParams: function() { return { status: document.getElementById('statusOsGet').value }; },
+                failure: function() { console.warn('Falha ao buscar eventos do calendário.'); },
+            },
+            eventDidMount: function(info) {
+                var status = (info.event.extendedProps.status||'').replace('<b>Status da OS:</b> ','').trim();
+                var cor = getStatusColor(status) || info.event.backgroundColor;
+                info.el.style.backgroundColor = cor+'22';
+                info.el.style.borderLeft = '3px solid '+cor;
+                info.el.style.color = cor;
+                info.el.style.borderRadius = '6px';
             },
             eventClick: function(info) {
-                var eventObj = info.event.extendedProps;
-                $('#modalId').html(eventObj.id);
-                $('#modalIdVisualizar').attr("href", "<?php echo base_url(); ?>index.php/os/visualizar/" + eventObj.id);
-                if (eventObj.editar) {
-                    $('#modalIdEditar').show();
-                    $('#linkExcluir').show();
-                    $('#modalIdEditar').attr("href", "<?php echo base_url(); ?>index.php/os/editar/" + eventObj.id);
-                    $('#modalIdExcluir').val(eventObj.id);
-                } else {
-                    $('#modalIdEditar').hide();
-                    $('#linkExcluir').hide();
+                var ep = info.event.extendedProps;
+                document.getElementById('modalId').textContent = ep.id;
+                document.getElementById('modalIdVisualizar').href = "<?= base_url(); ?>index.php/os/visualizar/" + ep.id;
+                var rawStatus = (ep.status||'').replace('<b>Status da OS:</b> ','').trim();
+                var badge = document.getElementById('modalStatusBadge');
+                badge.textContent = rawStatus;
+                var cor = getStatusColor(rawStatus);
+                badge.style.background = cor+'22'; badge.style.color = cor; badge.style.border = '1px solid '+cor+'55';
+                document.getElementById('modalCliente').innerHTML = ep.cliente||'—';
+                document.getElementById('modalDataInicial').innerHTML = ep.dataInicial||'—';
+                document.getElementById('modalDataFinal').innerHTML   = ep.dataFinal||'—';
+                document.getElementById('modalGarantia').innerHTML    = ep.garantia||'—';
+                document.getElementById('modalFaturado').innerHTML    = ep.faturado||'—';
+                document.getElementById('modalDescription').innerHTML = ep.description||'—';
+                document.getElementById('modalDefeito').innerHTML     = ep.defeito||'—';
+                var obsText = (ep.observacoes||'').replace('<b>Observações:</b> ','').trim();
+                var obsWrap = document.getElementById('wrapObs');
+                if(obsText&&obsText!=='null'){ document.getElementById('modalObservacoes').innerHTML=ep.observacoes; obsWrap.style.display=''; }
+                else{ obsWrap.style.display='none'; }
+                document.getElementById('modalSubtotal').innerHTML = ep.subtotal||'R$ 0,00';
+                document.getElementById('modalDesconto').innerHTML  = ep.desconto||'R$ 0,00';
+                document.getElementById('modalTotal').innerHTML     = ep.total||'R$ 0,00';
+                var btnEditar   = document.getElementById('modalIdEditar');
+                var formExcluir = document.getElementById('formExcluirCal');
+                if(ep.editar){
+                    if(btnEditar){ btnEditar.href="<?= base_url(); ?>index.php/os/editar/"+ep.id; btnEditar.style.display=''; }
+                    if(formExcluir){ document.getElementById('modalIdExcluir').value=ep.id; formExcluir.style.display=''; }
+                }else{
+                    if(btnEditar)   btnEditar.style.display='none';
+                    if(formExcluir) formExcluir.style.display='none';
                 }
-                $('#modalCliente').html(eventObj.cliente);
-                $('#modalDataInicial').html(eventObj.dataInicial);
-                $('#modalDataFinal').html(eventObj.dataFinal);
-                $('#modalGarantia').html(eventObj.garantia);
-                $('#modalStatus').html(eventObj.status);
-                $('#modalDescription').html(eventObj.description);
-                $('#modalDefeito').html(eventObj.defeito);
-                $('#modalObservacoes').html(eventObj.observacoes);
-                $('#modalSubtotal').html(eventObj.subtotal);
-                $('#modalDesconto').html(eventObj.desconto);
-                $('#modalTotal').html(eventObj.total);
-                $('#modalFaturado').html(eventObj.faturado);
-                $('#eventUrl').attr('href', event.url);
-                $('#calendarModal').modal();
+                document.getElementById('sisosCalModal').style.display='flex';
+                document.body.style.overflow='hidden';
             },
         });
-
         srcCalendar.render();
 
-        $('#btn-calendar').on('click', function() {
-            srcCalendar.refetchEvents();
-        });
+        document.getElementById('btn-calendar').addEventListener('click', function(){ srcCalendar.refetchEvents(); });
+
+        window.sisosCloseModal = function(){
+            document.getElementById('sisosCalModal').style.display='none';
+            document.body.style.overflow='';
+        };
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape') window.sisosCloseModal(); });
     });
 </script>

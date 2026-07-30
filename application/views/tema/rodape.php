@@ -26,4 +26,32 @@
         }
     } );
 </script>
+
+<script>
+function mobToggle() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('mob-overlay');
+    var icon    = document.querySelector('#mob-toggle i');
+    if (!sidebar) return;
+    var isOpen = sidebar.classList.toggle('mob-open');
+    if (overlay) overlay.classList.toggle('mob-open', isOpen);
+    if (icon) icon.className = isOpen ? 'bx bx-x' : 'bx bx-menu';
+}
+function mobClose() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('mob-overlay');
+    var icon    = document.querySelector('#mob-toggle i');
+    if (sidebar) sidebar.classList.remove('mob-open');
+    if (overlay) overlay.classList.remove('mob-open');
+    if (icon) icon.className = 'bx bx-menu';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // Fechar menu ao navegar
+    document.querySelectorAll('#sidebar a').forEach(function(a) {
+        a.addEventListener('click', function() {
+            if (window.innerWidth <= 992) mobClose();
+        });
+    });
+});
+</script>
 </html>

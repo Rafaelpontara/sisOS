@@ -36,18 +36,22 @@ class Financeiro extends MY_Controller
         $fim    = date('Y-m-t', strtotime($inicio));
 
         $where = "data_vencimento >= '$inicio' AND data_vencimento <= '$fim'";
-        if ($tipo === 'receita') $where .= " AND tipo = 'receita'";
-        if ($tipo === 'despesa') $where .= " AND tipo = 'despesa'";
+        if ($tipo === 'receita') $where .= " AND LOWER(tipo) = 'receita'";
+        if ($tipo === 'despesa') $where .= " AND LOWER(tipo) = 'despesa'";
 
         // Totais cards
         $sql = "SELECT
-            SUM(CASE WHEN baixado=1 AND tipo='receita' THEN IF(valor_desconto=0,valor,valor_desconto) ELSE 0 END) as receitas_pagas,
-            SUM(CASE WHEN baixado=0 AND tipo='receita' THEN IF(valor_desconto=0,valor,valor_desconto) ELSE 0 END) as receitas_pendentes,
-            SUM(CASE WHEN baixado=1 AND tipo='despesa' THEN valor-desconto ELSE 0 END) as despesas_pagas,
-            SUM(CASE WHEN baixado=0 AND tipo='despesa' THEN valor-desconto ELSE 0 END) as despesas_pendentes,
-            SUM(CASE WHEN tipo='receita' THEN IF(valor_desconto=0,valor,valor_desconto) ELSE 0 END) as receitas_sem_desconto,
-            SUM(CASE WHEN tipo='despesa' THEN valor ELSE 0 END) as despesas_sem_desconto,
-            SUM(CASE WHEN baixado=1 THEN desconto ELSE 0 END) as descontos_aplicados
+            -- Receitas: usa campo 'valor' diretamente (correto para lancamentos)
+            SUM(CASE WHEN baixado=1 AND LOWER(tipo)='receita' THEN COALESCE(valor,0) ELSE 0 END) as receitas_pagas,
+            SUM(CASE WHEN baixado=0 AND LOWER(tipo)='receita' THEN COALESCE(valor,0) ELSE 0 END) as receitas_pendentes,
+            -- Despesas: valor já é o total final líquido, nunca subtrair desconto
+            SUM(CASE WHEN baixado=1 AND LOWER(tipo)='despesa' THEN COALESCE(valor,0) ELSE 0 END) as despesas_pagas,
+            SUM(CASE WHEN baixado=0 AND LOWER(tipo)='despesa' THEN COALESCE(valor,0) ELSE 0 END) as despesas_pendentes,
+            -- Totais sem desconto (para estatísticas)
+            SUM(CASE WHEN LOWER(tipo)='receita' THEN COALESCE(valor,0) ELSE 0 END) as receitas_sem_desconto,
+            SUM(CASE WHEN LOWER(tipo)='despesa' THEN COALESCE(valor,0) ELSE 0 END) as despesas_sem_desconto,
+            -- Descontos aplicados
+            SUM(CASE WHEN baixado=1 THEN COALESCE(desconto,0) ELSE 0 END) as descontos_aplicados
             FROM lancamentos WHERE $where";
 
         $qTotais = $this->db->query($sql);
@@ -60,7 +64,7 @@ class Financeiro extends MY_Controller
             FROM lancamentos l
             LEFT JOIN categorias c  ON c.idCategorias = l.categorias_id
             LEFT JOIN categorias cp ON cp.idCategorias = c.parent_id
-            WHERE $where ORDER BY l.data_vencimento DESC";
+            WHERE $where ORDER BY l.data_vencimento DESC, l.idLancamentos DESC";
 
         $qLanc = $this->db->query($sqlLanc);
 
@@ -80,6 +84,10 @@ class Financeiro extends MY_Controller
         $this->data['tipo'] = $tipo;
         $this->data['menuDashFinanceiro'] = true;
         $this->data['menuLancamentos'] = 'financeiro';
+
+        // Carregar categorias para os modais de lançamento
+        $this->data['categorias'] = $this->db->order_by('categoria', 'ASC')->get('categorias')->result();
+
         $this->data['view'] = 'financeiro/dashboard';
         return $this->layout();
     }
@@ -92,30 +100,33 @@ class Financeiro extends MY_Controller
         }
 
         $where = '';
+        $periodo        = $this->input->get('periodo') ?: 'dia';
         $vencimento_de  = $this->input->get('vencimento_de')  ?: date('d/m/Y');
         $vencimento_ate = $this->input->get('vencimento_ate') ?: date('d/m/Y');
         $cliente  = $this->input->get('cliente');
         $tipo     = $this->input->get('tipo');
         $status   = $this->input->get('status');
-        $periodo  = $this->input->get('periodo');
 
-        if (! empty($vencimento_de)) {
-            $date = DateTime::createFromFormat('d/m/Y', $vencimento_de);
-            if ($date) {
-                $dateString = $date->format('Y-m-d');
-                $where = empty($where)
-                    ? "data_vencimento >= '$dateString'"
-                    : "$where AND data_vencimento >= '$dateString'";
+        // Se periodo=todos, não filtra por data
+        if ($periodo !== 'todos') {
+            if (! empty($vencimento_de)) {
+                $date = DateTime::createFromFormat('d/m/Y', $vencimento_de);
+                if ($date) {
+                    $dateString = $date->format('Y-m-d');
+                    $where = empty($where)
+                        ? "data_vencimento >= '$dateString'"
+                        : "$where AND data_vencimento >= '$dateString'";
+                }
             }
-        }
 
-        if (! empty($vencimento_ate)) {
-            $date = DateTime::createFromFormat('d/m/Y', $vencimento_ate);
-            if ($date) {
-                $dateString = $date->format('Y-m-d');
-                $where = empty($where)
-                    ? "data_vencimento <= '$dateString'"
-                    : "$where AND data_vencimento <= '$dateString'";
+            if (! empty($vencimento_ate)) {
+                $date = DateTime::createFromFormat('d/m/Y', $vencimento_ate);
+                if ($date) {
+                    $dateString = $date->format('Y-m-d');
+                    $where = empty($where)
+                        ? "data_vencimento <= '$dateString'"
+                        : "$where AND data_vencimento <= '$dateString'";
+                }
             }
         }
 
@@ -145,9 +156,13 @@ class Financeiro extends MY_Controller
 
         $this->pagination->initialize($this->data['configuration']);
 
-        $this->data['results'] = $this->financeiro_model->get('lancamentos', '*', $where, $this->data['configuration']['per_page'], $this->input->get('per_page'));
-        $this->data['totals']  = $this->financeiro_model->getTotals($where);
-        $this->data['estatisticas_financeiro'] = $this->financeiro_model->getEstatisticasFinanceiro2();
+        $offset = max(0, (int)($this->input->get('per_page') ?: 0));
+        $this->data['lancamentos'] = $this->financeiro_model->get('lancamentos', '*', $where, $this->data['configuration']['per_page'], $offset);
+        $totals = $this->financeiro_model->getTotals($where);
+        $this->data['totals']          = $totals;
+        $this->data['total_receitas']  = floatval($totals['receitas'] ?? 0);
+        $this->data['total_despesas']  = floatval($totals['despesas'] ?? 0);
+        $this->data['estatisticas_financeiro'] = $this->financeiro_model->getEstatisticasFinanceiro2($where);
 
         $this->data['view'] = 'financeiro/lancamentos';
         return $this->layout();
@@ -196,38 +211,42 @@ class Financeiro extends MY_Controller
                 $vencimento = date('Y-m-d');
             }
 
-            $valor          = str_replace(',', '.', $this->input->post('valor'));
-            $valor_desconto = floatval(str_replace(',', '.', $this->input->post('valor_desconto')));
-            $desconto       = $valor_desconto;
-            $total_sem_desc = floatval($valor) + $valor_desconto;
-            $valor          = $total_sem_desc;
-            $valor_desconto = $valor - $desconto;
+            // Convenção do sistema (confirmada no dashboard e no PDV): 'valor'
+            // é sempre o valor LÍQUIDO final (já com desconto aplicado).
+            // 'desconto' é só informativo, nunca deve ser subtraído de novo.
+            $valorOriginal = floatval(str_replace(',', '.', $this->input->post('valor')));
+            $desconto      = floatval(str_replace(',', '.', $this->input->post('descontos') ?: 0));
 
-            if (!is_numeric($valor_desconto)) {
-                $valor_desconto = 0;
+            if (!is_numeric($valorOriginal)) {
+                $valorOriginal = 0;
             }
-            if (!is_numeric($valor)) {
-                $valor = 0;
+            if (!is_numeric($desconto)) {
+                $desconto = 0;
+            }
+
+            $valorLiquido = $valorOriginal - $desconto;
+            if ($valorLiquido < 0) {
+                $valorLiquido = 0;
             }
 
             $data = [
-                'descricao'          => set_value('descricao'),
-                'valor'              => number_format($valor, 2, '.', ''),
-                'valor_desconto'     => number_format($valor_desconto, 2, '.', ''),
-                'desconto'           => $desconto,
+                'descricao'          => $this->input->post('descricao'),
+                'valor'              => number_format($valorLiquido, 2, '.', ''),
+                'valor_desconto'     => number_format($valorLiquido, 2, '.', ''),
+                'desconto'           => number_format($desconto, 2, '.', ''),
                 'tipo_desconto'      => 'real',
                 'data_vencimento'    => $vencimento,
                 'data_pagamento'     => $recebimento ?: date('Y-m-d'),
                 'baixado'            => $this->input->post('recebido') ?: 0,
-                'cliente_fornecedor' => set_value('cliente'),
+                'cliente_fornecedor' => $this->input->post('cliente'),
                 'forma_pgto'         => $this->input->post('formaPgto'),
-                'tipo'               => 'receita',
-                'observacoes'        => set_value('observacoes'),
+                'tipo'               => $this->input->post('tipo') ?: 'receita',
+                'observacoes'        => $this->input->post('observacoes'),
                 'usuarios_id'        => $this->session->userdata('id_admin'),
             ];
 
-            if (set_value('idCliente')) {
-                $data['clientes_id'] = set_value('idCliente');
+            if ($this->input->post('idCliente')) {
+                $data['clientes_id'] = $this->input->post('idCliente');
             }
             if (empty($data['valor_desconto'])) {
                 $data['valor_desconto'] = '0';
@@ -428,21 +447,30 @@ class Financeiro extends MY_Controller
             }
 
             // Converte valor monetário brasileiro para float
-            $valor = str_replace(',', '.', $valor_raw);
+            $valorOriginal = str_replace(',', '.', $valor_raw);
             // Remove separador de milhar se houver (ex: 1.500,00 -> 1500.00)
-            if (substr_count($valor, '.') > 1) {
-                $valor = str_replace('.', '', $valor_raw);
-                $valor = str_replace(',', '.', $valor);
+            if (substr_count($valorOriginal, '.') > 1) {
+                $valorOriginal = str_replace('.', '', $valor_raw);
+                $valorOriginal = str_replace(',', '.', $valorOriginal);
             }
-            if (!is_numeric($valor)) {
-                $valor = preg_replace('/[^0-9]/', '', $valor_raw);
+            if (!is_numeric($valorOriginal)) {
+                $valorOriginal = preg_replace('/[^0-9]/', '', $valor_raw);
             }
+            $valorOriginal = floatval($valorOriginal);
+
+            // Desconto — o formulário já coleta isso (descontos_desp), mas
+            // antes era ignorado e sempre salvava 0, mesmo se preenchido.
+            $desconto = floatval(str_replace(',', '.', $this->input->post('descontos_desp') ?: 0));
+            if ($desconto > $valorOriginal) {
+                $desconto = $valorOriginal;
+            }
+            $valorLiquido = $valorOriginal - $desconto;
 
             $data = [
                 'descricao'          => $descricao,
-                'valor'              => $valor,
-                'desconto'           => 0,
-                'valor_desconto'     => 0,
+                'valor'              => number_format($valorLiquido, 2, '.', ''),
+                'desconto'           => number_format($desconto, 2, '.', ''),
+                'valor_desconto'     => number_format($valorLiquido, 2, '.', ''),
                 'tipo_desconto'      => 'real',
                 'data_vencimento'    => $vencimento,
                 'data_pagamento'     => $pagamento ?: date('Y-m-d'),
@@ -515,28 +543,25 @@ class Financeiro extends MY_Controller
                 return (float) str_replace(',', '.', $value);
             };
 
-            $valor_total      = $parseMoney($this->input->post('valor'));
-            $desconto         = $parseMoney($this->input->post('descontos_editar'));
-            $valor_com_desconto = $parseMoney($this->input->post('valor_desconto_editar'));
+            // Mesma convenção do adicionarReceita(): 'valor' salvo é sempre
+            // o líquido final. O campo do formulário de editar ainda manda
+            // o valor original + desconto separados, então recalculamos aqui.
+            $valorOriginal = $parseMoney($this->input->post('valor'));
+            $desconto      = $parseMoney($this->input->post('descontos_editar'));
 
-            if ($valor_com_desconto <= 0) {
-                $valor_com_desconto = $valor_total - $desconto;
-            }
-            if ($desconto <= 0 && $valor_total > $valor_com_desconto) {
-                $desconto = $valor_total - $valor_com_desconto;
-            }
-            if ($valor_com_desconto < 0) {
-                $valor_com_desconto = 0;
+            $valorLiquido = $valorOriginal - $desconto;
+            if ($valorLiquido < 0) {
+                $valorLiquido = 0;
             }
 
             $data = [
                 'descricao'          => $this->input->post('descricao'),
                 'data_vencimento'    => $vencimento,
                 'data_pagamento'     => $pagamento,
-                'valor'              => $valor_total,
-                'desconto'           => $desconto,
+                'valor'              => number_format($valorLiquido, 2, '.', ''),
+                'desconto'           => number_format($desconto, 2, '.', ''),
                 'tipo_desconto'      => 'real',
-                'valor_desconto'     => $valor_com_desconto,
+                'valor_desconto'     => number_format($valorLiquido, 2, '.', ''),
                 'baixado'            => $this->input->post('pago') ?: 0,
                 'cliente_fornecedor' => $this->input->post('fornecedor'),
                 'forma_pgto'         => $this->input->post('formaPgto'),
@@ -570,6 +595,82 @@ class Financeiro extends MY_Controller
     }
 
     // ─── EXCLUIR ──────────────────────────────────────────────────────────────
+
+    // ─── RELATÓRIO FINANCEIRO ────────────────────────────────────────────────
+
+    public function relatorio()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rFinanceiro')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerar relatórios.');
+            redirect(base_url());
+        }
+
+        // Filtros disponíveis
+        $tipo           = $this->input->get('tipo')           ?: '';
+        $status         = $this->input->get('status');
+        $forma_pgto     = $this->input->get('forma_pgto')     ?: '';
+        $cliente        = $this->input->get('cliente')        ?: '';
+        $descricao      = $this->input->get('descricao')      ?: '';
+        $vencimento_de  = $this->input->get('vencimento_de')  ?: date('d/m/Y', strtotime('first day of this month'));
+        $vencimento_ate = $this->input->get('vencimento_ate') ?: date('d/m/Y');
+
+        // Montar condições usando query builder para segurança e compatibilidade CI3
+        $this->db->from('lancamentos');
+
+        // Período
+        $de = DateTime::createFromFormat('d/m/Y', $vencimento_de);
+        $ate = DateTime::createFromFormat('d/m/Y', $vencimento_ate);
+        if ($de)  $this->db->where('data_vencimento >=', $de->format('Y-m-d'));
+        if ($ate) $this->db->where('data_vencimento <=', $ate->format('Y-m-d'));
+
+        // Tipo (receita/despesa) — LOWER para pegar 'Receita' e 'receita'
+        if ($tipo !== '') $this->db->where("LOWER(tipo)", strtolower($tipo));
+
+        // Status (pago/pendente)
+        if ($status !== null && $status !== '') $this->db->where('baixado', $status);
+
+        // Forma de pagamento
+        if ($forma_pgto !== '') $this->db->like('forma_pgto', $forma_pgto);
+
+        // Cliente/Fornecedor
+        if ($cliente !== '') $this->db->like('cliente_fornecedor', $cliente);
+
+        // Descrição
+        if ($descricao !== '') $this->db->like('descricao', $descricao);
+
+        // Buscar lançamentos sem paginação (relatório completo)
+        $lancamentos = $this->db->order_by('data_vencimento', 'ASC')->get()->result();
+
+        // Totais — refazer a mesma query com os mesmos filtros
+        $this->db->select("
+            SUM(CASE WHEN LOWER(tipo)='receita' AND baixado=1 THEN COALESCE(valor,0) ELSE 0 END) as receitas_pagas,
+            SUM(CASE WHEN LOWER(tipo)='despesa' AND baixado=1 THEN COALESCE(valor,0) ELSE 0 END) as despesas_pagas,
+            SUM(CASE WHEN LOWER(tipo)='receita' AND baixado=0 THEN COALESCE(valor,0) ELSE 0 END) as receitas_pendentes,
+            SUM(CASE WHEN LOWER(tipo)='despesa' AND baixado=0 THEN COALESCE(valor,0) ELSE 0 END) as despesas_pendentes,
+            COUNT(*) as total_registros
+        ", false);
+        $this->db->from('lancamentos');
+        if ($de)  $this->db->where('data_vencimento >=', $de->format('Y-m-d'));
+        if ($ate) $this->db->where('data_vencimento <=', $ate->format('Y-m-d'));
+        if ($tipo !== '') $this->db->where("LOWER(tipo)", strtolower($tipo));
+        if ($status !== null && $status !== '') $this->db->where('baixado', $status);
+        if ($forma_pgto !== '') $this->db->like('forma_pgto', $forma_pgto);
+        if ($cliente !== '') $this->db->like('cliente_fornecedor', $cliente);
+        if ($descricao !== '') $this->db->like('descricao', $descricao);
+        $totais = $this->db->get()->row();
+
+        // Formas de pagamento distintas (para o select do filtro)
+        $formas = $this->db->distinct()->select('forma_pgto')
+                    ->where('forma_pgto !=', '')->where('forma_pgto IS NOT NULL', null, false)
+                    ->get('lancamentos')->result();
+
+        $this->data['lancamentos']   = $lancamentos;
+        $this->data['totais']        = $totais;
+        $this->data['formas']        = $formas;
+        $this->data['filtros']       = compact('tipo','status','forma_pgto','cliente','descricao','vencimento_de','vencimento_ate');
+        $this->data['view']          = 'financeiro/relatorio';
+        return $this->layout();
+    }
 
     public function excluirLancamento()
     {

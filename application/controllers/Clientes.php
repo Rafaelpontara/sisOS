@@ -27,23 +27,57 @@ class Clientes extends MY_Controller
         }
 
         $pesquisa = $this->input->get('pesquisa');
+        $perPage  = 24; // tamanho de cada "lote" carregado, tanto no 1º carregamento quanto na rolagem
 
-        $this->load->library('pagination');
-
-        $this->data['configuration']['base_url'] = site_url('clientes/gerenciar/');
-        $this->data['configuration']['total_rows'] = $this->clientes_model->count('clientes');
-        if ($pesquisa) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}";
-            $this->data['configuration']['first_url'] = base_url("index.php/clientes")."\?pesquisa={$pesquisa}";
+        // Preferência de visualização (lista/grade) — igual à da tela de OS
+        $visualizacaoParam = $this->input->get('visualizacao');
+        if (in_array($visualizacaoParam, ['lista', 'grade'], true)) {
+            $this->session->set_userdata('clientes_visualizacao', $visualizacaoParam);
         }
+        $this->data['visualizacaoAtual'] = $this->session->userdata('clientes_visualizacao') ?: 'grade';
 
-        $this->pagination->initialize($this->data['configuration']);
+        $this->data['results']  = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0);
+        $this->data['perPage']  = $perPage;
+        $this->data['pesquisa'] = $pesquisa;
 
-        $this->data['results'] = $this->clientes_model->get('clientes', '*', $pesquisa, $this->data['configuration']['per_page'], $this->uri->segment(3));
+        // Estatísticas do cabeçalho (contagens simples e seguras — sem
+        // valores financeiros, pra não arriscar mostrar número errado)
+        $this->data['statTotalClientes'] = $this->clientes_model->count('clientes');
+        $this->data['statNovosMes'] = $this->db
+            ->where('dataCadastro >=', date('Y-m-01'))
+            ->count_all_results('clientes');
+        $this->data['statFornecedores'] = $this->db
+            ->where('fornecedor', 1)
+            ->count_all_results('clientes');
 
         $this->data['view'] = 'clientes/clientes';
 
         return $this->layout();
+    }
+
+    /**
+     * Endpoint AJAX chamado pela rolagem infinita da lista de clientes —
+     * devolve só o HTML dos próximos cards (sem o layout da página inteira),
+     * pra tela de clientes.php ir "grudando" no final da grade.
+     */
+    public function carregarMais()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vCliente')) {
+            return; // resposta vazia — sem permissão, não carrega mais nada
+        }
+
+        $pesquisa = $this->input->get('pesquisa');
+        $antesDe  = (int) $this->input->get('antes_de');
+        $perPage  = 24;
+
+        $results = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0, false, 'array', $antesDe);
+
+        $modo = $this->input->get('modo') === 'lista' ? 'lista' : 'grade';
+        if ($modo === 'lista') {
+            echo $this->load->view('clientes/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+        } else {
+            echo $this->load->view('clientes/_cards_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+        }
     }
 
     public function adicionar()
@@ -56,9 +90,9 @@ class Clientes extends MY_Controller
         $this->load->library('form_validation');
         $this->data['custom_error'] = '';
 
-        $senhaCliente = $this->input->post('senha') ? $this->input->post('senha') : preg_replace('/[^\p{L}\p{N}\s]/', '', set_value('documento'));
+        $senhaCliente = $this->input->post('senha') ? $this->input->post('senha') : preg_replace('/[^\p{L}\p{N}\s]/', '', $this->input->post('documento'));
 
-        $cpf_cnpj = preg_replace('/[^\p{L}\p{N}\s]/', '', set_value('documento'));
+        $cpf_cnpj = preg_replace('/[^\p{L}\p{N}\s]/', '', $this->input->post('documento'));
 
         if (strlen($cpf_cnpj) == 11) {
             $pessoa_fisica = true;
@@ -69,28 +103,41 @@ class Clientes extends MY_Controller
         if ($this->form_validation->run('clientes') == false) {
             $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
         } else {
-            $email = set_value('email');
+            $email = $this->input->post('email');
             if ($email && $this->clientes_model->emailExists($email)) {
                 $this->data['custom_error'] = '<div class="form_error"><p>Este e-mail já está sendo utilizado por outro cliente.</p></div>';
             } else {
+                // Data de nascimento vem como DD/MM/AAAA do formulário — converte para
+                // o formato do banco (Y-m-d), mesmo padrão usado em outras datas do sistema.
+                $dataNascRaw = $this->input->post('dataNascimento');
+                $dataNascimento = null;
+                if ($dataNascRaw) {
+                    $partes = explode('/', $dataNascRaw);
+                    if (count($partes) === 3) {
+                        $dataNascimento = $partes[2] . '-' . $partes[1] . '-' . $partes[0];
+                    }
+                }
+
                 $data = [
-                'nomeCliente' => set_value('nomeCliente'),
-                'contato' => set_value('contato'),
+                'nomeCliente' => $this->input->post('nomeCliente'),
+                'contato' => $this->input->post('contato'),
                 'pessoa_fisica' => $pessoa_fisica,
-                'documento' => set_value('documento'),
-                'telefone' => set_value('telefone'),
-                'celular' => set_value('celular'),
-                'email' => set_value('email'),
+                'documento' => $this->input->post('documento'),
+                'telefone' => $this->input->post('telefone'),
+                'celular' => $this->input->post('celular'),
+                'email' => $this->input->post('email'),
                 'senha' => password_hash($senhaCliente, PASSWORD_DEFAULT),
-                'rua' => set_value('rua'),
-                'numero' => set_value('numero'),
-                'complemento' => set_value('complemento'),
-                'bairro' => set_value('bairro'),
-                'cidade' => set_value('cidade'),
-                'estado' => set_value('estado'),
-                'cep' => set_value('cep'),
+                'rua' => $this->input->post('rua'),
+                'numero' => $this->input->post('numero'),
+                'complemento' => $this->input->post('complemento'),
+                'bairro' => $this->input->post('bairro'),
+                'cidade' => $this->input->post('cidade'),
+                'estado' => $this->input->post('estado'),
+                'cep' => $this->input->post('cep'),
                 'dataCadastro' => date('Y-m-d'),
                 'fornecedor' => $this->input->post('fornecedor') ? 1 : 0,
+                'dataNascimento' => $dataNascimento,
+                'notif_aniversario' => $this->input->post('notif_aniversario') ? 1 : 0,
             ];
 
                 if ($this->clientes_model->add('clientes', $data) == true) {
@@ -126,12 +173,22 @@ class Clientes extends MY_Controller
         if ($this->form_validation->run('clientes') == false) {
             $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
         } else {
-            
+
             $email = $this->input->post('email');
             $idCliente = $this->input->post('idClientes');
             if ($email && $this->clientes_model->emailExists($email, $idCliente)) {
                 $this->data['custom_error'] = '<div class="form_error"><p>Este e-mail já está sendo utilizado por outro cliente.</p></div>';
             } else {
+                // Mesma conversão de data usada em adicionar()
+                $dataNascRaw = $this->input->post('dataNascimento');
+                $dataNascimento = null;
+                if ($dataNascRaw) {
+                    $partes = explode('/', $dataNascRaw);
+                    if (count($partes) === 3) {
+                        $dataNascimento = $partes[2] . '-' . $partes[1] . '-' . $partes[0];
+                    }
+                }
+
                 $senha = $this->input->post('senha');
                 if ($senha != null) {
                     $senha = password_hash($senha, PASSWORD_DEFAULT);
@@ -151,7 +208,9 @@ class Clientes extends MY_Controller
                         'cidade' => $this->input->post('cidade'),
                         'estado' => $this->input->post('estado'),
                         'cep' => $this->input->post('cep'),
-                        'fornecedor' => (set_value('fornecedor') == true ? 1 : 0),
+                        'fornecedor' => ($this->input->post('fornecedor') == true ? 1 : 0),
+                        'dataNascimento' => $dataNascimento,
+                        'notif_aniversario' => $this->input->post('notif_aniversario') ? 1 : 0,
                     ];
                 } else {
                     $data = [
@@ -168,7 +227,9 @@ class Clientes extends MY_Controller
                         'cidade' => $this->input->post('cidade'),
                         'estado' => $this->input->post('estado'),
                         'cep' => $this->input->post('cep'),
-                        'fornecedor' => (set_value('fornecedor') == true ? 1 : 0),
+                        'fornecedor' => ($this->input->post('fornecedor') == true ? 1 : 0),
+                        'dataNascimento' => $dataNascimento,
+                        'notif_aniversario' => $this->input->post('notif_aniversario') ? 1 : 0,
                     ];
                 }
 
@@ -256,14 +317,27 @@ class Clientes extends MY_Controller
             return;
         }
 
+        // Data de nascimento vem como DD/MM/AAAA do formulário — mesma conversão
+        // usada em adicionar()/editar(), pra manter o padrão do sistema.
+        $dataNascRaw = $this->input->post('dataNascimento');
+        $dataNascimento = null;
+        if ($dataNascRaw) {
+            $partes = explode('/', $dataNascRaw);
+            if (count($partes) === 3) {
+                $dataNascimento = $partes[2] . '-' . $partes[1] . '-' . $partes[0];
+            }
+        }
+
         $data = [
-            'nomeCliente'  => $nome,
-            'telefone'     => $this->input->post('telefone') ?: '',
-            'celular'      => $this->input->post('telefone') ?: '',
-            'documento'    => preg_replace('/\D/', '', $this->input->post('cpf') ?: ''),
-            'dataCadastro' => date('Y-m-d'),
-            'situacao'     => 1,
-            'senha'        => password_hash(uniqid(), PASSWORD_DEFAULT),
+            'nomeCliente'       => $nome,
+            'telefone'          => $this->input->post('telefone') ?: '',
+            'celular'           => $this->input->post('telefone') ?: '',
+            'documento'         => preg_replace('/\D/', '', $this->input->post('cpf') ?: ''),
+            'email'             => '',
+            'dataCadastro'      => date('Y-m-d'),
+            'senha'             => password_hash(uniqid(), PASSWORD_DEFAULT),
+            'dataNascimento'    => $dataNascimento,
+            'notif_aniversario' => $this->input->post('notif_aniversario') ? 1 : 0,
         ];
 
         $this->load->model('clientes_model');

@@ -1,5 +1,8 @@
 /* Personalização da DIV com os campos de usuário e senha na área de login */
-
+body {
+    background-color: #13151f !important;
+    color: #e8eaf0 !important;
+}
 .div-login {
     background-color: rgba(242, 242, 242, 0.1);
 }

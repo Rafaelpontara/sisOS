@@ -49,8 +49,8 @@ class Os_model extends CI_Model
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id');
         $this->db->join('usuarios', 'usuarios.idUsuarios = os.usuarios_id');
         $this->db->join('garantias', 'garantias.idGarantias = os.garantias_id', 'left');
-        $this->db->join('produtos_os', 'produtos_os.os_id = os.idOs', 'left');
-        $this->db->join('servicos_os', 'servicos_os.os_id = os.idOs', 'left');
+        // Removidos JOINs com produtos_os e servicos_os pois causam multiplicação de linhas
+        // Os totais já são calculados via subqueries no SELECT
 
         // condicionais da pesquisa
 
@@ -59,9 +59,18 @@ class Os_model extends CI_Model
             $this->db->where_in('status', $where['status']);
         }
 
-        // condicional de clientes
+        // condicional de clientes ou número de OS na pesquisa geral
         if (array_key_exists('pesquisa', $where)) {
-            if ($lista_clientes != null) {
+            $pesquisaTermo = $where['pesquisa'];
+            if (is_numeric($pesquisaTermo)) {
+                // Se for número, busca por idOs OU clientes
+                $this->db->group_start();
+                $this->db->where('os.idOs', (int)$pesquisaTermo);
+                if ($lista_clientes) {
+                    $this->db->or_where_in('os.clientes_id', $lista_clientes);
+                }
+                $this->db->group_end();
+            } elseif ($lista_clientes) {
                 $this->db->where_in('os.clientes_id', $lista_clientes);
             }
         }
@@ -85,15 +94,88 @@ class Os_model extends CI_Model
             $this->db->where('DATE(os.dataEntrega)', $where['entrega_hoje']);
         }
 
-        $this->db->limit($perpage, $start);
+        // condicional "Entregue ao Cliente" (Sim/Não) — usa array_key_exists
+        // (não !empty) porque 0 = "Não" é um valor válido, e 0 é falsy em PHP.
+        if (array_key_exists('entregue', $where)) {
+            $this->db->where('os.entregue', (int) $where['entregue']);
+        }
+
+        // condicional "OS Vencidas" — mesma regra usada no card do dashboard
+        // e na notificação do sininho.
+        if (!empty($where['vencidas'])) {
+            $this->db->where('os.dataFinal <', date('Y-m-d'));
+            $this->db->where('os.dataFinal IS NOT NULL', null, false);
+            $this->db->where_in('os.status', ['Aberto','Em Andamento','Aguardando Peças','Aprovado','Orçamento']);
+        }
+
+        // Paginação por cursor (mais rápida que OFFSET/LIMIT em bases grandes):
+        // ao invés de "pular os primeiros X registros" — que fica mais lento
+        // conforme X cresce, porque o banco ainda precisa varrer e descartar
+        // esses X registros — usamos "traga só os que têm ID menor que o
+        // último que a tela já mostrou". Isso usa o índice da chave primária
+        // e mantém a mesma velocidade não importa quão fundo se role.
+        if (!empty($where['antes_de'])) {
+            $this->db->where('os.idOs <', (int) $where['antes_de']);
+        }
+
         $this->db->order_by('os.idOs', 'desc');
-        $this->db->group_by('os.idOs');
+        if ($perpage > 0) {
+            $this->db->limit($perpage, (int)$start);
+        }
 
         $query = $this->db->get();
 
         $result = ! $one ? $query->result() : $query->row();
 
         return $result;
+    }
+
+    public function countOs($where = [])
+    {
+        $lista_clientes = [];
+        if (!empty($where['pesquisa'])) {
+            $this->db->select('idClientes');
+            $this->db->like('nomeCliente', $where['pesquisa']);
+            $this->db->or_like('documento', $where['pesquisa']);
+            $this->db->limit(25);
+            $clientes = $this->db->get('clientes')->result();
+            foreach ($clientes as $cl) {
+                $lista_clientes[] = $cl->idClientes;
+            }
+        }
+
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = os.usuarios_id');
+
+        if (!empty($where['status'])) {
+            $this->db->where_in('os.status', $where['status']);
+        }
+        if (!empty($where['pesquisa']) && $lista_clientes) {
+            $this->db->where_in('os.clientes_id', $lista_clientes);
+        }
+        if (!empty($where['numero_os'])) {
+            $this->db->where('os.idOs', (int)$where['numero_os']);
+        }
+        if (!empty($where['de'])) {
+            $this->db->where('os.dataInicial >=', $where['de']);
+        }
+        if (!empty($where['ate'])) {
+            $this->db->where('os.dataFinal <=', $where['ate']);
+        }
+        if (!empty($where['entrega_hoje'])) {
+            $this->db->where('DATE(os.dataEntrega)', $where['entrega_hoje']);
+        }
+        if (array_key_exists('entregue', $where)) {
+            $this->db->where('os.entregue', (int) $where['entregue']);
+        }
+        if (!empty($where['vencidas'])) {
+            $this->db->where('os.dataFinal <', date('Y-m-d'));
+            $this->db->where('os.dataFinal IS NOT NULL', null, false);
+            $this->db->where_in('os.status', ['Aberto','Em Andamento','Aguardando Peças','Aprovado','Orçamento']);
+        }
+
+        return $this->db->count_all_results();
     }
 
     public function getById($id)

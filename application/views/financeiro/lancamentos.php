@@ -1,3 +1,4 @@
+<!-- MARCADOR_TESTE_V2_OK_SE_VOCE_VE_ISSO -->
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 <script src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
@@ -12,6 +13,8 @@
 .btn-add{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:13px;font-weight:700;text-decoration:none;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,0.3);transition:transform .15s;}
 .btn-add:hover{transform:translateY(-2px);color:#fff;}
 .btn-add i{font-size:18px;}
+.btn-rel{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;background:rgba(249,115,22,0.15);color:#fb923c;font-size:13px;font-weight:700;text-decoration:none;border:1px solid rgba(249,115,22,0.3);transition:transform .15s;}
+.btn-rel:hover{background:rgba(249,115,22,0.25);color:#fb923c;transform:translateY(-2px);}
 .filter-card{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px 18px;margin-bottom:16px;}
 .filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
 .filter-col{display:flex;flex-direction:column;gap:5px;}
@@ -21,8 +24,8 @@
 .btn-filter{padding:8px 20px;border-radius:7px;background:#fbbf24;border:none;color:#111;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:37px;align-self:flex-end;}
 .btn-filter:hover{background:#f59e0b;}
 /* Table */
-.tbl-wrap{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-bottom:14px;}
-.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px;}
+.tbl-wrap table{width:100%;min-width:1100px;border-collapse:collapse;}
 .tbl-wrap thead th{background:#252a3a;color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;}
 .tbl-wrap tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s;}
 .tbl-wrap tbody tr:hover{background:rgba(251,191,36,0.04);}
@@ -124,9 +127,16 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
     <div class="pg-header">
         <div class="pg-title"><i class='bx bx-bar-chart-alt-2'></i> Lançamentos Financeiros</div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aLancamento')): ?>
-        <a href="#modalReceita" data-toggle="modal" role="button" class="btn-add">
-            <i class='bx bx-plus-circle'></i> Receita/Despesa
-        </a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'rFinanceiro')): ?>
+            <a href="<?= site_url('financeiro/relatorio') ?>" class="btn-rel">
+                <i class='bx bx-printer'></i> Relatório / Imprimir
+            </a>
+            <?php endif; ?>
+            <a href="#modalReceita" data-toggle="modal" role="button" class="btn-add">
+                <i class='bx bx-plus-circle'></i> Receita/Despesa
+            </a>
+        </div>
         <?php endif; ?>
     </div>
 
@@ -137,7 +147,8 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
                 <div class="filter-col">
                     <span class="filter-lbl">Período</span>
                     <select id="periodo" name="periodo">
-                        <option value="dia" <?= $this->input->get('periodo')=='dia'?'selected':'' ?>>Dia</option>
+                        <option value="todos" <?= $this->input->get('periodo')=='todos'?'selected':'' ?>>Todos</option>
+                        <option value="dia" <?= (!$this->input->get('periodo')||$this->input->get('periodo')=='dia')?'selected':'' ?>>Dia</option>
                         <option value="semana" <?= $this->input->get('periodo')=='semana'?'selected':'' ?>>Semana</option>
                         <option value="mesAnterior" <?= $this->input->get('periodo')=='mesAnterior'?'selected':'' ?>>Mês Anterior</option>
                         <option value="mes" <?= $this->input->get('periodo')=='mes'?'selected':'' ?>>Mês</option>
@@ -197,16 +208,21 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
                     $data_pagamento = $r->data_pagamento ? date('d/m/Y', strtotime($r->data_pagamento)) : '-';
                     echo '<tr>';
                     echo '<td style="color:#6b7280;font-size:12px;">' . $r->idLancamentos . '</td>';
-                    echo '<td><span class="' . ($r->tipo=='receita'?'tipo-r':'tipo-d') . '">' . ucfirst($r->tipo) . '</span></td>';
+                    echo '<td><span class="' . (strtolower($r->tipo)=='receita'?'tipo-r':'tipo-d') . '">' . ucfirst(strtolower($r->tipo)) . '</span></td>';
                     echo '<td style="font-weight:600;color:#e8eaf0;">' . htmlspecialchars($r->cliente_fornecedor ?? '-') . '</td>';
                     echo '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' . htmlspecialchars($r->descricao) . '</td>';
                     echo '<td style="font-size:12px;">' . date('d/m/Y', strtotime($r->data_vencimento)) . '</td>';
                     echo '<td><span class="pago-pill ' . ($r->baixado?'pago-sim':'pago-nao') . '">' . ($r->baixado?'Pago':'Pendente') . '</span></td>';
                     echo '<td style="font-size:12px;color:#9ca3af;">' . htmlspecialchars($r->observacoes ?? '') . '</td>';
                     echo '<td style="font-size:12px;color:#9ca3af;">' . htmlspecialchars($r->forma_pgto ?? '') . '</td>';
-                    echo '<td style="color:#4ade80;font-weight:600;">R$ ' . number_format($r->valor, 2, ',', '.') . '</td>';
-                    echo '<td style="color:#f87171;">R$ ' . number_format($r->desconto ?? 0, 2, ',', '.') . '</td>';
-                    echo '<td style="font-weight:700;color:#e8eaf0;">R$ ' . number_format($r->valor_desconto ?? $r->valor, 2, ',', '.') . '</td>';
+                    // Convenção do sistema: 'valor' já é o líquido final (pós-desconto).
+                    // 'Valor (+)' precisa mostrar o valor ORIGINAL, então somamos o
+                    // desconto de volta. 'Valor Total (=)' é o próprio 'valor' direto.
+                    $descontoAtual = floatval($r->desconto ?? 0);
+                    $valorOriginal = floatval($r->valor) + $descontoAtual;
+                    echo '<td style="color:#4ade80;font-weight:600;">R$ ' . number_format($valorOriginal, 2, ',', '.') . '</td>';
+                    echo '<td style="color:#f87171;">R$ ' . number_format($descontoAtual, 2, ',', '.') . '</td>';
+                    echo '<td style="font-weight:700;color:#e8eaf0;">R$ ' . number_format($r->valor, 2, ',', '.') . '</td>';
                     echo '<td><div class="act-btns">';
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eLancamento'))
                         echo '<a href="#modalEditar" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" descricao="' . htmlspecialchars($r->descricao) . '" valor="' . $r->valor . '" vencimento="' . date('d/m/Y', strtotime($r->data_vencimento)) . '" pagamento="' . $data_pagamento . '" baixado="' . $r->baixado . '" cliente="' . htmlspecialchars($r->cliente_fornecedor ?? '') . '" formaPgto="' . htmlspecialchars($r->forma_pgto ?? '') . '" tipo="' . $r->tipo . '" observacoes="' . htmlspecialchars($r->observacoes ?? '') . '" descontos_editar="' . ($r->desconto ?? 0) . '" valor_desconto_editar="' . ($r->valor_desconto != 0 ? $r->valor_desconto : $r->valor) . '" usuario="' . htmlspecialchars($r->nome ?? '') . '" class="act-btn ab-e editar" title="Editar"><i class="bx bx-edit"></i></a>';
@@ -226,94 +242,90 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
         <?php if (isset($total_receitas) || isset($total_despesas)): ?>
         <div class="totals-row">
             <div class="total-card">
-                <div class="t-label">Total Receitas</div>
+                <div class="t-label">TOTAL RECEITAS (PAGAS)</div>
                 <div class="t-value t-green">R$ <?= number_format($total_receitas ?? 0, 2, ',', '.') ?></div>
             </div>
             <div class="total-card">
-                <div class="t-label">Total Despesas</div>
+                <div class="t-label">TOTAL DESPESAS (PAGAS)</div>
                 <div class="t-value t-red">R$ <?= number_format($total_despesas ?? 0, 2, ',', '.') ?></div>
             </div>
             <div class="total-card">
-                <div class="t-label">Saldo</div>
+                <div class="t-label">SALDO LÍQUIDO</div>
                 <?php $saldo = ($total_receitas ?? 0) - ($total_despesas ?? 0); ?>
-                <div class="t-value <?= $saldo >= 0 ? 't-green' : 't-red' ?>">R$ <?= number_format($saldo, 2, ',', '.') ?></div>
+                <div class="t-value <?= $saldo >= 0 ? 't-green' : 't-red' ?>">R$ <?= number_format($saldo ?? 0, 2, ',', '.') ?></div>
             </div>
         </div>
         <?php endif; ?>
     </div>
 
-    <!-- Estatísticas -->
+    <!-- ESTATÍSTICAS GERAIS DO FINANCEIRO -->
+    <?php
+    // Mapeia campos do model para variáveis da view
+    $ef_        = $estatisticas_financeiro ?? null;
+    $rec        = floatval($ef_->total_receita              ?? 0);
+    $desp       = floatval($ef_->total_despesa              ?? 0);
+    $recP       = floatval($ef_->total_receita_pendente     ?? 0);
+    $despP      = floatval($ef_->total_despesa_pendente     ?? 0);
+    $descPago   = floatval($ef_->total_valor_desconto       ?? 0);
+    $descPend   = floatval($ef_->total_valor_desconto_pendente ?? 0);
+    $recSemDesc = floatval($ef_->total_receita_sem_desconto ?? 0);
+    $despSemDesc= floatval($ef_->total_despesa_sem_desconto ?? 0);
+    $saldo2     = $rec  - $desp;
+    $somaRD     = $rec  + $desp;
+    $subPend    = $recP - $despP;
+    $somaPend   = $recP + $despP;
+    $descTotal  = $descPago + $descPend;
+    ?>
     <?php if (isset($estatisticas_financeiro)): ?>
     <?php
-        $e = $estatisticas_financeiro;
-        $rec   = floatval($e->total_receita ?? 0);
-        $desp  = floatval($e->total_despesa ?? 0);
-        $recP  = floatval($e->total_receita_pendente ?? 0);
-        $despP = floatval($e->total_despesa_pendente ?? 0);
-        $saldo = $rec - $desp;
-        $somaRD = $rec + $desp;
-        $subPend = $recP - $despP;
-        $somaPend = $recP + $despP;
-        $descPago = floatval($e->total_valor_desconto ?? 0);
-        $descPend = floatval($e->total_valor_desconto_pendente ?? 0);
-        $descTotal = $descPago + $descPend;
-        $recSemDesc = floatval($e->total_receita_sem_desconto ?? 0);
-        $despSemDesc = floatval($e->total_despesa_sem_desconto ?? 0);
+    $ef_        = $estatisticas_financeiro ?? null;
+    $rec        = floatval($ef_->total_receita              ?? 0);
+    $desp       = floatval($ef_->total_despesa              ?? 0);
+    $recP       = floatval($ef_->total_receita_pendente     ?? 0);
+    $despP      = floatval($ef_->total_despesa_pendente     ?? 0);
+    $descPago   = floatval($ef_->total_valor_desconto       ?? 0);
+    $descPend   = floatval($ef_->total_valor_desconto_pendente ?? 0);
+    $recSemDesc = floatval($ef_->total_receita_sem_desconto ?? 0);
+    $despSemDesc= floatval($ef_->total_despesa_sem_desconto ?? 0);
+    $saldo2     = $rec  - $desp;
+    $somaRD     = $rec  + $desp;
+    $subPend    = $recP - $despP;
+    $somaPend   = $recP + $despP;
+    $descTotal  = $descPago + $descPend;
     ?>
-    <div class="stats-card">
-        <div class="stats-title"><i class='bx bx-stats'></i> Estatísticas Gerais do Financeiro</div>
-
-        <div class="stats-row">
-            <span class="s-label">Total Receitas (Pagas)</span>
-            <span class="s-value t-green">R$ <?= number_format($rec, 2, ',', '.') ?></span>
+    <div style="margin-top:14px;background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;">
+        <div style="padding:12px 18px;background:#252a3a;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var s=this.nextElementSibling;s.style.display=s.style.display==='none'?'block':'none';this.querySelector('i').classList.toggle('bx-chevron-up');this.querySelector('i').classList.toggle('bx-chevron-down');">
+            <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;">
+                <i class='bx bx-stats' style="color:#a78bfa;margin-right:4px;"></i> Estatísticas Gerais do Financeiro
+            </span>
+            <i class='bx bx-chevron-down' style="color:#6b7280;font-size:18px;"></i>
         </div>
-        <div class="stats-row">
-            <span class="s-label">Total Despesas (Pagas)</span>
-            <span class="s-value t-red">R$ <?= number_format($desp, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row" style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px 6px;">
-            <span class="s-label" style="font-weight:700;color:#e8eaf0;">Total Receitas (-) Despesas = Saldo Líquido</span>
-            <span class="s-value <?= $saldo >= 0 ? 't-green' : 't-red' ?>" style="font-size:15px;">R$ <?= number_format($saldo, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total Receitas (+) Despesas</span>
-            <span class="s-value t-white">R$ <?= number_format($somaRD, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total Receitas Pendentes</span>
-            <span class="s-value" style="color:#fbbf24;">R$ <?= number_format($recP, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total Despesas Pendentes</span>
-            <span class="s-value" style="color:#fbbf24;">R$ <?= number_format($despP, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total de Receitas Pendentes (-) Despesas Pendentes</span>
-            <span class="s-value <?= $subPend >= 0 ? 't-green' : 't-red' ?>">R$ <?= number_format($subPend, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row" style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px 6px;">
-            <span class="s-label" style="font-weight:700;color:#e8eaf0;">Total de Receitas Pendentes (+) Despesas Pendentes</span>
-            <span class="s-value" style="color:#fbbf24;font-size:15px;">R$ <?= number_format($somaPend, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total de Descontos aplicados á lançamentos Pagos</span>
-            <span class="s-value" style="color:#a78bfa;">R$ <?= number_format($descPago, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total de Descontos aplicados á lançamentos Pendentes</span>
-            <span class="s-value" style="color:#a78bfa;">R$ <?= number_format($descPend, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row" style="background:rgba(255,255,255,0.03);border-radius:6px;padding:8px 6px;">
-            <span class="s-label" style="font-weight:700;color:#e8eaf0;">Total de descontos aplicados (pagos + pendentes)</span>
-            <span class="s-value" style="color:#a78bfa;font-size:15px;">R$ <?= number_format($descTotal, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total de Receitas sem descontos aplicados (pagos + pendentes)</span>
-            <span class="s-value t-green">R$ <?= number_format($recSemDesc, 2, ',', '.') ?></span>
-        </div>
-        <div class="stats-row">
-            <span class="s-label">Total de Despesas sem descontos aplicados (pagos + pendentes)</span>
-            <span class="s-value t-red">R$ <?= number_format($despSemDesc, 2, ',', '.') ?></span>
+        <div style="padding:6px 0;">
+            <?php
+            $statRows = [
+                ['Total Receitas (Pagas)',                                         number_format($rec,       2,',','.'), '#4ade80', false],
+                ['Total Despesas (Pagas)',                                         number_format($desp,      2,',','.'), '#f87171', false],
+                ['Total Receitas (-) Despesas = Saldo Líquido',                   number_format($saldo2,    2,',','.'), $saldo2>=0?'#4ade80':'#f87171', true],
+                ['Total Receitas (+) Despesas',                                    number_format($somaRD,    2,',','.'), '#e8eaf0', false],
+                ['Total Receitas Pendentes',                                        number_format($recP,      2,',','.'), '#fbbf24', false],
+                ['Total Despesas Pendentes',                                        number_format($despP,     2,',','.'), '#fbbf24', false],
+                ['Total de Receitas Pendentes (-) Despesas Pendentes',             number_format($subPend,   2,',','.'), $subPend>=0?'#4ade80':'#f87171', false],
+                ['Total de Receitas Pendentes (+) Despesas Pendentes',             number_format($somaPend,  2,',','.'), '#fbbf24', true],
+                ['Total de Descontos aplicados á lançamentos Pagos',               number_format($descPago,  2,',','.'), '#a78bfa', false],
+                ['Total de Descontos aplicados á lançamentos Pendentes',           number_format($descPend,  2,',','.'), '#a78bfa', false],
+                ['Total de descontos aplicados (pagos + pendentes)',               number_format($descTotal, 2,',','.'), '#a78bfa', true],
+                ['Total de Receitas sem descontos aplicados (pagos + pendentes)',  number_format($recSemDesc,  2,',','.'), '#4ade80', false],
+                ['Total de Despesas sem descontos aplicados (pagos + pendentes)',  number_format($despSemDesc, 2,',','.'), '#f87171', false],
+            ];
+            foreach ($statRows as [$lbl, $val, $cor, $bold]):
+                $bg = $bold ? 'background:rgba(255,255,255,0.03);border-radius:6px;padding:8px 18px;' : 'padding:7px 18px;';
+                $fw = $bold ? 'font-weight:700;color:#e8eaf0;' : '';
+            ?>
+            <div style="display:flex;justify-content:space-between;align-items:center;<?=$bg?>border-bottom:1px solid rgba(255,255,255,0.04);">
+                <span style="font-size:13px;color:#9ca3af;<?=$fw?>"><?=$lbl?></span>
+                <span style="font-size:13px;font-weight:700;color:<?=$cor?>;">R$ <?=$val?></span>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
     <?php endif; ?>
@@ -367,9 +379,11 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
                 <div class="md-col" style="max-width:140px;">
                     <label class="md-label">Tipo</label>
                     <select name="tipo" id="tipo" class="md-select">
-                        <option value="receita">Receita</option>
-                        <option value="despesa">Despesa</option>
+                        <option value="receita" selected>Receita</option>
                     </select>
+                    <!-- "Despesa" foi removido daqui: esse formulário sempre salva como receita
+                         (vai para financeiro/adicionarReceita). Pra lançar despesa, use o
+                         botão/modal específico de Despesa, que já funciona corretamente. -->
                 </div>
                 <div class="md-col">
                     <label class="md-label">Descrição / Referência *</label>
@@ -565,7 +579,7 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
 
 <!-- Modal nova despesa (NAO É UTILIZADO MAIS ESSE MODAL)
 <div id="modalDespesa" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <form id="formDespesa" action="<?php // echo base_url()?>index.php/financeiro/adicionarDespesa" method="post">
+    <form id="formDespesa" action="<?= base_url() ?>index.php/financeiro/adicionarDespesa" method="post">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             <h3 id="myModalLabel">Sisos - Adicionar Despesa</h3>
@@ -779,22 +793,19 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
 	}
 	
     function mostrarValores() {
-		if (document.getElementById('valor').value == "" || document.getElementById('descontos').value == "" || document.getElementById('valor_desconto').value == ""){
-			
-		}else{
-			var valor = parseFloat(document.getElementById('valor').value);
-			var desconto = parseFloat(document.getElementById('descontos').value); 
-			var valor_desconto = parseFloat(document.getElementById('valor_desconto').value);
-			var resultado, total;
-			resultado = valor;
-			total = valor-desconto;
-			
-			resultdesc = total ;
-			totaldesc = valor-(resultdesc);	
-			
-			document.getElementById('valor').value = total.toFixed(2);
-			document.getElementById('valor_desconto').value = totaldesc.toFixed(2);
-			}
+		if (document.getElementById('valor').value == "" || document.getElementById('descontos').value == ""){
+			return;
+		}
+		var valor = parseFloat(document.getElementById('valor').value);
+		var desconto = parseFloat(document.getElementById('descontos').value);
+		if (isNaN(valor) || isNaN(desconto)) return;
+
+		var valorComDesconto = valor - desconto;
+		if (valorComDesconto < 0) valorComDesconto = 0;
+
+		// Mantém "Valor" como o valor ORIGINAL digitado (não sobrescreve mais!)
+		// e só atualiza o campo readonly "Val. c/ Desconto" com o valor final.
+		document.getElementById('valor_desconto').value = valorComDesconto.toFixed(2);
 	}
 
     function mostrarValoresEditar() {
@@ -1011,9 +1022,16 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
         $(".datepicker2").datepicker(
             datePickerOptions
         );
-        $(".datepicker").datepicker();
+        $(".datepicker").datepicker({ dateFormat: 'dd/mm/yy', changeMonth: true, changeYear: true });
         $('#periodo').on('change', function(event) {
             const period = $('#periodo').val();
+            if (period === 'todos') {
+                $('#vencimento_de').closest('.form-group, div').hide();
+                $('#vencimento_ate').closest('.form-group, div').hide();
+                return;
+            }
+            $('#vencimento_de').closest('.form-group, div').show();
+            $('#vencimento_ate').closest('.form-group, div').show();
             const today = dayjs().locale('pt-br');
 
             switch (period) {
@@ -1138,8 +1156,8 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
 				$("#pcontas_parc").val($("#pcontas").val());
 				$("#categoria_parc").val($("#categoria").val());
 				$("#observacoes_parc").val($("#observacoes").val());
-				$("#valor_parc").val($("#valor").val());
-				$("#desconto_parc").val($("#valor_desconto").val());
+				$("#valor_parc").val((parseFloat($("#valor").val()||0) - parseFloat($("#descontos").val()||0)).toFixed(2));
+				$("#desconto_parc").val((parseFloat($("#descontos").val()||0)).toFixed(2));
 				$("#qtdparcelas_parc").val($("#qtdparcelas").val());		
 			valorParcelas();
 			}
@@ -1155,8 +1173,8 @@ label.error{color:#f87171;} input.error{border-color:#f87171;} input.valid{borde
 					$("#pcontas_parc").val($("#pcontas").val());
 					$("#categoria_parc").val($("#categoria").val());
 					$("#observacoes_parc").val($("#observacoes").val());
-					$("#desconto_parc").val($("#valor_desconto").val());
-					$("#valor_parc").val($("#valor").val());
+					$("#desconto_parc").val((parseFloat($("#descontos").val()||0)).toFixed(2));
+					$("#valor_parc").val((parseFloat($("#valor").val()||0) - parseFloat($("#descontos").val()||0)).toFixed(2));
 					$("#qtdparcelas_parc").val(1);		
 					valorParcelas();
 				}

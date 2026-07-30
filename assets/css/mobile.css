@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════
+   SISOS — mobile.css  (valores baseados em matrix-style.css)
+   Sidebar: width 270px (fechado: 80px)
+   Content: margin-left 270px
+═══════════════════════════════════════════════════════════ */
+
+/* ── Botão hamburguer ── */
+#mob-toggle {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10000;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--funSider, #1a1d2e);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #e8eaf0;
+    font-size: 20px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+#mob-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 9998;
+}
+
+/* ════════════════════════════════════════════════════════
+   TABLET E CELULAR ≤ 992px
+════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+
+    /* Mostrar hamburguer */
+    #mob-toggle { display: flex !important; }
+
+    /* Sidebar: esconde fora da tela */
+    #sidebar {
+        left: -280px !important;
+        transition: left 0.25s ease !important;
+        z-index: 9999 !important;
+    }
+    #sidebar.mob-open {
+        left: 0 !important;
+    }
+    #mob-overlay.mob-open {
+        display: block !important;
+    }
+
+    /* Conteúdo: ocupa tela toda */
+    #content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    #content-header {
+        padding-left: 56px !important;
+    }
+
+    /* Container fluido */
+    .container-flu, .row-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .span12 {
+        width: 100% !important;
+        padding: 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ── Painel cards ── */
+    .cardBox {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 0 8px !important;
+    }
+    .quick-actions ul, ul.cards {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    /* ── Tabelas ── */
+    .tbl-wrap,
+    .widget-box,
+    .table-responsive,
+    .new122 > div[style*="overflow"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .tbl-wrap table { min-width: 560px; }
+    .tbl-wrap thead th,
+    .tbl-wrap tbody td {
+        padding: 7px 8px !important;
+        font-size: 12px !important;
+        white-space: nowrap;
+    }
+
+    /* ── Botões de ação — nunca somem ── */
+    .act-btns {
+        display: flex !important;
+        gap: 3px !important;
+        flex-wrap: nowrap !important;
+    }
+    .act-btn {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 13px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ── Filtros ── */
+    .filter-bar, .filter-card form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+    }
+    .filter-bar input,
+    .filter-bar select,
+    .filter-bar button,
+    .filter-card input,
+    .filter-card select,
+    .filter-card button {
+        width: 100% !important;
+        font-size: 14px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ── Page header ── */
+    .pg-header, .vv-header, .vos-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    .pg-actions, .vv-actions, .vos-actions {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    /* ── Cards totais financeiro ── */
+    .totals-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    .total-card { width: 100% !important; }
+
+    /* ── Modals ── */
+    .modal {
+        left: 8px !important;
+        right: 8px !important;
+        width: auto !important;
+        margin-left: 0 !important;
+    }
+
+    /* ── Top bar ── */
+    #header { padding-left: 56px !important; }
+}
+
+/* ════════════════════════════════════════════════════════
+   SMARTPHONE ≤ 480px
+════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+    .cardBox { grid-template-columns: repeat(2, 1fr) !important; }
+    ul.cards  { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Grade 1 coluna */
+    .ev-grid, [class*="-grid"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Font inputs — evita zoom iOS */
+    input, select, textarea { font-size: 16px !important; }
+
+    /* Títulos */
+    .pg-title, .vv-title { font-size: 16px !important; }
+
+    /* PDV vertical */
+    #pdv-main     { flex-direction: column !important; }
+    #pdv-right    { width: 100% !important; border-left: none !important; border-top: 1px solid rgba(255,255,255,0.08) !important; }
+}
+
+/* ════════════════════════════════════════════════════════
+   LANÇAMENTOS — ações sempre visíveis
+════════════════════════════════════════════════════════ */
+@media (max-width: 1200px) {
+    /* Garante que coluna de ações não some em telas menores */
+    .tbl-wrap td:last-child,
+    .tbl-wrap th:last-child {
+        min-width: 90px !important;
+    }
+    .act-btns {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}

@@ -13,7 +13,7 @@ class Vendas_model extends CI_Model
         parent::__construct();
     }
 
-    public function get($table, $fields, $where = [], $perpage = 0, $start = 0, $one = false, $array = 'array')
+    public function get($table, $fields, $where = [], $perpage = 0, $start = 0, $one = false, $array = 'array', $antesDe = 0)
     {
         $lista_clientes = [];
         if ($where) {
@@ -30,10 +30,16 @@ class Vendas_model extends CI_Model
         }
         $this->db->select($fields . ', clientes.nomeCliente, clientes.idClientes');
         $this->db->from($table);
-        $this->db->limit($perpage, $start);
+        $this->db->limit($perpage, $antesDe > 0 ? 0 : $start);
         $this->db->join('clientes', 'clientes.idClientes = ' . $table . '.clientes_id');
         $this->db->join('usuarios', 'usuarios.idUsuarios = ' . $table . '.usuarios_id');
         $this->db->order_by('idVendas', 'desc');
+
+        // Cursor pra rolagem infinita — mais rápido que OFFSET em bases
+        // grandes, porque usa o índice da chave primária.
+        if ($antesDe > 0) {
+            $this->db->where('vendas.idVendas <', (int) $antesDe);
+        }
         
         // condicionais da pesquisa
         if ($where) {

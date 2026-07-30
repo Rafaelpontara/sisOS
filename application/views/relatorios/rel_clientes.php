@@ -12,9 +12,16 @@ function _sanitizeEnum($v, $allowed, $def='') {
 $de  = _sanitizeDate($this->input->get('de'), date('Y-01-01'));
 $ate = _sanitizeDate($this->input->get('ate'), date('Y-m-d'));
 $mais_os = $this->db->query("SELECT c.idClientes,c.nomeCliente,c.celular,
-    COUNT(os.idOs) as total_os,
+    COUNT(DISTINCT os.idOs) as total_os,
     SUM(CASE WHEN os.status IN ('Finalizado','Faturado') THEN 1 ELSE 0 END) as finalizadas,
-    MAX(os.dataInicial) as ultima_os
+    MAX(os.dataInicial) as ultima_os,
+    COALESCE((
+        SELECT SUM(COALESCE(NULLIF(v.valor_desconto, 0), v.valorTotal, 0))
+        FROM vendas v
+        WHERE v.clientes_id = c.idClientes
+        AND v.dataVenda BETWEEN '$de' AND '$ate 23:59:59'
+        AND v.status != 'Cancelado'
+    ), 0) as total_gasto
     FROM clientes c LEFT JOIN os ON os.clientes_id=c.idClientes
     AND os.dataInicial BETWEEN '$de' AND '$ate'
     GROUP BY c.idClientes ORDER BY total_os DESC LIMIT 20")->result();
@@ -24,11 +31,31 @@ $novos_por_mes = $this->db->query("SELECT DATE_FORMAT(dataCadastro,'%Y-%m') as m
 $total_clientes    = $this->db->count_all('clientes');
 $total_fornecedores= $this->db->where('fornecedor',1)->count_all_results('clientes');
 $novos_mes         = $this->db->where('dataCadastro >=',date('Y-m-01'))->count_all_results('clientes');
-$inativos = $this->db->query("SELECT c.nomeCliente,c.celular,MAX(os.dataInicial) as ultima_os,
-    DATEDIFF(NOW(),MAX(os.dataInicial)) as dias_sem_os
+$inativos = $this->db->query("SELECT c.idClientes, c.nomeCliente, c.celular,
+    MAX(os.dataInicial) as ultima_os,
+    DATEDIFF(NOW(),MAX(os.dataInicial)) as dias_sem_os,
+    COALESCE((
+        SELECT SUM(COALESCE(NULLIF(v.valor_desconto, 0), v.valorTotal, 0))
+        FROM vendas v
+        WHERE v.clientes_id = c.idClientes AND v.status != 'Cancelado'
+    ), 0) as total_gasto
     FROM clientes c LEFT JOIN os ON os.clientes_id=c.idClientes
     GROUP BY c.idClientes HAVING ultima_os IS NOT NULL AND dias_sem_os>90
     ORDER BY dias_sem_os DESC LIMIT 20")->result();
+
+$mais_vendas = $this->db->query("SELECT c.idClientes, c.nomeCliente, c.celular,
+    COUNT(v.idVendas) as total_vendas,
+    SUM(CASE WHEN v.faturado=1 THEN 1 ELSE 0 END) as faturadas,
+    SUM(COALESCE(NULLIF(v.valor_desconto, 0), v.valorTotal, 0)) as total_gasto,
+    MAX(v.dataVenda) as ultima_venda
+    FROM clientes c
+    LEFT JOIN vendas v ON v.clientes_id = c.idClientes
+        AND v.dataVenda BETWEEN '$de' AND '$ate 23:59:59'
+        AND v.status != 'Cancelado'
+    GROUP BY c.idClientes
+    HAVING total_vendas > 0
+    ORDER BY total_vendas DESC, total_gasto DESC
+    LIMIT 20")->result();
 ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
 <style>/* ══════════════════════════════════════
@@ -158,7 +185,7 @@ $inativos = $this->db->query("SELECT c.nomeCliente,c.celular,MAX(os.dataInicial)
         </div>
         <div class="rel-card-body" style="padding:0;">
             <table class="rel-tbl" id="tblCli">
-                <thead><tr><th>#</th><th>Cliente</th><th>Celular</th><th>Total OS</th><th>Finalizadas</th><th>Última OS</th></tr></thead>
+                <thead><tr><th>#</th><th>Cliente</th><th>Celular</th><th>Total OS</th><th>Finalizadas</th><th>Total Compras</th><th>Última OS</th></tr></thead>
                 <tbody>
                 <?php if (!empty($mais_os)): foreach ($mais_os as $i => $r): ?>
                 <tr>
@@ -177,6 +204,9 @@ $inativos = $this->db->query("SELECT c.nomeCliente,c.celular,MAX(os.dataInicial)
                     </td>
                     <td><span class="rel-badge rb-blue"><?= $r->total_os ?></span></td>
                     <td><span class="rel-badge rb-green"><?= $r->finalizadas ?></span></td>
+                    <td style="font-weight:700;color:#22c55e;">
+                        R$ <?= number_format($r->total_gasto, 2, ',', '.') ?>
+                    </td>
                     <td style="font-size:12px;color:#9ca3af;">
                         <?= $r->ultima_os ? date('d/m/Y',strtotime($r->ultima_os)) : '—' ?>
                     </td>
@@ -189,12 +219,65 @@ $inativos = $this->db->query("SELECT c.nomeCliente,c.celular,MAX(os.dataInicial)
         </div>
     </div>
 
+    <!-- Clientes com Mais Vendas -->
+    <div class="rel-card" style="margin-bottom:14px;">
+        <div class="rel-card-head">
+            <i class='bx bx-shopping-bag' style="color:#22c55e;"></i>
+            <span>Clientes com Mais Vendas no Período</span>
+            <button onclick="exportarCSV('tblVendas','clientes_vendas_<?= date('Y-m-d') ?>')" class="rel-btn-export"><i class='bx bx-export'></i> CSV</button>
+        </div>
+        <div class="rel-card-body" style="padding:0;">
+            <table class="rel-tbl" id="tblVendas">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Celular</th>
+                        <th>Total Vendas</th>
+                        <th>Faturadas</th>
+                        <th>Total Gasto</th>
+                        <th>Última Venda</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!empty($mais_vendas)): foreach ($mais_vendas as $i => $r): ?>
+                <tr>
+                    <td style="color:#22c55e;font-weight:700;font-size:13px;"><?= $i+1 ?>º</td>
+                    <td style="font-weight:700;color:#e8eaf0;">
+                        <a href="<?= site_url('clientes/visualizar/'.$r->idClientes) ?>" style="color:#60a5fa;text-decoration:none;">
+                            <?= htmlspecialchars($r->nomeCliente) ?>
+                        </a>
+                    </td>
+                    <td style="font-size:12px;color:#9ca3af;">
+                        <?php if (!empty($r->celular)): ?>
+                        <a href="https://wa.me/55<?= preg_replace('/\D/','',$r->celular) ?>" target="_blank" style="color:#4ade80;text-decoration:none;">
+                            <i class='bx bxl-whatsapp'></i> <?= htmlspecialchars($r->celular) ?>
+                        </a>
+                        <?php else: ?>—<?php endif; ?>
+                    </td>
+                    <td><span class="rel-badge rb-green"><?= $r->total_vendas ?></span></td>
+                    <td><span class="rel-badge rb-blue"><?= $r->faturadas ?></span></td>
+                    <td style="font-weight:700;color:#22c55e;">
+                        R$ <?= number_format($r->total_gasto, 2, ',', '.') ?>
+                    </td>
+                    <td style="font-size:12px;color:#9ca3af;">
+                        <?= $r->ultima_venda ? date('d/m/Y', strtotime($r->ultima_venda)) : '—' ?>
+                    </td>
+                </tr>
+                <?php endforeach; else: ?>
+                <tr><td colspan="7" class="rel-empty">Nenhuma venda no período.</td></tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Clientes Inativos -->
     <div class="rel-card">
         <div class="rel-card-head"><i class='bx bx-user-x' style="color:#f87171;"></i><span>Clientes Inativos (sem OS há +90 dias)</span></div>
         <div class="rel-card-body" style="padding:0;">
             <table class="rel-tbl">
-                <thead><tr><th>Cliente</th><th>Celular</th><th>Última OS</th><th>Dias sem OS</th><th>Contato</th></tr></thead>
+                <thead><tr><th>Cliente</th><th>Celular</th><th>Última OS</th><th>Dias sem OS</th><th>Total Compras</th><th>Contato</th></tr></thead>
                 <tbody>
                 <?php if (!empty($inativos)): foreach ($inativos as $r): ?>
                 <tr>
@@ -209,6 +292,9 @@ $inativos = $this->db->query("SELECT c.nomeCliente,c.celular,MAX(os.dataInicial)
                         <span class="rel-badge <?= $r->dias_sem_os > 180 ? 'rb-red' : 'rb-amber' ?>">
                             <?= $r->dias_sem_os ?> dias
                         </span>
+                    </td>
+                    <td style="font-weight:700;color:#22c55e;">
+                        R$ <?= number_format($r->total_gasto, 2, ',', '.') ?>
                     </td>
                     <td>
                         <?php if (!empty($r->celular)): ?>

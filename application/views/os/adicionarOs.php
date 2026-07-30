@@ -6,7 +6,42 @@
 <script src="<?= base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script src="<?= base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 
-<style>
+
+    <style>
+    .sd-card { background:#161925; border-radius:16px; padding:22px; text-align:center; }
+    .sd-sub { font-size:12px; color:#6b7280; margin:-6px 0 18px; }
+    .sd-toggle { display:inline-flex; background:#1e2235; border-radius:12px; padding:4px; gap:4px; margin-bottom:22px; }
+    .sd-toggle-btn {
+        padding:9px 20px; border-radius:9px; font-size:13px; font-weight:700;
+        color:#6b7280; cursor:pointer; border:none; background:transparent; transition:all .15s;
+    }
+    .sd-toggle-btn.ativo { background:#2e3447; color:#e8eaf0; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .sd-pin-input {
+        width:100%; max-width:280px; margin:0 auto; display:block;
+        background:#1e2235; border:1.5px solid #444860; border-radius:12px;
+        padding:16px; font-size:22px; font-weight:700; letter-spacing:8px;
+        text-align:center; color:#e8eaf0;
+    }
+    .sd-pin-input:focus { outline:none; border-color:#a78bfa; }
+    .sd-hint { font-size:11.5px; color:#6b7280; margin-top:10px; }
+    .sd-grid-wrap { display:flex; flex-direction:column; align-items:center; position:relative; }
+    .sd-grid-badge {
+        position:absolute; top:-6px; right:calc(50% - 100px); background:#2563eb; color:#fff;
+        font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:20px;
+    }
+    .sd-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; background:#12141d; border-radius:16px; padding:22px; position:relative; }
+    .sd-dot {
+        width:16px; height:16px; border-radius:50%; background:#374151;
+        cursor:pointer; transition:background .1s, box-shadow .1s; margin:0 auto;
+        position:relative; z-index:2;
+    }
+    .sd-dot.selecionado { background:#3b82f6; box-shadow:0 0 0 5px rgba(59,130,246,0.25); }
+    .sd-dot.inicio::after {
+        content:''; position:absolute; inset:-9px; border:2px solid #22c55e; border-radius:50%;
+    }
+    </style>
+
+    <style>
 /* ── Layout ── */
 .aos-wrap{max-width:1100px;margin:0 auto;}
 .aos-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
@@ -146,7 +181,7 @@
         <!-- Cliente + Técnico -->
         <div class="aos-section">
             <div class="aos-section-head">
-                <i class='bx bx-user'></i><span>Cliente & Técnico</span>
+                <i class='bx bx-user'></i><span>Cliente, Técnico & Atendente</span>
             </div>
             <div class="aos-section-body">
                 <div class="aos-grid">
@@ -162,10 +197,19 @@
                         </div>
                     </div>
                     <div class="aos-col">
-                        <label class="aos-label">Técnico / Responsável <span class="req">*</span></label>
+                        <label class="aos-label">Técnico Responsável <span class="req">*</span></label>
                         <input id="tecnico" type="text" name="tecnico" class="aos-input"
-                               value="<?= $this->session->userdata('nome_admin') ?>" autocomplete="off" />
+                               placeholder="Digite para buscar..." autocomplete="off"
+                               value="<?= $this->session->userdata('nome_admin') ?>" />
                         <input id="usuarios_id" type="hidden" name="usuarios_id"
+                               value="<?= $this->session->userdata('id_admin') ?>" />
+                    </div>
+                    <div class="aos-col">
+                        <label class="aos-label">Atendente / Vendedor</label>
+                        <input id="atendente" type="text" name="atendente" class="aos-input"
+                               placeholder="Digite para buscar..." autocomplete="off"
+                               value="<?= $this->session->userdata('nome_admin') ?>" />
+                        <input id="atendente_id" type="hidden" name="atendente_id"
                                value="<?= $this->session->userdata('id_admin') ?>" />
                     </div>
                 </div>
@@ -258,6 +302,72 @@
             </div>
         </div>
 
+
+        <!-- Senha do Celular -->
+        <div class="aos-section">
+            <div class="aos-section-head">
+                <i class='bx bx-lock-alt' style="color:#a78bfa;"></i><span>Segurança do Dispositivo</span>
+            </div>
+            <div class="aos-section-body">
+
+                <!-- Input oculto único enviado no submit -->
+                <input type="hidden" name="senha_tipo"  id="senhaTipoFinal"  value="">
+                <input type="hidden" name="senha_valor" id="senhaValorFinal" value="">
+
+                <div class="sd-card">
+                    <div class="sd-sub">Informe a senha para que o técnico possa testar todas as funções.</div>
+
+                    <div class="sd-toggle" id="senhaTipoChips">
+                        <button type="button" class="sd-toggle-btn ativo" data-tipo=""
+                                onclick="sisosToggleSenha('')">Sem senha</button>
+                        <button type="button" class="sd-toggle-btn" data-tipo="pin"
+                                onclick="sisosToggleSenha('pin')">Senha Padrão</button>
+                        <button type="button" class="sd-toggle-btn" data-tipo="padrao"
+                                onclick="sisosToggleSenha('padrao')">Desenho</button>
+                    </div>
+
+                    <!-- PIN / Senha Padrão -->
+                    <div id="wrapSenhaPin" style="display:none;">
+                        <div style="font-size:10.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Senha Numérica ou Alfanumérica</div>
+                        <input type="text" id="senhaValorPin"
+                               class="sd-pin-input" maxlength="8" inputmode="numeric" pattern="[0-9]*"
+                               placeholder="••••"
+                               oninput="document.getElementById('senhaValorFinal').value=this.value">
+                        <div class="sd-hint">Caso não tenha senha, deixe em branco.</div>
+                    </div>
+
+                    <!-- Desenho / Padrão Android -->
+                    <div id="wrapSenhaPadrao" style="display:none;">
+                        <input type="hidden" id="senhaValorPadrao" value="">
+                        <div class="sd-grid-wrap">
+                            <span class="sd-grid-badge" id="padraoContagem">0 pontos</span>
+                            <div class="sd-grid" id="padraoGrid">
+                                <svg id="padraoSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
+                                    <defs>
+                                        <marker id="setaPadrao" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+                                            <path d="M0,0 L6,3 L0,6 Z" fill="#3b82f6"></path>
+                                        </marker>
+                                    </defs>
+                                </svg>
+                                <?php for($pi=1;$pi<=9;$pi++): ?>
+                                <div class="sd-dot" data-n="<?= $pi ?>"></div>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+                        <div class="sd-hint" id="padraoInicioFim" style="min-height:15px;"></div>
+                        <button type="button" onclick="sisosPatternClear()"
+                                style="margin-top:14px;background:rgba(239,68,68,0.12);color:#f87171;
+                                       border:1px solid rgba(239,68,68,0.25);border-radius:8px;
+                                       padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;">
+                            <i class='bx bx-refresh'></i> Limpar
+                        </button>
+                        <div class="sd-hint">Clique nos pontos na ordem do padrão.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Textos da OS -->
         <div class="aos-section">
             <div class="aos-section-head">
@@ -301,37 +411,140 @@
     <div class="aos-tab-pane" id="tab-checklist">
         <div class="aos-section">
             <div class="aos-section-head">
-                <i class='bx bx-list-check'></i><span>Condições de Entrada do Equipamento</span>
+                <i class='bx bx-list-check'></i><span>Checklist de Entrada do Equipamento</span>
             </div>
             <div class="aos-section-body">
-                <p style="font-size:13px;color:#9ca3af;margin-bottom:14px;">
-                    Marque as condições verificadas no momento da entrada:
+
+                <p style="font-size:12px;color:#9ca3af;margin-bottom:16px;">
+                    Para cada item, informe a condição encontrada: <strong style="color:#4ade80;">OK</strong>,
+                    <strong style="color:#f87171;">Com Defeito/Detalhe</strong> ou
+                    <strong style="color:#6b7280;">Não Verificado</strong>.
                 </p>
+
                 <?php
-                try {
-                    $checklistItens = $this->db->order_by('ordem')->get('checklist_templates')->result();
-                } catch (Exception $e) {
-                    $checklistItens = [];
-                }
-                if (!$checklistItens) $checklistItens = [];
+                // Itens fixos do checklist de assistência técnica
+                $checklistGrupos = [
+                    'Tela & Display' => [
+                        'Tela sem trincas',
+                        'Tela sem manchas ou pixels mortos',
+                        'Touch funcionando',
+                        'Brilho funcionando',
+                    ],
+                    'Estrutura & Corpo' => [
+                        'Tampa traseira sem trincas',
+                        'Bordas sem amassados',
+                        'Sem sinais de queda',
+                        'Sem sinais de líquido / oxidação',
+                    ],
+                    'Botões & Conectores' => [
+                        'Botão power funcionando',
+                        'Botão volume funcionando',
+                        'Botão home / biometria funcionando',
+                        'Entrada de carga sem danos',
+                        'Entrada de fone sem danos',
+                        'Slot de chip / SD sem danos',
+                    ],
+                    'Câmera & Áudio' => [
+                        'Câmera traseira sem danos',
+                        'Câmera frontal sem danos',
+                        'Auto-falante funcionando',
+                        'Microfone funcionando',
+                        'Fone de ouvido funcionando',
+                    ],
+                    'Bateria & Sistema' => [
+                        'Aparelho ligando',
+                        'Bateria carregando',
+                        'Sem superaquecimento',
+                        'Wi-Fi funcionando',
+                        'Bluetooth funcionando',
+                        'Sinal de rede funcionando',
+                    ],
+                    'Acessórios Entregues' => [
+                        'Carregador entregue',
+                        'Cabo entregue',
+                        'Fone entregue',
+                        'Capa/película entregue',
+                        'Caixa entregue',
+                    ],
+                ];
                 ?>
-                <div class="aos-check-grid">
-                    <?php foreach ($checklistItens as $ci): ?>
-                    <div class="aos-check-item">
-                        <input type="checkbox" name="checklist_itens[]"
-                               id="cl_<?= $ci->idChecklist_templates ?? md5($ci->item) ?>"
-                               value="<?= htmlspecialchars($ci->item) ?>">
-                        <label for="cl_<?= $ci->idChecklist_templates ?? md5($ci->item) ?>">
-                            <?= htmlspecialchars($ci->item) ?>
-                        </label>
+
+                <style>
+                .ck-grupo-titulo{
+                    font-size:10px;font-weight:800;color:#6b7280;
+                    text-transform:uppercase;letter-spacing:.8px;
+                    padding:8px 0 6px;border-bottom:1px solid rgba(255,255,255,0.05);
+                    margin-bottom:8px;display:flex;align-items:center;gap:6px;
+                }
+                .ck-grid{
+                    display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+                    gap:6px;margin-bottom:16px;
+                }
+                .ck-item{
+                    display:flex;align-items:center;justify-content:space-between;
+                    background:#13151f;border:1px solid rgba(255,255,255,0.05);
+                    border-radius:8px;padding:8px 10px;gap:8px;
+                    transition:border-color .15s;
+                }
+                .ck-item:hover{ border-color:rgba(255,255,255,0.1); }
+                .ck-item-nome{
+                    font-size:12px;color:#c9cad6;flex:1;
+                }
+                .ck-btns{ display:flex;gap:4px;flex-shrink:0; }
+                .ck-btn{
+                    width:28px;height:24px;border-radius:5px;border:1px solid transparent;
+                    font-size:10px;font-weight:700;cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    transition:all .15s;background:rgba(255,255,255,0.05);color:#6b7280;
+                }
+                .ck-btn:hover{ opacity:.85; }
+                .ck-btn.ok-ativo{    background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80; }
+                .ck-btn.def-ativo{   background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171; }
+                .ck-btn.nvf-ativo{   background:rgba(107,114,128,0.15);border-color:#6b7280;color:#9ca3af; }
+                .ck-resumo{
+                    display:flex;gap:12px;flex-wrap:wrap;
+                    padding:10px 14px;background:#13151f;
+                    border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+                    margin-bottom:14px;font-size:12px;
+                }
+                .ck-resumo-item{ display:flex;align-items:center;gap:5px;font-weight:700; }
+                </style>
+
+                <!-- Resumo dinâmico -->
+                <div class="ck-resumo" id="ckResumo">
+                    <span class="ck-resumo-item" style="color:#4ade80;"><i class='bx bx-check-circle'></i> <span id="rOk">0</span> OK</span>
+                    <span class="ck-resumo-item" style="color:#f87171;"><i class='bx bx-error-circle'></i> <span id="rDef">0</span> Com defeito</span>
+                    <span class="ck-resumo-item" style="color:#6b7280;"><i class='bx bx-minus-circle'></i> <span id="rNvf">0</span> Não verificado</span>
+                </div>
+
+                <!-- Campo oculto que guarda o JSON do checklist -->
+                <input type="hidden" name="checklist_json" id="checklistJson" value="">
+
+                <?php foreach ($checklistGrupos as $grupo => $itens): ?>
+                <div class="ck-grupo-titulo">
+                    <i class='bx bx-chevron-right'></i> <?= $grupo ?>
+                </div>
+                <div class="ck-grid">
+                    <?php foreach ($itens as $item): ?>
+                    <div class="ck-item" data-item="<?= htmlspecialchars($item) ?>">
+                        <span class="ck-item-nome"><?= htmlspecialchars($item) ?></span>
+                        <div class="ck-btns">
+                            <button type="button" class="ck-btn" data-estado="ok"
+                                    onclick="ckSetEstado(this,'ok')" title="OK">OK</button>
+                            <button type="button" class="ck-btn" data-estado="defeito"
+                                    onclick="ckSetEstado(this,'defeito')" title="Com defeito">⚠</button>
+                            <button type="button" class="ck-btn" data-estado="nvf"
+                                    onclick="ckSetEstado(this,'nvf')" title="Não verificado">—</button>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endforeach; ?>
 
-                <div style="margin-bottom:14px;">
-                    <label class="aos-label">Observações / Condições adicionais</label>
-                    <textarea name="checklist_obs" class="aos-textarea" rows="4"
-                              placeholder="Descreva riscos, avarias, acessórios entregues..."></textarea>
+                <div style="margin-bottom:14px;margin-top:4px;">
+                    <label class="aos-label">Observações gerais / Acessórios / Anotações</label>
+                    <textarea name="checklist_obs" id="checklistObs" class="aos-textarea" rows="3"
+                              placeholder="Riscos visíveis, avarias específicas, itens extras entregues..."></textarea>
                 </div>
 
                 <div>
@@ -340,6 +553,7 @@
                            id="inputChecklistFotos" class="aos-input" style="padding:5px;" />
                     <div id="previewChecklistFotos" class="aos-foto-preview"></div>
                 </div>
+
             </div>
         </div>
 
@@ -347,11 +561,63 @@
             <a href="<?= base_url() ?>index.php/os" class="aos-btn aos-btn-back">
                 <i class='bx bx-x'></i> Cancelar
             </a>
-            <button type="submit" class="aos-btn aos-btn-save">
+            <button type="submit" class="aos-btn aos-btn-save" onclick="ckSerializar()">
                 <i class='bx bx-save'></i> Salvar OS
             </button>
         </div>
     </div><!-- /#tab-checklist -->
+
+    <script>
+    // ── Checklist novo ────────────────────────────────────────────────────
+    var _ckEstados = {}; // { 'item': 'ok'|'defeito'|'nvf' }
+
+    function ckSetEstado(btn, estado) {
+        var item = btn.closest('.ck-item');
+        var nome = item.dataset.item;
+        _ckEstados[nome] = estado;
+
+        // Reset visual dos 3 botões do item
+        item.querySelectorAll('.ck-btn').forEach(function(b) {
+            b.classList.remove('ok-ativo','def-ativo','nvf-ativo');
+        });
+        // Ativa o clicado
+        if (estado === 'ok')     btn.classList.add('ok-ativo');
+        if (estado === 'defeito') btn.classList.add('def-ativo');
+        if (estado === 'nvf')    btn.classList.add('nvf-ativo');
+
+        // Borda do item
+        item.style.borderColor = estado==='ok' ? 'rgba(74,222,128,0.3)'
+                               : estado==='defeito' ? 'rgba(248,113,113,0.3)'
+                               : 'rgba(107,114,128,0.2)';
+        ckAtualizarResumo();
+        ckSerializar();
+    }
+
+    function ckAtualizarResumo() {
+        var ok=0, def=0, nvf=0;
+        Object.values(_ckEstados).forEach(function(v){
+            if(v==='ok') ok++;
+            else if(v==='defeito') def++;
+            else if(v==='nvf') nvf++;
+        });
+        document.getElementById('rOk').textContent  = ok;
+        document.getElementById('rDef').textContent = def;
+        document.getElementById('rNvf').textContent = nvf;
+    }
+
+    function ckSerializar() {
+        var obs = document.getElementById('checklistObs');
+        var data = {
+            itens: _ckEstados,
+            obs: obs ? obs.value : ''
+        };
+        var el = document.getElementById('checklistJson');
+        if (el) el.value = JSON.stringify(data);
+    }
+
+    // Serializar antes de qualquer submit do form
+    document.addEventListener('submit', function(){ ckSerializar(); });
+    </script>
 
     <!-- ══ TAB 3 — Recorrência ══ -->
     <div class="aos-tab-pane" id="tab-recorrente">
@@ -429,6 +695,14 @@
                     <label>CPF / CNPJ</label>
                     <input type="text" id="crCpf" placeholder="Opcional" />
                 </div>
+                <div class="form-group">
+                    <label>Data de Nascimento</label>
+                    <input type="text" id="crDataNascimento" class="datepicker" placeholder="dd/mm/aaaa" autocomplete="off" />
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="crNotifAniversario" checked style="width:auto;" />
+                    <label for="crNotifAniversario" style="margin:0;">Notificar aniversário deste cliente</label>
+                </div>
                 <div class="hint">Demais dados podem ser completados depois em <strong style="color:#c9cad6;">Clientes</strong>.</div>
             </div>
         </div>
@@ -466,6 +740,11 @@ $(document).ready(function() {
         minLength: 1,
         select: function(e, ui) { $('#usuarios_id').val(ui.item.id); }
     });
+    $('#atendente').autocomplete({
+        source: '<?= base_url() ?>index.php/os/autoCompleteUsuario',
+        minLength: 1,
+        select: function(e, ui) { $('#atendente_id').val(ui.item.id); }
+    });
     $('#termoGarantia').autocomplete({
         source: '<?= base_url() ?>index.php/os/autoCompleteTermoGarantia',
         minLength: 1,
@@ -476,7 +755,20 @@ $(document).ready(function() {
     $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
 
     // ── Editor WYSIWYG ────────────────────────────────────────
+    // Inicializa editor Trumbowyg
     $('.editor').trumbowyg({ lang: 'pt_br', semantic: { 'strikethrough': 's' } });
+
+    // Sincroniza o conteúdo dos editores de volta para os textareas ANTES de submeter
+    $('form').on('submit', function() {
+        $('.editor').each(function() {
+            var $ta = $(this);
+            var html = $ta.trumbowyg('html');
+            $ta.val(html);
+        });
+        // Serializar checklist antes de submeter
+        if (typeof ckSerializar === 'function') ckSerializar();
+        if (typeof ckSaidaSerializar === 'function') ckSaidaSerializar();
+    });
 
     // ── Status → Data Final obrigatória ──────────────────────
     function atualizarDataFinal() {
@@ -494,6 +786,7 @@ $(document).ready(function() {
         rules: {
             cliente:     { required: true },
             tecnico:     { required: true },
+            atendente:   { required: false },
             dataInicial: { required: true },
             dataFinal: {
                 required: function() {
@@ -508,6 +801,19 @@ $(document).ready(function() {
             dataFinal:   { required: 'Obrigatório quando status é Em Andamento.' }
         },
         submitHandler: function(form) {
+            // Garante que o checklist e a senha estejam sincronizados ANTES
+            // de enviar. O listener 'submit' mais abaixo no arquivo não
+            // dispara aqui, porque form.submit() chamado via JavaScript não
+            // aciona o evento "submit" do navegador (só clique direto do
+            // usuário aciona). Por isso chamamos direto, garantido.
+            if (typeof ckSerializar === 'function') { ckSerializar(); }
+            var pinEl = document.getElementById('senhaValorPin');
+            var tipoEl = document.getElementById('senhaTipoFinal');
+            var finalEl = document.getElementById('senhaValorFinal');
+            if (pinEl && tipoEl && finalEl && tipoEl.value === 'pin') {
+                finalEl.value = pinEl.value;
+            }
+
             $('#btnContinuar').attr('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Salvando...');
             form.submit();
         }
@@ -538,21 +844,186 @@ $(document).ready(function() {
         var nome = $('#crNome').val().trim();
         if (!nome) { alert('Nome é obrigatório.'); return; }
         $.post('<?= site_url('clientes/adicionarRapido') ?>', {
-            nomeCliente: nome,
-            telefone:    $('#crTelefone').val().trim(),
-            cpf:         $('#crCpf').val().trim(),
+            nomeCliente:       nome,
+            telefone:          $('#crTelefone').val().trim(),
+            cpf:               $('#crCpf').val().trim(),
+            dataNascimento:    $('#crDataNascimento').val().trim(),
+            notif_aniversario: $('#crNotifAniversario').is(':checked') ? 1 : 0,
             '<?= $this->security->get_csrf_token_name() ?>': '<?= $this->security->get_csrf_hash() ?>'
         }, function(res) {
             if (res.sucesso) {
                 $('#cliente').val(res.nome);
                 $('#clientes_id').val(res.id);
                 $('#modal-cliente-rapido').modal('hide');
-                $('#crNome, #crTelefone, #crCpf').val('');
+                $('#crNome, #crTelefone, #crCpf, #crDataNascimento').val('');
+                $('#crNotifAniversario').prop('checked', true);
             } else {
                 alert('Erro: ' + (res.erro || 'Não foi possível cadastrar.'));
             }
         }, 'json');
     });
 
+    // ── Máscara de telefone (organiza sozinho: (63) 99992-0348) ─────
+    var crTelefoneEl = document.getElementById('crTelefone');
+    if (crTelefoneEl) {
+        crTelefoneEl.addEventListener('input', function(e) {
+            var v = e.target.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) {
+                v = v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (v.length > 0) {
+                v = v.replace(/^(\d*)/, '($1');
+            }
+            e.target.value = v;
+        });
+    }
+
 });
+</script>
+
+<script>
+// ── Senha do celular ─────────────────────────────────────────────────────
+function sisosToggleSenha(tipo) {
+    var tipoEl = document.getElementById('senhaTipoFinal');
+    var tipoAnterior = tipoEl ? tipoEl.value : '';
+    if (tipoEl) tipoEl.value = tipo;
+
+    document.getElementById('wrapSenhaPin').style.display    = tipo === 'pin'    ? 'block' : 'none';
+    document.getElementById('wrapSenhaPadrao').style.display = tipo === 'padrao' ? 'block' : 'none';
+
+    // Só limpa o valor se REALMENTE mudou de tipo
+    if (tipo !== tipoAnterior) {
+        var elFinal = document.getElementById('senhaValorFinal');
+        if (tipo === 'pin') {
+            var pinEl = document.getElementById('senhaValorPin');
+            if (pinEl) pinEl.value = '';
+            if (elFinal) elFinal.value = '';
+        } else if (tipo === 'padrao') {
+            _padraoSeq = [];
+            sisosPatternRender();
+        } else {
+            if (elFinal) elFinal.value = '';
+        }
+    }
+
+    document.querySelectorAll('.sd-toggle-btn').forEach(function(btn) {
+        btn.classList.toggle('ativo', btn.dataset.tipo === tipo);
+    });
+}
+
+var _padraoSeq = [];
+
+function sisosPatternRender() {
+    document.querySelectorAll('.sd-dot').forEach(function(el) {
+        var n   = parseInt(el.dataset.n);
+        var idx = _padraoSeq.indexOf(n);
+        el.classList.toggle('selecionado', idx >= 0);
+        el.classList.toggle('inicio', idx === 0);
+    });
+
+    var contadorEl = document.getElementById('padraoContagem');
+    if (contadorEl) contadorEl.textContent = _padraoSeq.length + ' ponto' + (_padraoSeq.length === 1 ? '' : 's');
+
+    var infoEl = document.getElementById('padraoInicioFim');
+    if (infoEl) {
+        infoEl.innerHTML = _padraoSeq.length
+            ? '<span style="color:#4ade80;">● Início: ponto ' + _padraoSeq[0] + '</span>' +
+              (_padraoSeq.length > 1 ? ' &nbsp;→&nbsp; <span style="color:#3b82f6;">Fim: ponto ' + _padraoSeq[_padraoSeq.length - 1] + '</span>' : '')
+            : '';
+    }
+
+    var svg = document.getElementById('padraoSvg');
+    var grid = document.getElementById('padraoGrid');
+    if (svg && grid) {
+        var defs = svg.querySelector('defs');
+        svg.innerHTML = '';
+        svg.appendChild(defs);
+
+        if (_padraoSeq.length > 1) {
+            var gridRect = grid.getBoundingClientRect();
+            var pontos = _padraoSeq.map(function(n) {
+                var dot = grid.querySelector('.sd-dot[data-n="' + n + '"]');
+                var r = dot.getBoundingClientRect();
+                return {
+                    x: r.left + r.width / 2 - gridRect.left,
+                    y: r.top + r.height / 2 - gridRect.top
+                };
+            });
+
+            for (var i = 0; i < pontos.length - 1; i++) {
+                var linha = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                linha.setAttribute('x1', pontos[i].x);
+                linha.setAttribute('y1', pontos[i].y);
+                linha.setAttribute('x2', pontos[i + 1].x);
+                linha.setAttribute('y2', pontos[i + 1].y);
+                linha.setAttribute('stroke', '#3b82f6');
+                linha.setAttribute('stroke-width', '3');
+                linha.setAttribute('stroke-linecap', 'round');
+                if (i === pontos.length - 2) {
+                    linha.setAttribute('marker-end', 'url(#setaPadrao)');
+                }
+                svg.appendChild(linha);
+            }
+        }
+    }
+
+    var v = _padraoSeq.join('-');
+    var elVis   = document.getElementById('senhaValorPadrao');
+    var elFinal = document.getElementById('senhaValorFinal');
+    if (elVis)   elVis.value   = v;
+    if (elFinal) elFinal.value = v;
+}
+
+function sisosPatternClear() {
+    _padraoSeq = [];
+    sisosPatternRender();
+}
+
+(function() {
+    var grid = document.getElementById('padraoGrid');
+    if (!grid) return;
+    var arrastando = false;
+
+    function pontoNoEvento(clientX, clientY) {
+        var el = document.elementFromPoint(clientX, clientY);
+        return el && el.classList.contains('sd-dot') ? parseInt(el.dataset.n) : null;
+    }
+    function iniciar(clientX, clientY) {
+        var n = pontoNoEvento(clientX, clientY);
+        if (n === null) return;
+        arrastando = true;
+        _padraoSeq = [n];
+        sisosPatternRender();
+    }
+    function continuar(clientX, clientY) {
+        if (!arrastando) return;
+        var n = pontoNoEvento(clientX, clientY);
+        if (n !== null && !_padraoSeq.includes(n)) {
+            _padraoSeq.push(n);
+            sisosPatternRender();
+        }
+    }
+    function finalizar() { arrastando = false; }
+
+    grid.addEventListener('mousedown', function(e) { iniciar(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', function(e) { if (arrastando) continuar(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', finalizar);
+
+    grid.addEventListener('touchstart', function(e) {
+        var t = e.touches[0];
+        iniciar(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    grid.addEventListener('touchmove', function(e) {
+        var t = e.touches[0];
+        continuar(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    grid.addEventListener('touchend', finalizar);
+
+    window.addEventListener('resize', function() { if (_padraoSeq.length) sisosPatternRender(); });
+})();
 </script>

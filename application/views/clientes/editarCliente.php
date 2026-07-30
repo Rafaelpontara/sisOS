@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
+<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
 <script src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>assets/js/funcoes.js"></script>
@@ -142,6 +144,25 @@
                         <input id="email" type="text" name="email" class="cli-input"
                                value="<?= htmlspecialchars($result->email) ?>" />
                     </div>
+                    <div>
+                        <label class="cli-label">Data de Nascimento</label>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <input type="text" name="dataNascimento" id="dataNascimento" class="cli-input datepicker"
+                                   value="<?= !empty($result->dataNascimento) && $result->dataNascimento != '0000-00-00' ? date('d/m/Y', strtotime($result->dataNascimento)) : '' ?>"
+                                   placeholder="DD/MM/AAAA" style="max-width:150px;" autocomplete="off" />
+                            <label class="cli-toggle-wrap" style="margin:0;white-space:nowrap;">
+                                <div class="cli-toggle">
+                                    <input type="checkbox" name="notif_aniversario" id="notifAniversario" value="1"
+                                           <?= !empty($result->notif_aniversario) ? 'checked' : '' ?>>
+                                    <span class="cli-toggle-slider"></span>
+                                </div>
+                                <span class="cli-toggle-label" style="display:flex;align-items:center;gap:5px;">
+                                    <i class='bx bxs-cake' style="color:#f97316;font-size:13px;"></i>
+                                    Notificar aniversário
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="cli-grid-2">
@@ -235,30 +256,41 @@
                     <?php
                     try {
                         $this->db->select('ct.*');
+                        // Detecta o nome da chave primária de cliente_tags automaticamente
+                        // Detecta colunas reais da tabela cliente_tags
+                        $pkCol   = 'id';   // PK real no servidor
+                        $nameCol = 'nome'; // nome da tag no servidor
+                        try {
+                            $cols = $this->db->query("SHOW COLUMNS FROM `cliente_tags`")->result();
+                            foreach ($cols as $col) {
+                                if (strtolower($col->Key) === 'pri') $pkCol = $col->Field;
+                                if (in_array($col->Field, ['tag','nome','name','descricao'])) $nameCol = $col->Field;
+                            }
+                        } catch (Exception $e) {}
                         $this->db->from('cliente_tags ct');
-                        $this->db->join('clientes_tags clt', 'clt.cliente_tags_id = ct.idTag');
+                        $this->db->join('clientes_tags clt', "clt.cliente_tags_id = ct.{$pkCol}");
                         $this->db->where('clt.clientes_id', $result->idClientes);
                         $r1 = $this->db->get();
                         $tagsAtivas = $r1 ? $r1->result() : [];
                     } catch (Exception $e) { $tagsAtivas = []; }
-                    $tagsAtivasIds = array_column((array)$tagsAtivas, 'idTag');
+                    $tagsAtivasIds = array_column((array)$tagsAtivas, $pkCol);
                     try {
-                        $r2 = $this->db->order_by('tag')->get('cliente_tags');
+                        $r2 = $this->db->order_by($nameCol)->get('cliente_tags');
                         $todasTags = $r2 ? $r2->result() : [];
                     } catch (Exception $e) { $todasTags = []; }
 
                     foreach ($todasTags as $t):
-                        $ativa = in_array($t->idTag, $tagsAtivasIds);
+                        $ativa = in_array($t->$pkCol, $tagsAtivasIds);
                     ?>
                     <button type="button"
                         class="cli-tag-btn <?= $ativa ? 'ativa' : '' ?>"
-                        data-id="<?= $t->idTag ?>"
+                        data-id="<?= $t->$pkCol ?>"
                         data-cliente="<?= $result->idClientes ?>"
                         data-cor="<?= htmlspecialchars($t->cor) ?>"
                         data-ativo="<?= $ativa ? 1 : 0 ?>"
                         style="background:<?= $ativa ? htmlspecialchars($t->cor) : '#2d3247' ?>;color:#fff;">
                         <i class="bx <?= $ativa ? 'bxs-purchase-tag' : 'bx-purchase-tag' ?>"></i>
-                        <?= htmlspecialchars($t->tag) ?>
+                        <?= htmlspecialchars($t->$nameCol) ?>
                     </button>
                     <?php endforeach; ?>
 
@@ -359,5 +391,27 @@ $(document).ready(function() {
         }, 'json');
     });
 
+
+    // ── Data de Nascimento: calendário + máscara ─────────────
+    $('#dataNascimento').datepicker({
+        dateFormat: 'dd/mm/yy',
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '-100:+0',
+        maxDate: '0',
+        dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+        dayNamesMin: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+        monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+        monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun',
+                          'Jul','Ago','Set','Out','Nov','Dez'],
+        onSelect: function(d) { $(this).val(d); }
+    });
+    $('#dataNascimento').on('input', function() {
+        var v = $(this).val().replace(/\D/g,'');
+        if (v.length >= 3 && v.length <= 4)  v = v.substring(0,2) + '/' + v.substring(2);
+        else if (v.length >= 5)               v = v.substring(0,2) + '/' + v.substring(2,4) + '/' + v.substring(4,8);
+        $(this).val(v);
+    });
 });
 </script>

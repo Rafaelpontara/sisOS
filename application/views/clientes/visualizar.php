@@ -162,15 +162,24 @@ function vcliStatusBadge($status) {
                             <?php
                             try {
                                 $this->db->select('ct.*');
+                                $pkCol   = 'id';
+                                $nameCol = 'nome';
+                                try {
+                                    $cols = $this->db->query("SHOW COLUMNS FROM `cliente_tags`")->result();
+                                    foreach ($cols as $col) {
+                                        if (strtolower($col->Key) === 'pri') $pkCol = $col->Field;
+                                        if (in_array($col->Field, ['tag','nome','name','descricao'])) $nameCol = $col->Field;
+                                    }
+                                } catch (Exception $e) {}
                                 $this->db->from('cliente_tags ct');
-                                $this->db->join('clientes_tags clt', 'clt.cliente_tags_id = ct.idTag');
+                                $this->db->join('clientes_tags clt', "clt.cliente_tags_id = ct.{$pkCol}");
                                 $this->db->where('clt.clientes_id', $result->idClientes);
                                 $r_tags = $this->db->get();
                                 $tagsCliente = $r_tags ? $r_tags->result() : [];
                             } catch (Exception $e) { $tagsCliente = []; }
                             foreach ($tagsCliente as $t): ?>
                             <span style="background:<?= htmlspecialchars($t->cor) ?>;color:#fff;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;margin:2px;">
-                                <?= htmlspecialchars($t->tag) ?>
+                                <?= htmlspecialchars($t->$nameCol) ?>
                             </span>
                             <?php endforeach; ?>
                             <?php if (empty($tagsCliente)): ?>
@@ -226,6 +235,22 @@ function vcliStatusBadge($status) {
                             <a href="mailto:<?= htmlspecialchars($result->email) ?>" style="color:#60a5fa;text-decoration:none;">
                                 <i class='bx bx-envelope' style="font-size:13px;"></i> <?= htmlspecialchars($result->email) ?>
                             </a>
+                            <?php else: ?>—<?php endif; ?>
+                        </span>
+                    </div>
+                    <div class="vcli-field">
+                        <span class="vcli-field-label">Data de Nascimento</span>
+                        <span class="vcli-field-val <?= (empty($result->dataNascimento) || $result->dataNascimento == '0000-00-00') ? 'muted' : '' ?>">
+                            <?php if (!empty($result->dataNascimento) && $result->dataNascimento != '0000-00-00'): ?>
+                            <i class='bx bx-cake' style="font-size:13px;"></i>
+                            <?= date('d/m/Y', strtotime($result->dataNascimento)) ?>
+                            <?php
+                                // Calcular idade
+                                $nasc = new DateTime($result->dataNascimento);
+                                $hoje = new DateTime();
+                                $idade = $hoje->diff($nasc)->y;
+                                echo ' <span style="color:var(--text-muted);font-size:12px;">(' . $idade . ' anos)</span>';
+                            ?>
                             <?php else: ?>—<?php endif; ?>
                         </span>
                     </div>

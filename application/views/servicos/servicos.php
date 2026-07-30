@@ -55,15 +55,10 @@
     <div class="tbl-wrap">
         <div class="tbl-toolbar">
             <div class="tbl-toolbar-left">
-                Exibir
-                <select onchange="filterTableSize(this.value)">
-                    <option>10</option><option>25</option><option>50</option><option>100</option>
-                </select>
-                registros &nbsp;·&nbsp;
-                <span style="color:#e8eaf0;font-weight:600;"><?= count($results) ?> serviços</span>
+                <span id="srv-count-label" style="color:#e8eaf0;font-weight:600;"><?= count($results) ?> de <?= (int)($statTotalFiltrado ?? 0) ?> serviços carregados</span>
             </div>
             <div class="tbl-search">
-                <input type="text" placeholder="Filtrar tabela..." oninput="filterTable(this.value)">
+                <input type="text" placeholder="Filtrar o que já carregou..." oninput="filterTable(this.value)">
             </div>
         </div>
 
@@ -77,32 +72,20 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php if (!$results): ?>
-                <tr><td colspan="5" class="tbl-empty"><i class='bx bx-wrench'></i>Nenhum serviço cadastrado</td></tr>
-                <?php else: foreach ($results as $r): ?>
-                <tr>
-                    <td style="color:#6b7280;font-size:12px;"><?= $r->idServicos ?></td>
-                    <td style="color:#e8eaf0;font-weight:600;"><?= htmlspecialchars($r->nome) ?></td>
-                    <td style="color:#34d399;font-weight:700;">R$ <?= number_format($r->preco, 2, ',', '.') ?></td>
-                    <td class="td-desc"><?= htmlspecialchars($r->descricao) ?></td>
-                    <td>
-                        <div class="act-btns">
-                            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eServico')): ?>
-                            <a href="<?= base_url() ?>index.php/servicos/editar/<?= $r->idServicos ?>" class="act-btn act-btn-edit" title="Editar"><i class='bx bx-edit'></i></a>
-                            <?php endif; ?>
-                            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dServico')): ?>
-                            <a href="#modal-excluir" role="button" data-toggle="modal" servico="<?= $r->idServicos ?>" class="act-btn act-btn-del" title="Excluir"><i class='bx bx-trash-alt'></i></a>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                </tr>
-                <?php endforeach; endif; ?>
+            <tbody id="srv-tbody">
+                <?php echo $this->load->view('servicos/_table_rows_partial', ['results' => $results], true); ?>
             </tbody>
         </table>
     </div>
+    <div id="srv-sentinel" style="display:flex;justify-content:center;padding:24px 0;">
+        <div id="srv-loading" style="display:none;align-items:center;gap:8px;color:#9ca3af;font-size:13px;">
+            <i class='bx bx-loader-alt bx-spin'></i> Carregando mais serviços...
+        </div>
+        <div id="srv-fim" style="display:none;color:#6b7280;font-size:12px;">
+            Isso é tudo — não há mais serviços para carregar.
+        </div>
+    </div>
 
-    <div style="margin-top:12px;"><?= $this->pagination->create_links() ?></div>
 </div>
 
 <!-- Modal Excluir -->
@@ -136,8 +119,65 @@ function filterTable(q) {
     q = q.toLowerCase();
     $('#tabela tbody tr').each(function() { $(this).toggle($(this).text().toLowerCase().indexOf(q) > -1); });
 }
-function filterTableSize(n) {
-    var i = 0;
-    $('#tabela tbody tr').each(function() { i++; $(this).toggle(i <= n); });
-}
+
+// ── Rolagem infinita ─────────────────────────────────────────────
+(function() {
+    var tbody = document.getElementById('srv-tbody');
+    var loadingEl = document.getElementById('srv-loading');
+    var fimEl = document.getElementById('srv-fim');
+    var countLabel = document.getElementById('srv-count-label');
+    var perPage = <?= (int)($perPage ?? 24) ?>;
+    var pesquisaAtual = <?= json_encode($pesquisa ?? '') ?>;
+    var totalGeral = <?= (int)($statTotalFiltrado ?? 0) ?>;
+    var qtdCarregada = <?= (int)count($results) ?>;
+    var carregando = false;
+    var acabou = qtdCarregada >= totalGeral;
+
+    function ultimoIdCarregado() {
+        var linhas = tbody.querySelectorAll('tr[data-id]');
+        if (!linhas.length) return 0;
+        return parseInt(linhas[linhas.length - 1].getAttribute('data-id'), 10) || 0;
+    }
+
+    function carregarMais() {
+        if (carregando || acabou) return;
+        carregando = true;
+        loadingEl.style.display = 'flex';
+
+        var url = '<?= site_url("servicos/carregarMais") ?>?antes_de=' + ultimoIdCarregado() + '&pesquisa=' + encodeURIComponent(pesquisaAtual);
+        fetch(url)
+            .then(function(res) { return res.text(); })
+            .then(function(html) {
+                if (html.trim() === '') {
+                    acabou = true;
+                    fimEl.style.display = 'block';
+                } else {
+                    var temp = document.createElement('tbody');
+                    temp.innerHTML = html;
+                    var novasLinhas = temp.querySelectorAll('tr');
+                    novasLinhas.forEach(function(tr) { tbody.appendChild(tr); });
+                    qtdCarregada += novasLinhas.length;
+                    if (novasLinhas.length < perPage) {
+                        acabou = true;
+                        fimEl.style.display = 'block';
+                    }
+                    if (countLabel) countLabel.textContent = qtdCarregada + ' de ' + totalGeral + ' serviços carregados';
+                }
+            })
+            .catch(function() {})
+            .finally(function() {
+                carregando = false;
+                loadingEl.style.display = 'none';
+            });
+    }
+
+    if (acabou) fimEl.style.display = 'block';
+
+    var sentinel = document.getElementById('srv-sentinel');
+    if (sentinel && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) { if (e.isIntersecting) carregarMais(); });
+        }, { rootMargin: '200px' }).observe(sentinel);
+    }
+})();
 </script>

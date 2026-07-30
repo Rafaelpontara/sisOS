@@ -7,18 +7,36 @@ class Clientes_model extends CI_Model
         parent::__construct();
     }
 
-    public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array')
+    public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array', $antesDe = 0)
     {
         $this->db->select($fields);
         $this->db->from($table);
-        $this->db->order_by('idClientes', 'desc');
-        $this->db->limit($perpage, $start);
+
+        // Agrupa as condições de busca (nome/documento/email/telefone) entre
+        // parênteses — sem isso, combinar com outro WHERE (como o cursor
+        // abaixo) faria o SQL avaliar errado por causa da precedência de
+        // AND/OR (um filtro "vazaria" pras outras condições OR).
         if ($where) {
+            $this->db->group_start();
             $this->db->like('nomeCliente', $where);
             $this->db->or_like('documento', $where);
             $this->db->or_like('email', $where);
             $this->db->or_like('telefone', $where);
+            $this->db->group_end();
         }
+
+        // Paginação por cursor (mais rápida que OFFSET em bases grandes,
+        // porque usa o índice da chave primária em vez de "pular e
+        // descartar" registros) — usada pela rolagem infinita da tela de
+        // Clientes. Quando não informado, cai no OFFSET tradicional (usado
+        // no 1º carregamento da página, ou por qualquer outra tela que
+        // ainda chame este método sem o cursor).
+        if ($antesDe > 0) {
+            $this->db->where('idClientes <', (int) $antesDe);
+        }
+
+        $this->db->order_by('idClientes', 'desc');
+        $this->db->limit($perpage, $antesDe > 0 ? 0 : $start);
 
         $query = $this->db->get();
 

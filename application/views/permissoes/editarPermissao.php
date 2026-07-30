@@ -1,897 +1,290 @@
+<?php
+// Helper para verificar se permissão está ativa
+function permAtiva($permissoes, $key) {
+    return isset($permissoes[$key]) && $permissoes[$key] == '1';
+}
+function permCheck($permissoes, $key) {
+    return permAtiva($permissoes, $key) ? 'checked' : '';
+}
+// Deserializar permissões do banco
+$permissoes = [];
+if (!empty($result->permissoes)) {
+    $perm = unserialize($result->permissoes);
+    if (is_array($perm)) $permissoes = $perm;
+}
+?>
 
 <style>
-    .widget-title h5 {
-        font-weight : 500;
-        padding     : 5px;
-        padding-left: 36px !important;
-        line-height : 12px;
-        margin      : 5px 0 !important;
-        font-size   : 1.3em;
-        color       : var(--violeta1);
-    }
-
-    .icon-cli {
-        color: #239683;
-        margin-top : 3px;
-        margin-left: 8px;
-        position   : absolute;
-        font-size  : 18px;
-    }
-
-    .icon-clic {
-        color: #9faab7;
-        top: 4px;
-        right: 10px;
-        position: absolute;
-        font-size: 1.9em;
-    }
-
-    .icon-clic:hover {
-        color: #3fadf6;
-    }
-
-    .widget-content {
-        padding: 8px 12px 0;
-    }
-
-    .table td {
-        padding: 5px;
-    }
-
-    .table {
-        margin-bottom: 0;
-    }
-
-    .accordion .widget-box {
-        margin-top   : 10px;
-        margin-bottom: 0;
-        border-radius: 6px;
-    }
-
-    .accordion {
-        margin-top: -25px;
-    }
-
-    .collapse.in {
-        top: -15px
-    }
-
-    .button {
-    min-width: 130px;
-    }
-
-    .form-actions {
-        padding: 0;
-        margin-top: 20px;
-        margin-bottom: 20px;
-        background-color: transparent;
-        border-top: 0px;
-    }
-
-    .widget-content table tbody tr:hover {
-        background: transparent;
-    }
-
-@media (max-width: 480px) {
-    .widget-content {
-        padding      : 10px 7px !important;
-        margin-bottom: -15px;
-    }
-}
-
+/* ── Permissões — Design Moderno ─────────────────────────── */
+.perm-wrap        { padding: 0 8px 40px; }
+.perm-header      { display:flex;align-items:center;justify-content:space-between;
+                    flex-wrap:wrap;gap:12px;margin-bottom:24px;
+                    padding:18px 20px;background:#1e2235;border-radius:14px;
+                    border:1px solid rgba(255,255,255,0.07); }
+.perm-title       { font-size:18px;font-weight:800;color:#e8eaf0;
+                    display:flex;align-items:center;gap:8px; }
+.perm-meta        { display:flex;align-items:center;gap:12px;flex-wrap:wrap; }
+.perm-meta input[type=text] {
+                    background:#252a3a;border:1px solid #444860;color:#e8eaf0;
+                    border-radius:8px;padding:8px 12px;font-size:13px;min-width:200px; }
+.perm-meta select { background:#252a3a;border:1px solid #444860;color:#e8eaf0;
+                    border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer; }
+.perm-meta input:focus,.perm-meta select:focus { outline:none;border-color:#f97316; }
+.perm-grid        { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+                    gap:14px;margin-bottom:20px; }
+.perm-card        { background:#1e2235;border-radius:14px;
+                    border:1px solid rgba(255,255,255,0.07);overflow:hidden; }
+.perm-card-head   { display:flex;align-items:center;justify-content:space-between;
+                    padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);
+                    background:#13151f; }
+.perm-card-title  { display:flex;align-items:center;gap:8px;
+                    font-size:12px;font-weight:800;color:#e8eaf0;
+                    text-transform:uppercase;letter-spacing:.5px; }
+.perm-card-body   { padding:12px 16px;display:grid;
+                    grid-template-columns:1fr 1fr;gap:8px; }
+.perm-item        { display:flex;align-items:center;gap:8px;cursor:pointer;
+                    padding:7px 10px;border-radius:8px;
+                    border:1px solid transparent;transition:all .15s;
+                    background:rgba(255,255,255,0.02); }
+.perm-item:hover  { background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08); }
+.perm-item input[type=checkbox] { display:none; }
+.perm-toggle      { width:36px;height:20px;border-radius:10px;background:#252a3a;
+                    border:1px solid #444860;position:relative;flex-shrink:0;
+                    transition:all .2s; }
+.perm-toggle::after { content:'';position:absolute;top:3px;left:3px;
+                      width:12px;height:12px;border-radius:50%;
+                      background:#6b7280;transition:all .2s; }
+.perm-item.ativo .perm-toggle { background:rgba(74,222,128,0.2);border-color:#4ade80; }
+.perm-item.ativo .perm-toggle::after { background:#4ade80;transform:translateX(16px); }
+.perm-item.ativo  { border-color:rgba(74,222,128,0.2);background:rgba(74,222,128,0.04); }
+.perm-lbl         { font-size:12px;font-weight:600;color:#9ca3af;
+                    transition:color .15s;user-select:none; }
+.perm-item.ativo .perm-lbl { color:#e8eaf0; }
+.perm-tipo-v .perm-item.ativo .perm-toggle { background:rgba(96,165,250,0.2);border-color:#60a5fa; }
+.perm-tipo-v .perm-item.ativo .perm-toggle::after { background:#60a5fa; }
+.perm-tipo-v .perm-item.ativo { border-color:rgba(96,165,250,0.2);background:rgba(96,165,250,0.04); }
+.perm-tipo-a .perm-item.ativo .perm-toggle { background:rgba(167,139,250,0.2);border-color:#a78bfa; }
+.perm-tipo-a .perm-item.ativo .perm-toggle::after { background:#a78bfa; }
+.perm-tipo-a .perm-item.ativo { border-color:rgba(167,139,250,0.2);background:rgba(167,139,250,0.04); }
+.perm-tipo-e .perm-item.ativo .perm-toggle { background:rgba(251,191,36,0.2);border-color:#fbbf24; }
+.perm-tipo-e .perm-item.ativo .perm-toggle::after { background:#fbbf24; }
+.perm-tipo-e .perm-item.ativo { border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.04); }
+.perm-tipo-d .perm-item.ativo .perm-toggle { background:rgba(248,113,113,0.2);border-color:#f87171; }
+.perm-tipo-d .perm-item.ativo .perm-toggle::after { background:#f87171; }
+.perm-tipo-d .perm-item.ativo { border-color:rgba(248,113,113,0.2);background:rgba(248,113,113,0.04); }
+.perm-sel-all     { font-size:10px;font-weight:700;color:#6b7280;cursor:pointer;
+                    padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);
+                    background:rgba(255,255,255,0.04);transition:all .15s;user-select:none; }
+.perm-sel-all:hover { color:#e8eaf0;border-color:rgba(255,255,255,0.2); }
+.perm-footer      { display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+                    padding:16px 20px;background:#1e2235;border-radius:14px;
+                    border:1px solid rgba(255,255,255,0.07);margin-top:8px; }
+.perm-btn         { display:inline-flex;align-items:center;gap:6px;padding:9px 18px;
+                    border-radius:8px;font-size:13px;font-weight:700;
+                    text-decoration:none;border:none;cursor:pointer;transition:all .15s; }
+.perm-btn-save    { background:linear-gradient(135deg,#4ade80,#16a34a);color:#000; }
+.perm-btn-save:hover { opacity:.88; }
+.perm-btn-back    { background:rgba(255,255,255,0.07);color:#9ca3af; }
+.perm-btn-back:hover { background:rgba(255,255,255,0.12);color:#e8eaf0; }
+.perm-marcar-todos{ background:rgba(249,115,22,0.12);color:#f97316;
+                    border:1px solid rgba(249,115,22,0.25); }
+.perm-marcar-todos:hover { background:rgba(249,115,22,0.2); }
+.perm-legenda     { display:flex;gap:14px;flex-wrap:wrap;
+                    padding:10px 0;margin-bottom:12px; }
+.perm-leg-item    { display:flex;align-items:center;gap:5px;font-size:11px;
+                    font-weight:700;color:#6b7280; }
+.perm-leg-dot     { width:8px;height:8px;border-radius:50%; }
 </style>
 
-<?php $permissoes = unserialize($result->permissoes);?>
-<div class="span12" style="margin-left: 0">
-    <form action="<?php echo base_url();?>index.php/permissoes/editar" id="formPermissao" method="post">
-        <div class="span12" style="margin-left: 0">
-            <div class="widget-box">
-                <div class="widget-title">
-               <span class="icon">
-               <i class="fas fa-lock"></i>
-               </span>
-                    <h5 style="padding:12px;padding-left:18px!important;margin:-10px 0 0!important;font-size:1.7em;">Editar Permissão</h5>
-                </div>
-                <div class="widget-content">
-                    <div class="span4">
-                        <label>Nome da Permissão</label>
-                        <input name="nome" type="text" id="nome" class="span12" value="<?php echo $result->nome; ?>" />
-                        <input type="hidden" name="idPermissao" value="<?php echo $result->idPermissao; ?>">
-                    </div>
-                    <div class="span3">
-                        <label>Situação</label>
-                        <select name="situacao" id="situacao" class="span12">
-                            <?php if ($result->situacao == 1) {
-                                $sim = 'selected';
-                                $nao ='';
-                            } else {
-                                $sim = '';
-                                $nao ='selected';
-                            }?>
-                            <option value="1" <?php echo $sim;?>>Ativo</option>
-                            <option value="0" <?php echo $nao;?>>Inativo</option>
-                        </select>
-                    </div>
-                    <div class="span4">
-                        <label>
-                            <input name="" type="checkbox" value="1" id="marcarTodos" />
-                            <span class="lbl"> Marcar Todos</span>
-                        </label>
-                    </div>
+<div class="perm-wrap">
+<form action="<?php echo base_url();?>index.php/permissoes/editar" id="formPermissao" method="post">
+<input type="hidden" name="idPermissao" value="<?php echo $result->idPermissao; ?>">
 
-                    <div class="control-group">
-                        <label for="documento" class="control-label"></label>
-                        <div class="controls">
-
-                    <div class="widget-content" style="padding: 5px 0 !important">
-        <div id="tab1" class="tab-pane active" style="min-height: 300px">
-            <div class="accordion" id="collapse-group">
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
-                                <span><i class='bx bx-group icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Clientes</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse in accordion-body" id="collapseGOne">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                                <tr>
-                                    <td colspan="4"></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <label......>
-                                            <input <?php if (isset($permissoes['vCliente'])) {
-                                                if ($permissoes['vCliente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vCliente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Cliente</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aCliente'])) {
-                                                if ($permissoes['aCliente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aCliente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Cliente</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eCliente'])) {
-                                                if ($permissoes['eCliente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eCliente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Cliente</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dCliente'])) {
-                                                if ($permissoes['dCliente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dCliente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Cliente</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                        </table>
-                    </div>
-                </div>
+    <!-- Header -->
+    <div class="perm-header">
+        <div class="perm-title">
+            <i class='bx bx-lock-alt' style="color:#f97316;font-size:22px;"></i>
+            Editar Permissão
+        </div>
+        <div class="perm-meta">
+            <div>
+                <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;
+                              letter-spacing:.5px;display:block;margin-bottom:4px;">Nome</label>
+                <input name="nome" type="text" value="<?php echo htmlspecialchars($result->nome); ?>"
+                       placeholder="Nome do perfil de acesso" />
             </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGTwo" data-toggle="collapse">
-                                <span><i class='bx bx-package icon-cli'></i></span>
-                                <h5 style="padding-left: 28px">Produtos</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGTwo">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                        <tr>
-                            <td colspan="4"></td>
-                        </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                        <input <?php if (isset($permissoes['vProduto'])) {
-                                            if ($permissoes['vProduto'] == '1') {
-                                                echo 'checked';
-                                            }
-                                        }?> name="vProduto" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Produto</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aProduto'])) {
-                                                if ($permissoes['aProduto'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aProduto" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Produto</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eProduto'])) {
-                                                if ($permissoes['eProduto'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eProduto" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Produto</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dProduto'])) {
-                                                if ($permissoes['dProduto'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dProduto" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Produto</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGThree" data-toggle="collapse">
-                                <span><i class='bx bx-stopwatch icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Serviços</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGThree">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                        <tr>
-                            <td colspan="4"></td>
-                        </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vServico'])) {
-                                                if ($permissoes['vServico'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vServico" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Serviço</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aServico'])) {
-                                                if ($permissoes['aServico'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aServico" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Serviço</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eServico'])) {
-                                                if ($permissoes['eServico'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eServico" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Serviço</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dServico'])) {
-                                                if ($permissoes['dServico'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dServico" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Serviço</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGFour" data-toggle="collapse">
-                                <span><i class='bx bx-spreadsheet icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Ordens de Serviço</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGFour">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vOs'])) {
-                                                if ($permissoes['vOs'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vOs" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar OS</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aOs'])) {
-                                                if ($permissoes['aOs'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aOs" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar OS</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eOs'])) {
-                                                if ($permissoes['eOs'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eOs" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar OS</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dOs'])) {
-                                                if ($permissoes['dOs'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dOs" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir OS</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGFive" data-toggle="collapse">
-                                <span><i class='bx bx-cart-alt icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Vendas</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGFive">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vVenda'])) {
-                                                if ($permissoes['vVenda'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vVenda" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Venda</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aVenda'])) {
-                                                if ($permissoes['aVenda'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aVenda" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Venda</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eVenda'])) {
-                                                if ($permissoes['eVenda'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eVenda" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Venda</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dVenda'])) {
-                                                if ($permissoes['dVenda'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dVenda" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Venda</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGSix" data-toggle="collapse">
-                                <span><i class='bx bx-credit-card-front icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Cobranças</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGSix">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vCobranca'])) {
-                                                if ($permissoes['vCobranca'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vCobranca" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Cobranças</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aCobranca'])) {
-                                                if ($permissoes['aCobranca'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aCobranca" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Cobranças</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eCobranca'])) {
-                                                if ($permissoes['eCobranca'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eCobranca" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Cobranças</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dCobranca'])) {
-                                                if ($permissoes['dCobranca'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dCobranca" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Cobranças</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGSeven" data-toggle="collapse">
-                                <span><i class='bx bx-receipt icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Garantias</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGSeven">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vGarantia'])) {
-                                                if ($permissoes['vGarantia'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vGarantia" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Garantia</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aGarantia'])) {
-                                                if ($permissoes['aGarantia'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aGarantia" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Garantia</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eGarantia'])) {
-                                                if ($permissoes['eGarantia'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eGarantia" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Garantia</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dGarantia'])) {
-                                                if ($permissoes['dGarantia'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dGarantia" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Garantia</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGEight" data-toggle="collapse">
-                                <span><i class='bx bx-box icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Arquivos</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGEight">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vArquivo'])) {
-                                                if ($permissoes['vArquivo'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vArquivo" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Arquivo</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aArquivo'])) {
-                                                if ($permissoes['aArquivo'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aArquivo" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Arquivo</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eArquivo'])) {
-                                                if ($permissoes['eArquivo'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eArquivo" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Arquivo</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dArquivo'])) {
-                                                if ($permissoes['dArquivo'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dArquivo" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Arquivo</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGNine" data-toggle="collapse">
-                                <span><i class='bx bx-bar-chart-square icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Financeiro</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGNine">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['vLancamento'])) {
-                                                if ($permissoes['vLancamento'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="vLancamento" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Visualizar Lançamento</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['aLancamento'])) {
-                                                if ($permissoes['aLancamento'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="aLancamento" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Adicionar Lançamento</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['eLancamento'])) {
-                                                if ($permissoes['eLancamento'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="eLancamento" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Editar Lançamento</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['dLancamento'])) {
-                                                if ($permissoes['dLancamento'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="dLancamento" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Excluir Lançamento</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGTen" data-toggle="collapse">
-                                <span><i class='bx bx-chart icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Relatórios</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGTen">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['rCliente'])) {
-                                                if ($permissoes['rCliente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rCliente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório Cliente</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['rServico'])) {
-                                                if ($permissoes['rServico'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rServico" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório Serviço</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['rOs'])) {
-                                                if ($permissoes['rOs'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rOs" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório OS</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['rProduto'])) {
-                                                if ($permissoes['rProduto'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rProduto" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório Produto</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['rVenda'])) {
-                                                if ($permissoes['rVenda'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rVenda" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório Venda</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['rFinanceiro'])) {
-                                                if ($permissoes['rFinanceiro'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="rFinanceiro" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Relatório Financeiro</span>
-                                        </label>
-                                    </td>
-                                    <td colspan="2"></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGEleven" data-toggle="collapse">
-                                <span><i class='bx bx-cog icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Configurações e Sistema</h5>
-                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGEleven">
-                        <div class="widget-content">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td colspan="4"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label>
-                                            <input <?php if (isset($permissoes['cUsuario'])) {
-                                                if ($permissoes['cUsuario'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="cUsuario" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Configurar Usuário</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['cEmitente'])) {
-                                                if ($permissoes['cEmitente'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="cEmitente" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Configurar Emitente</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['cPermissao'])) {
-                                                if ($permissoes['cPermissao'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="cPermissao" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Configurar Permissão</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php if (isset($permissoes['cBackup'])) {
-                                                if ($permissoes['cBackup'] == '1') {
-                                                    echo 'checked';
-                                                }
-                                            }?> name="cBackup" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Backup</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <label>
-                                            <input <?php echo (isset($permissoes['cAuditoria']) && $permissoes['cAuditoria'] == 1) ? 'checked' : ''; ?> name="cAuditoria" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Auditoria</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php echo (isset($permissoes['cEmail']) && $permissoes['cEmail'] == 1) ? 'checked' : ''; ?> name="cEmail" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Emails</span>
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <label>
-                                            <input <?php echo (isset($permissoes['cSistema']) && $permissoes['cSistema'] == 1) ? 'checked' : ''; ?> name="cSistema" class="marcar" type="checkbox" value="1" />
-                                            <span class="lbl"> Sistema</span>
-                                        </label>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                    <div class="form-actions">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display:flex;justify-content: center">
-                              <button type="submit" class="button btn btn-primary">
-                              <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar</span></button>
-                                <a title="Voltar" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/permissoes">
-                                  <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div>
+                <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;
+                              letter-spacing:.5px;display:block;margin-bottom:4px;">Situação</label>
+                <select name="situacao">
+                    <option value="1" <?= $result->situacao == 1 ? 'selected' : '' ?>>✅ Ativo</option>
+                    <option value="0" <?= $result->situacao != 1 ? 'selected' : '' ?>>⭕ Inativo</option>
+                </select>
             </div>
         </div>
-    </form>
+    </div>
+
+    <!-- Legenda -->
+    <div class="perm-legenda">
+        <span class="perm-leg-item">
+            <span class="perm-leg-dot" style="background:#60a5fa;"></span> Visualizar
+        </span>
+        <span class="perm-leg-item">
+            <span class="perm-leg-dot" style="background:#a78bfa;"></span> Adicionar
+        </span>
+        <span class="perm-leg-item">
+            <span class="perm-leg-dot" style="background:#fbbf24;"></span> Editar
+        </span>
+        <span class="perm-leg-item">
+            <span class="perm-leg-dot" style="background:#f87171;"></span> Excluir
+        </span>
+        <span class="perm-leg-item">
+            <span class="perm-leg-dot" style="background:#4ade80;"></span> Ativo
+        </span>
+        <div style="margin-left:auto;">
+            <button type="button" class="perm-btn perm-marcar-todos" id="btnMarcarTodos">
+                <i class='bx bx-check-double'></i> Marcar Todos
+            </button>
+            &nbsp;
+            <button type="button" class="perm-btn perm-btn-back" id="btnDesmarcarTodos">
+                <i class='bx bx-x'></i> Desmarcar Todos
+            </button>
+        </div>
+    </div>
+
+    <!-- Grid de Permissões -->
+    <div class="perm-grid">
+
+    <?php
+    // Grupos de permissões
+    $grupos = [
+        ['Clientes',          'bx-group',                '#60a5fa',
+         ['vCliente'=>'Visualizar','aCliente'=>'Adicionar','eCliente'=>'Editar','dCliente'=>'Excluir']],
+        ['Produtos',          'bx-cube',                 '#a78bfa',
+         ['vProduto'=>'Visualizar','aProduto'=>'Adicionar','eProduto'=>'Editar','dProduto'=>'Excluir']],
+        ['Serviços',          'bx-stopwatch',            '#fbbf24',
+         ['vServico'=>'Visualizar','aServico'=>'Adicionar','eServico'=>'Editar','dServico'=>'Excluir']],
+        ['Ordens de Serviço', 'bx-clipboard',            '#34d399',
+         ['vOs'=>'Visualizar','aOs'=>'Adicionar','eOs'=>'Editar','dOs'=>'Excluir']],
+        ['Soluções Técnicas', 'bx-bulb',                 '#fb923c',
+         ['vSolucao'=>'Visualizar','aSolucao'=>'Adicionar','eSolucao'=>'Editar','dSolucao'=>'Excluir']],
+        ['Pedidos & Anotações', 'bx-cart-alt',            '#a78bfa',
+         ['vPedido'=>'Visualizar','aPedido'=>'Adicionar','ePedido'=>'Editar','dPedido'=>'Excluir']],
+        ['Vendas',            'bx-cart',                 '#f97316',
+         ['vVenda'=>'Visualizar','aVenda'=>'Adicionar','eVenda'=>'Editar','dVenda'=>'Excluir']],
+        ['Cobranças',         'bx-credit-card',          '#fb7185',
+         ['vCobranca'=>'Visualizar','aCobranca'=>'Adicionar','eCobranca'=>'Editar','dCobranca'=>'Excluir']],
+        ['Garantias',         'bx-shield-quarter',       '#22d3ee',
+         ['vGarantia'=>'Visualizar','aGarantia'=>'Adicionar','eGarantia'=>'Editar','dGarantia'=>'Excluir']],
+        ['Arquivos',          'bx-folder',               '#60a5fa',
+         ['vArquivo'=>'Visualizar','aArquivo'=>'Adicionar','eArquivo'=>'Editar','dArquivo'=>'Excluir']],
+        ['Financeiro',        'bx-wallet',               '#4ade80',
+         ['vLancamento'=>'Visualizar','aLancamento'=>'Adicionar','eLancamento'=>'Editar','dLancamento'=>'Excluir']],
+        ['Relatórios',        'bx-bar-chart-alt-2',      '#fbbf24',
+         ['rCliente'=>'Clientes','rServico'=>'Serviços','rOs'=>'OS','rProduto'=>'Produtos','rVenda'=>'Vendas','rFinanceiro'=>'Financeiro']],
+        ['Configurações',     'bx-cog',                  '#9ca3af',
+         ['cUsuario'=>'Usuários','cEmitente'=>'Emitente','cPermissao'=>'Permissões','cBackup'=>'Backup','cAuditoria'=>'Auditoria','cEmail'=>'Emails','cSistema'=>'Sistema']],
+    ];
+
+    $tipoClass = ['v'=>'perm-tipo-v','a'=>'perm-tipo-a','e'=>'perm-tipo-e','d'=>'perm-tipo-d',
+                  'r'=>'perm-tipo-v','c'=>'perm-tipo-e'];
+
+    foreach ($grupos as [$titulo, $icon, $cor, $perms]):
+    ?>
+    <div class="perm-card">
+        <div class="perm-card-head">
+            <div class="perm-card-title">
+                <i class='bx <?= $icon ?>' style="color:<?= $cor ?>;font-size:16px;"></i>
+                <?= $titulo ?>
+            </div>
+            <span class="perm-sel-all" data-grupo="<?= strtolower(str_replace(' ','-',$titulo)) ?>">
+                Sel. todos
+            </span>
+        </div>
+        <div class="perm-card-body">
+        <?php foreach ($perms as $key => $label):
+            $ativo = permAtiva($permissoes, $key);
+            $tipo  = $key[0]; // v, a, e, d, r, c
+        ?>
+            <label class="perm-item <?= $ativo ? 'ativo' : '' ?> <?= $tipoClass[$tipo] ?? '' ?>"
+                   data-grupo="<?= strtolower(str_replace(' ','-',$titulo)) ?>">
+                <input type="checkbox" name="<?= $key ?>" value="1"
+                       class="marcar" <?= $ativo ? 'checked' : '' ?>>
+                <span class="perm-toggle"></span>
+                <span class="perm-lbl"><?= $label ?></span>
+            </label>
+        <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    </div><!-- /.perm-grid -->
+
+    <!-- Footer -->
+    <div class="perm-footer">
+        <button type="submit" class="perm-btn perm-btn-save">
+            <i class='bx bx-save'></i> Salvar Permissões
+        </button>
+        <a href="<?= site_url('permissoes') ?>" class="perm-btn perm-btn-back">
+            <i class='bx bx-undo'></i> Voltar
+        </a>
+        <span style="margin-left:auto;font-size:12px;color:#6b7280;" id="permCounter">
+            Carregando...
+        </span>
+    </div>
+
+</form>
 </div>
 
-
-<script type="text/javascript" src="<?php echo base_url()?>assets/js/validate.js"></script>
-<script type="text/javascript">
-    $(document).ready(function(){
-        $("#marcarTodos").change(function () {
-            $("input:checkbox").prop('checked', $(this).prop("checked"));
-        });
-        $("#formPermissao").validate({
-            rules :{
-                nome: {required: true}
-            },
-            messages:{
-                nome: {required: 'Campo obrigatório'}
-            }});
+<script>
+// ── Toggle visual dos itens de permissão ──────────────────────────────────
+document.querySelectorAll('.perm-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+        var cb = this.querySelector('input[type=checkbox]');
+        cb.checked = !cb.checked;
+        this.classList.toggle('ativo', cb.checked);
+        atualizarContador();
     });
+});
+
+// ── Marcar/desmarcar todos ────────────────────────────────────────────────
+document.getElementById('btnMarcarTodos').addEventListener('click', function() {
+    document.querySelectorAll('.perm-item input[type=checkbox]').forEach(function(cb) {
+        cb.checked = true;
+        cb.closest('.perm-item').classList.add('ativo');
+    });
+    atualizarContador();
+});
+
+document.getElementById('btnDesmarcarTodos').addEventListener('click', function() {
+    document.querySelectorAll('.perm-item input[type=checkbox]').forEach(function(cb) {
+        cb.checked = false;
+        cb.closest('.perm-item').classList.remove('ativo');
+    });
+    atualizarContador();
+});
+
+// ── Selecionar todos de um grupo ──────────────────────────────────────────
+document.querySelectorAll('.perm-sel-all').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var grupo = this.dataset.grupo;
+        var items = document.querySelectorAll('[data-grupo="'+grupo+'"] input[type=checkbox]');
+        var todosAtivos = Array.from(items).every(function(cb) { return cb.checked; });
+        items.forEach(function(cb) {
+            cb.checked = !todosAtivos;
+            cb.closest('.perm-item').classList.toggle('ativo', !todosAtivos);
+        });
+        atualizarContador();
+    });
+});
+
+// ── Contador de permissões ────────────────────────────────────────────────
+function atualizarContador() {
+    var total  = document.querySelectorAll('.perm-item input[type=checkbox]').length;
+    var ativos = document.querySelectorAll('.perm-item input[type=checkbox]:checked').length;
+    document.getElementById('permCounter').textContent =
+        ativos + ' de ' + total + ' permissões ativas';
+}
+atualizarContador();
 </script>

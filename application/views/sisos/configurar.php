@@ -21,7 +21,7 @@
                 <li><a href="javascript:void(0)" onclick="showConfigTab('tabCatReceita')">Categorias de Receita</a></li>
                 <li><a href="javascript:void(0)" onclick="showConfigTab('tabGemini')"><i class='bx bx-bot'></i> IA / Assistente</a></li>
             </ul>
-            <div class="widget-content nopadding tab-content">
+            <div id="sisosConfigWrap" class="widget-content nopadding tab-content">
                 <?php echo $custom_error; ?>
                 <form action="<?php echo current_url(); ?>" id="formConfigurar" method="post" class="form-horizontal">
                     <!-- Menu Gerais -->
@@ -53,6 +53,34 @@
 .cg-size-row span{font-size:12px;color:#6b7280;}
 .cg-btn-save{display:inline-flex;align-items:center;gap:7px;padding:10px 24px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,0.3);transition:transform .15s;}
 .cg-btn-save:hover{transform:translateY(-1px);}
+
+/* ── Botões desta tela (Configurações do Sistema) — só afeta aqui,
+   não mexe nas classes globais .btn-primary/.btn-warning/.btn-danger
+   usadas em outras páginas do sistema. ── */
+#sisosConfigWrap .button.btn-primary{
+    background:linear-gradient(135deg,#a78bfa,#7c3aed) !important;
+    border:none !important;
+    border-radius:8px !important;
+    box-shadow:0 4px 14px rgba(167,139,250,0.3);
+    transition:transform .15s;
+}
+#sisosConfigWrap .button.btn-primary:hover{transform:translateY(-1px);}
+
+#menu4 .button.btn-warning{
+    background:linear-gradient(135deg,#60a5fa,#3b82f6) !important;
+    border:none !important;
+    border-radius:8px !important;
+    box-shadow:0 4px 14px rgba(96,165,250,0.3);
+    transition:transform .15s;
+}
+#menu4 .button.btn-danger{
+    background:linear-gradient(135deg,#a78bfa,#7c3aed) !important;
+    border:none !important;
+    border-radius:8px !important;
+    box-shadow:0 4px 14px rgba(167,139,250,0.3);
+    transition:transform .15s;
+}
+#menu4 .button.btn-warning:hover, #menu4 .button.btn-danger:hover{transform:translateY(-1px);}
 </style>
 
 <div style="padding:18px 4px 4px;">
@@ -385,6 +413,16 @@
                         </div>
 
                         <div class="control-group">
+                            <label for="pdv_caixa_enabled" class="control-label">Controle de Caixa (PDV)</label>
+                            <div class="controls">
+                                <select name="pdv_caixa_enabled" id="pdv_caixa_enabled">
+                                    <option value="0" <?= ($configuration['pdv_caixa_enabled'] ?? '0') == '0' ? 'selected' : ''; ?>>Desativado</option>
+                                    <option value="1" <?= ($configuration['pdv_caixa_enabled'] ?? '0') == '1' ? 'selected' : ''; ?>>Ativado</option>
+                                </select>
+                                <span class="help-inline">Quando ativado, exige abertura de caixa antes de usar o PDV e registra movimentos de sangria e fechamento.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="venda_sem_estoque" class="control-label">Venda sem Estoque</label>
                             <div class="controls">
                                 <select name="venda_sem_estoque" id="venda_sem_estoque">
@@ -436,12 +474,12 @@
                         <div class="control-group">
                             <label for="notifica_whats" class="control-label">Notificação do whatsapp</label>
                             <div class="controls">
-                                <textarea rows="5" cols="20" name="notifica_whats" id="notifica_whats" placeholder="Use as tags abaixo para criar seu texto!" style="margin: 0px; width: 606px; height: 86px;"><?php echo $configuration['notifica_whats']; ?></textarea>
+                                <textarea rows="5" cols="20" name="notifica_whats" id="notifica_whats" placeholder="Use as tags abaixo para criar seu texto!" style="margin:0;width:100%;max-width:606px;height:86px;"><?php echo $configuration['notifica_whats']; ?></textarea>
                             </div>
                             <div class="span3">
-                                <label for="notifica_whats_select">Tags de preenchimento<span class="required"></span></label>
-                                <select class="span12" name="notifica_whats_select" id="notifica_whats_select" value="">
-                                    <option value="0">Selecione...</option>
+                                <label for="notifica_whats_select">Tags de preenchimento</label>
+                                <select class="span12" name="notifica_whats_select" id="notifica_whats_select" onchange="inserirTag('notifica_whats', this)">
+                                    <option value="">Selecione...</option>
                                     <option value="{CLIENTE_NOME}">Nome do Cliente</option>
                                     <option value="{NUMERO_OS}">Número da OS</option>
                                     <option value="{STATUS_OS}">Status da OS</option>
@@ -455,13 +493,78 @@
                                     <option value="{DATA_FINAL}">Data Final</option>
                                     <option value="{DATA_INICIAL}">Data Inicial</option>
                                     <option value="{DATA_GARANTIA}">Data da Garantia</option>
+                                    <option value="{LINK_PORTAL}">Link do Portal do Cliente</option>
                                 </select>
                             </div>
-                            <span6 class="span10">
-                                Para negrito use: *palavra*
-                                Para itálico use: _palavra_
-                                Para riscado use: ~palavra~
-                                </span>
+                            <span style="font-size:12px;color:#9ca3af;display:block;margin-top:6px;">
+                                Para negrito use: *palavra* &nbsp;|&nbsp; Para itálico use: _palavra_ &nbsp;|&nbsp; Para riscado use: ~palavra~
+                            </span>
+                        </div>
+
+                        <!-- Templates adicionais de WhatsApp -->
+                        <div style="margin-top:18px;background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;">
+                            <div style="padding:10px 16px;background:#252a3a;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;">
+                                <i class='bx bxl-whatsapp' style="color:#25d366;font-size:16px;"></i>
+                                <span style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;">Templates de Mensagem por Situação</span>
+                            </div>
+                            <div style="padding:16px;">
+                                <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">
+                                    Configure mensagens específicas para cada situação. Use as mesmas tags disponíveis acima.
+                                    Deixe em branco para usar o template padrão acima.
+                                </p>
+
+                                <!-- Template Orçamento -->
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:11px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                        <i class='bx bx-file'></i> Mensagem de Orçamento
+                                    </label>
+                                    <textarea name="whats_template_orcamento" id="whats_template_orcamento"
+                                        placeholder="Ex: Olá {CLIENTE_NOME}! Seu orçamento OS #{NUMERO_OS} está pronto no valor de {VALOR_OS}. Acesse: {LINK_PORTAL}"
+                                        style="width:100%;max-width:606px;height:80px;background:#252a3a;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;font-size:13px;resize:vertical;"><?php echo $configuration['whats_template_orcamento'] ?? ''; ?></textarea>
+                                    <button type="button" onclick="inserirTagEm('whats_template_orcamento')" style="margin-top:4px;padding:3px 10px;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:6px;font-size:11px;cursor:pointer;">
+                                        <i class='bx bx-plus'></i> Inserir tag
+                                    </button>
+                                </div>
+
+                                <!-- Template Finalizado/Pronto -->
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:11px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                        <i class='bx bx-check-circle'></i> Mensagem de OS Finalizada / Pronta para Retirada
+                                    </label>
+                                    <textarea name="whats_template_finalizado" id="whats_template_finalizado"
+                                        placeholder="Ex: Olá {CLIENTE_NOME}! Sua OS #{NUMERO_OS} está pronta para retirada. {EMITENTE} - {TELEFONE_EMITENTE}"
+                                        style="width:100%;max-width:606px;height:80px;background:#252a3a;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;font-size:13px;resize:vertical;"><?php echo $configuration['whats_template_finalizado'] ?? ''; ?></textarea>
+                                    <button type="button" onclick="inserirTagEm('whats_template_finalizado')" style="margin-top:4px;padding:3px 10px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;border-radius:6px;font-size:11px;cursor:pointer;">
+                                        <i class='bx bx-plus'></i> Inserir tag
+                                    </button>
+                                </div>
+
+                                <!-- Template Aprovação de Orçamento -->
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                        <i class='bx bx-check-double'></i> Mensagem de Aprovação de Orçamento
+                                    </label>
+                                    <textarea name="whats_template_aprovacao" id="whats_template_aprovacao"
+                                        placeholder="Ex: Olá {CLIENTE_NOME}! Seu orçamento OS #{NUMERO_OS} foi aprovado! Já iniciamos o reparo. {EMITENTE}"
+                                        style="width:100%;max-width:606px;height:80px;background:#252a3a;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;font-size:13px;resize:vertical;"><?php echo $configuration['whats_template_aprovacao'] ?? ''; ?></textarea>
+                                    <button type="button" onclick="inserirTagEm('whats_template_aprovacao')" style="margin-top:4px;padding:3px 10px;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;border-radius:6px;font-size:11px;cursor:pointer;">
+                                        <i class='bx bx-plus'></i> Inserir tag
+                                    </button>
+                                </div>
+
+                                <!-- Template Aguardando Peças -->
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#fb923c;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                                        <i class='bx bx-time'></i> Mensagem de Aguardando Peças
+                                    </label>
+                                    <textarea name="whats_template_aguardando" id="whats_template_aguardando"
+                                        placeholder="Ex: Olá {CLIENTE_NOME}! Sua OS #{NUMERO_OS} está aguardando peças. Assim que chegar, avisamos! {EMITENTE}"
+                                        style="width:100%;max-width:606px;height:80px;background:#252a3a;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;font-size:13px;resize:vertical;"><?php echo $configuration['whats_template_aguardando'] ?? ''; ?></textarea>
+                                    <button type="button" onclick="inserirTagEm('whats_template_aguardando')" style="margin-top:4px;padding:3px 10px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);color:#fb923c;border-radius:6px;font-size:11px;cursor:pointer;">
+                                        <i class='bx bx-plus'></i> Inserir tag
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <div class="span8">
@@ -878,209 +981,198 @@
                         </div>
                     </div>
 
-                    <!-- IA / Assistente -->
+                    <!-- IA / Gemini -->
                     <div id="tabGemini" class="tab-pane fade">
                         <div style="padding:16px">
 
-                            <!-- Header -->
                             <div class="cat-header-bar">
                                 <h5><i class='bx bx-bot' style="color:#7c6af7;"></i> IA / Assistente</h5>
                             </div>
 
                             <form action="<?= site_url('sisos/salvarConfigGemini') ?>" method="post">
 
-                                <!-- Campos hidden multi-IA -->
                                 <input type="hidden" name="ia_provedor"        id="ia_provedor_val"   value="<?= htmlspecialchars($configuration['ia_provedor']??'gemini') ?>">
-                                <input type="hidden" name="openai_api_key"     id="h_openai_api_key"     value="<?= htmlspecialchars($configuration['openai_api_key']??'') ?>">
-                                <input type="hidden" name="openai_model"       id="h_openai_model"       value="<?= htmlspecialchars($configuration['openai_model']??'gpt-4o-mini') ?>">
-                                <input type="hidden" name="claude_api_key"     id="h_claude_api_key"     value="<?= htmlspecialchars($configuration['claude_api_key']??'') ?>">
-                                <input type="hidden" name="claude_model"       id="h_claude_model"       value="<?= htmlspecialchars($configuration['claude_model']??'claude-haiku-4-5-20251001') ?>">
-                                <input type="hidden" name="perplexity_api_key" id="h_perplexity_api_key" value="<?= htmlspecialchars($configuration['perplexity_api_key']??'') ?>">
-                                <input type="hidden" name="perplexity_model"   id="h_perplexity_model"   value="<?= htmlspecialchars($configuration['perplexity_model']??'llama-3.1-sonar-small-128k-online') ?>">
-                                <input type="hidden" name="deepseek_api_key"   id="h_deepseek_api_key"   value="<?= htmlspecialchars($configuration['deepseek_api_key']??'') ?>">
-                                <input type="hidden" name="deepseek_model"     id="h_deepseek_model"     value="<?= htmlspecialchars($configuration['deepseek_model']??'deepseek-chat') ?>">
-                                <input type="hidden" name="mistral_api_key"    id="h_mistral_api_key"    value="<?= htmlspecialchars($configuration['mistral_api_key']??'') ?>">
-                                <input type="hidden" name="mistral_model"      id="h_mistral_model"      value="<?= htmlspecialchars($configuration['mistral_model']??'mistral-small-latest') ?>">
+                                <input type="hidden" name="openai_api_key"     id="h_openai_key"      value="<?= htmlspecialchars($configuration['openai_api_key']??'') ?>">
+                                <input type="hidden" name="openai_model"       id="h_openai_model"    value="<?= htmlspecialchars($configuration['openai_model']??'gpt-4o-mini') ?>">
+                                <input type="hidden" name="claude_api_key"     id="h_claude_key"      value="<?= htmlspecialchars($configuration['claude_api_key']??'') ?>">
+                                <input type="hidden" name="claude_model"       id="h_claude_model"    value="<?= htmlspecialchars($configuration['claude_model']??'claude-haiku-4-5-20251001') ?>">
+                                <input type="hidden" name="perplexity_api_key" id="h_perplexity_key"  value="<?= htmlspecialchars($configuration['perplexity_api_key']??'') ?>">
+                                <input type="hidden" name="perplexity_model"   id="h_perplexity_model"value="<?= htmlspecialchars($configuration['perplexity_model']??'llama-3.1-sonar-small-128k-online') ?>">
+                                <input type="hidden" name="deepseek_api_key"   id="h_deepseek_key"    value="<?= htmlspecialchars($configuration['deepseek_api_key']??'') ?>">
+                                <input type="hidden" name="deepseek_model"     id="h_deepseek_model"  value="<?= htmlspecialchars($configuration['deepseek_model']??'deepseek-chat') ?>">
+                                <input type="hidden" name="mistral_api_key"    id="h_mistral_key"     value="<?= htmlspecialchars($configuration['mistral_api_key']??'') ?>">
+                                <input type="hidden" name="mistral_model"      id="h_mistral_model"   value="<?= htmlspecialchars($configuration['mistral_model']??'mistral-small-latest') ?>">
 
-                                <!-- Card: Seletor de Provedor -->
+                                <!-- Status -->
+                                <div class="cat-section" style="margin-bottom:12px;">
+                                    <div class="cat-grupo-header">
+                                        <div class="cat-grupo-nome"><i class='bx bx-toggle-right' style="color:#7c6af7;"></i> Status</div>
+                                    </div>
+                                    <div class="cat-filhos" style="padding:12px 16px;">
+                                        <select name="gemini_enabled" style="width:220px;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                            <option value="0" <?= ($configuration['gemini_enabled']??'0')=='0'?'selected':'' ?>>⭕ Desativado</option>
+                                            <option value="1" <?= ($configuration['gemini_enabled']??'0')=='1'?'selected':'' ?>>✅ Ativado</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Seletor de provedor -->
                                 <div class="cat-section" style="margin-bottom:14px;">
                                     <div class="cat-grupo-header">
-                                        <div class="cat-grupo-nome"><i class='bx bx-network-chart' style="color:#7c6af7;"></i> Selecione o Provedor de IA</div>
+                                        <div class="cat-grupo-nome"><i class='bx bx-network-chart' style="color:#7c6af7;"></i> Selecione o Provedor para Configurar</div>
                                     </div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                                         <?php
-                                        $cfgProvs = [
-                                            'gemini'     => ['🔵', 'Google Gemini', '#4285f4', 'gemini_api_key'],
-                                            'openai'     => ['🟢', 'ChatGPT',       '#10a37f', 'openai_api_key'],
-                                            'claude'     => ['🟠', 'Claude',        '#d97706', 'claude_api_key'],
-                                            'perplexity' => ['🔴', 'Perplexity',    '#ef4444', 'perplexity_api_key'],
-                                            'deepseek'   => ['🟣', 'DeepSeek',      '#8b5cf6', 'deepseek_api_key'],
-                                            'mistral'    => ['⚪', 'Mistral',       '#9ca3af', 'mistral_api_key'],
-                                        ];
-                                        $curProv = $configuration['ia_provedor'] ?? 'gemini';
-                                        foreach ($cfgProvs as $pk => [$pi, $pl, $pc, $pkc]):
-                                            $hasK = !empty($configuration[$pkc]);
-                                            $isA  = ($pk === $curProv);
-                                            $dot  = $hasK
-                                                ? '<span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-left:3px;" title="Chave configurada"></span>'
-                                                : '<span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;margin-left:3px;" title="Sem chave"></span>';
+                                        $cfgProvs=['gemini'=>['🔵','Google Gemini','#4285f4','gemini_api_key'],'openai'=>['🟢','ChatGPT','#10a37f','openai_api_key'],'claude'=>['🟠','Claude','#d97706','claude_api_key'],'perplexity'=>['🔴','Perplexity','#ef4444','perplexity_api_key'],'deepseek'=>['🟣','DeepSeek','#8b5cf6','deepseek_api_key'],'mistral'=>['⚪','Mistral','#9ca3af','mistral_api_key']];
+                                        $curProv=$configuration['ia_provedor']??'gemini';
+                                        foreach($cfgProvs as $pk=>[$pi,$pl,$pc,$pkc]):
+                                            $hasK=!empty($configuration[$pkc]);
+                                            $isA=($pk===$curProv);
+                                            $dot=$hasK?'<span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-left:3px;" title="Chave configurada"></span>':'<span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;margin-left:3px;" title="Sem chave"></span>';
                                         ?>
-                                        <button type="button" id="cfgBtn-<?= $pk ?>" data-prov="<?= $pk ?>" data-color="<?= $pc ?>"
-                                            onclick="iaCfgSwitch('<?= $pk ?>','<?= $pc ?>')"
-                                            style="display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:2px solid <?= $isA ? $pc : 'rgba(255,255,255,0.1)' ?>;background:<?= $isA ? $pc.'22' : 'rgba(255,255,255,0.04)' ?>;color:<?= $isA ? $pc : '#9ca3af' ?>;">
-                                            <?= $pi ?> <?= $pl ?> <?= $dot ?>
+                                        <button type="button" id="cfgBtn-<?=$pk?>" data-prov="<?=$pk?>" data-color="<?=$pc?>"
+                                            onclick="iaCfgSwitch('<?=$pk?>','<?=$pc?>')"
+                                            style="display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:2px solid <?=$isA?$pc:'rgba(255,255,255,0.1)'?>;background:<?=$isA?$pc.'22':'rgba(255,255,255,0.04)'?>;color:<?=$isA?$pc:'#9ca3af'?>;">
+                                            <?=$pi?> <?=$pl?> <?=$dot?>
                                         </button>
                                         <?php endforeach; ?>
                                         </div>
-                                        <small style="color:#6e728f;">🟢 = chave configurada &nbsp; ⚫ = sem chave &nbsp;|&nbsp; Clique no provedor para editar sua configuração. O ativo é salvo ao clicar em Salvar.</small>
+                                        <small style="color:#6e728f;">🟢 = chave configurada &nbsp; ⚫ = sem chave. Clique para editar. O ativo é salvo ao clicar em Salvar.</small>
                                     </div>
                                 </div>
 
-                                <!-- Painel OpenAI -->
+                                <!-- Gemini -->
+                                <div class="cat-section prov-cfg-sec" id="prov-gemini" style="margin-bottom:12px;">
+                                    <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-star' style="color:#4285f4;"></i> Google Gemini &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#4285f4;font-size:11px;font-weight:400;">Obter chave</a></div></div>
+                                    <div class="cat-filhos" style="padding:14px 16px;">
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                                            <div>
+                                                <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
+                                                <select name="gemini_model" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="gemini-2.5-flash-preview-05-20" <?=($configuration['gemini_model']??'gemini-2.0-flash')=='gemini-2.5-flash-preview-05-20'?'selected':''?>>✨ gemini-2.5-flash-preview (mais novo, gratuito)</option>
+                                                    <option value="gemini-2.0-flash"               <?=($configuration['gemini_model']??'gemini-2.0-flash')=='gemini-2.0-flash'              ?'selected':''?>>🚀 gemini-2.0-flash (recomendado, gratuito)</option>
+                                                    <option value="gemini-2.0-flash-lite"          <?=($configuration['gemini_model']??'')=='gemini-2.0-flash-lite'                          ?'selected':''?>>⚡ gemini-2.0-flash-lite (rápido, gratuito)</option>
+                                                    <option value="gemini-1.5-flash-latest"        <?=($configuration['gemini_model']??'')=='gemini-1.5-flash-latest'                       ?'selected':''?>>🔄 gemini-1.5-flash-latest</option>
+                                                    <option value="gemini-1.5-flash"               <?=($configuration['gemini_model']??'')=='gemini-1.5-flash'                              ?'selected':''?>>🔥 gemini-1.5-flash (estável, gratuito)</option>
+                                                    <option value="gemini-1.5-flash-8b"            <?=($configuration['gemini_model']??'')=='gemini-1.5-flash-8b'                           ?'selected':''?>>💡 gemini-1.5-flash-8b (ultra leve, gratuito)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
+                                                <input type="password" name="gemini_api_key" value="<?= htmlspecialchars($configuration['gemini_api_key']??'') ?>" placeholder="AIza..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- OpenAI -->
                                 <div class="cat-section prov-cfg-sec" id="prov-openai" style="margin-bottom:12px;display:none;">
                                     <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-brain' style="color:#10a37f;"></i> OpenAI (ChatGPT) &nbsp;<a href="https://platform.openai.com/api-keys" target="_blank" style="color:#10a37f;font-size:11px;font-weight:400;">Obter chave</a></div></div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select id="openai_model_sel" onchange="updateHiddenCfg('openai_model',this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="gpt-4o-mini"   <?= ($configuration['openai_model']??'gpt-4o-mini')=='gpt-4o-mini'  ?'selected':'' ?>>⚡ gpt-4o-mini (rápido e barato)</option>
-                                                    <option value="gpt-4o"        <?= ($configuration['openai_model']??'')=='gpt-4o'       ?'selected':'' ?>>🚀 gpt-4o (mais capaz)</option>
-                                                    <option value="gpt-4-turbo"   <?= ($configuration['openai_model']??'')=='gpt-4-turbo'  ?'selected':'' ?>>🔥 gpt-4-turbo</option>
-                                                    <option value="gpt-3.5-turbo" <?= ($configuration['openai_model']??'')=='gpt-3.5-turbo'?'selected':'' ?>>💡 gpt-3.5-turbo</option>
+                                                <select onchange="document.getElementById('h_openai_model').value=this.value" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="gpt-4o-mini"  <?=($configuration['openai_model']??'gpt-4o-mini')=='gpt-4o-mini'?'selected':''?>>⚡ gpt-4o-mini (rápido e barato)</option>
+                                                    <option value="gpt-4o"       <?=($configuration['openai_model']??'')=='gpt-4o'      ?'selected':''?>>🚀 gpt-4o (mais capaz)</option>
+                                                    <option value="gpt-4-turbo"  <?=($configuration['openai_model']??'')=='gpt-4-turbo' ?'selected':''?>>🔥 gpt-4-turbo</option>
+                                                    <option value="gpt-3.5-turbo"<?=($configuration['openai_model']??'')=='gpt-3.5-turbo'?'selected':''?>>💡 gpt-3.5-turbo</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                                <input type="text" id="openai_key_inp" onchange="updateHiddenCfg('openai_api_key',this.value)" value="<?= htmlspecialchars($configuration['openai_api_key']??'') ?>" placeholder="sk-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <input type="text" oninput="document.getElementById('h_openai_key').value=this.value" value="<?=htmlspecialchars($configuration['openai_api_key']??'')?>" placeholder="sk-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Painel Claude -->
+                                <!-- Claude -->
                                 <div class="cat-section prov-cfg-sec" id="prov-claude" style="margin-bottom:12px;display:none;">
-                                    <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-bot' style="color:#d97706;"></i> Claude (Anthropic) &nbsp;<a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#d97706;font-size:11px;font-weight:400;">Obter chave</a></div></div>
+                                    <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-bot' style="color:#d97706;"></i> Anthropic Claude &nbsp;<a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#d97706;font-size:11px;font-weight:400;">Obter chave</a></div></div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select id="claude_model_sel" onchange="updateHiddenCfg('claude_model',this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="claude-haiku-4-5-20251001" <?= ($configuration['claude_model']??'claude-haiku-4-5-20251001')=='claude-haiku-4-5-20251001'?'selected':'' ?>>⚡ claude-haiku-4-5 (rápido)</option>
-                                                    <option value="claude-sonnet-4-6"         <?= ($configuration['claude_model']??'')=='claude-sonnet-4-6'        ?'selected':'' ?>>🚀 claude-sonnet-4-6 (recomendado)</option>
-                                                    <option value="claude-opus-4-6"           <?= ($configuration['claude_model']??'')=='claude-opus-4-6'          ?'selected':'' ?>>🔥 claude-opus-4-6 (mais capaz)</option>
+                                                <select onchange="document.getElementById('h_claude_model').value=this.value" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="claude-haiku-4-5-20251001"<?=($configuration['claude_model']??'claude-haiku-4-5-20251001')=='claude-haiku-4-5-20251001'?'selected':''?>>⚡ claude-haiku-4-5 (rápido)</option>
+                                                    <option value="claude-sonnet-4-6"<?=($configuration['claude_model']??'')=='claude-sonnet-4-6'?'selected':''?>>🚀 claude-sonnet-4-6 (recomendado)</option>
+                                                    <option value="claude-opus-4-6"  <?=($configuration['claude_model']??'')=='claude-opus-4-6'  ?'selected':''?>>🔥 claude-opus-4-6 (mais capaz)</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                                <input type="text" id="claude_key_inp" onchange="updateHiddenCfg('claude_api_key',this.value)" value="<?= htmlspecialchars($configuration['claude_api_key']??'') ?>" placeholder="sk-ant-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <input type="text" oninput="document.getElementById('h_claude_key').value=this.value" value="<?=htmlspecialchars($configuration['claude_api_key']??'')?>" placeholder="sk-ant-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Painel Perplexity -->
+                                <!-- Perplexity -->
                                 <div class="cat-section prov-cfg-sec" id="prov-perplexity" style="margin-bottom:12px;display:none;">
                                     <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-search-alt' style="color:#ef4444;"></i> Perplexity AI &nbsp;<a href="https://www.perplexity.ai/settings/api" target="_blank" style="color:#ef4444;font-size:11px;font-weight:400;">Obter chave</a></div></div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select id="perplexity_model_sel" onchange="updateHiddenCfg('perplexity_model',this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="llama-3.1-sonar-small-128k-online" <?= ($configuration['perplexity_model']??'llama-3.1-sonar-small-128k-online')=='llama-3.1-sonar-small-128k-online'?'selected':'' ?>>⚡ sonar-small (com web)</option>
-                                                    <option value="llama-3.1-sonar-large-128k-online" <?= ($configuration['perplexity_model']??'')=='llama-3.1-sonar-large-128k-online'?'selected':'' ?>>🚀 sonar-large (com web)</option>
-                                                    <option value="llama-3.1-sonar-huge-128k-online"  <?= ($configuration['perplexity_model']??'')=='llama-3.1-sonar-huge-128k-online' ?'selected':'' ?>>🔥 sonar-huge</option>
+                                                <select onchange="document.getElementById('h_perplexity_model').value=this.value" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="llama-3.1-sonar-small-128k-online"<?=($configuration['perplexity_model']??'llama-3.1-sonar-small-128k-online')=='llama-3.1-sonar-small-128k-online'?'selected':''?>>⚡ sonar-small (com busca web)</option>
+                                                    <option value="llama-3.1-sonar-large-128k-online"<?=($configuration['perplexity_model']??'')=='llama-3.1-sonar-large-128k-online'?'selected':''?>>🚀 sonar-large (com busca web)</option>
+                                                    <option value="llama-3.1-sonar-huge-128k-online" <?=($configuration['perplexity_model']??'')=='llama-3.1-sonar-huge-128k-online' ?'selected':''?>>🔥 sonar-huge</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                                <input type="text" id="perplexity_key_inp" onchange="updateHiddenCfg('perplexity_api_key',this.value)" value="<?= htmlspecialchars($configuration['perplexity_api_key']??'') ?>" placeholder="pplx-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <input type="text" oninput="document.getElementById('h_perplexity_key').value=this.value" value="<?=htmlspecialchars($configuration['perplexity_api_key']??'')?>" placeholder="pplx-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Painel DeepSeek -->
+                                <!-- DeepSeek -->
                                 <div class="cat-section prov-cfg-sec" id="prov-deepseek" style="margin-bottom:12px;display:none;">
                                     <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-chip' style="color:#8b5cf6;"></i> DeepSeek &nbsp;<a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#8b5cf6;font-size:11px;font-weight:400;">Obter chave</a></div></div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select id="deepseek_model_sel" onchange="updateHiddenCfg('deepseek_model',this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="deepseek-chat"     <?= ($configuration['deepseek_model']??'deepseek-chat')=='deepseek-chat'   ?'selected':'' ?>>🚀 deepseek-chat (recomendado)</option>
-                                                    <option value="deepseek-reasoner" <?= ($configuration['deepseek_model']??'')=='deepseek-reasoner'?'selected':'' ?>>🧠 deepseek-reasoner</option>
+                                                <select onchange="document.getElementById('h_deepseek_model').value=this.value" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="deepseek-chat"    <?=($configuration['deepseek_model']??'deepseek-chat')=='deepseek-chat'   ?'selected':''?>>🚀 deepseek-chat (recomendado)</option>
+                                                    <option value="deepseek-reasoner"<?=($configuration['deepseek_model']??'')=='deepseek-reasoner'?'selected':''?>>🧠 deepseek-reasoner</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                                <input type="text" id="deepseek_key_inp" onchange="updateHiddenCfg('deepseek_api_key',this.value)" value="<?= htmlspecialchars($configuration['deepseek_api_key']??'') ?>" placeholder="sk-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <input type="text" oninput="document.getElementById('h_deepseek_key').value=this.value" value="<?=htmlspecialchars($configuration['deepseek_api_key']??'')?>" placeholder="sk-..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Painel Mistral -->
+                                <!-- Mistral -->
                                 <div class="cat-section prov-cfg-sec" id="prov-mistral" style="margin-bottom:12px;display:none;">
                                     <div class="cat-grupo-header"><div class="cat-grupo-nome"><i class='bx bx-wind' style="color:#9ca3af;"></i> Mistral AI &nbsp;<a href="https://console.mistral.ai/api-keys/" target="_blank" style="color:#9ca3af;font-size:11px;font-weight:400;">Obter chave</a></div></div>
                                     <div class="cat-filhos" style="padding:14px 16px;">
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select id="mistral_model_sel" onchange="updateHiddenCfg('mistral_model',this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="mistral-small-latest"  <?= ($configuration['mistral_model']??'mistral-small-latest')=='mistral-small-latest' ?'selected':'' ?>>⚡ mistral-small</option>
-                                                    <option value="mistral-medium-latest" <?= ($configuration['mistral_model']??'')=='mistral-medium-latest'?'selected':'' ?>>🚀 mistral-medium</option>
-                                                    <option value="mistral-large-latest"  <?= ($configuration['mistral_model']??'')=='mistral-large-latest' ?'selected':'' ?>>🔥 mistral-large</option>
+                                                <select onchange="document.getElementById('h_mistral_model').value=this.value" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
+                                                    <option value="mistral-small-latest" <?=($configuration['mistral_model']??'mistral-small-latest')=='mistral-small-latest'?'selected':''?>>⚡ mistral-small</option>
+                                                    <option value="mistral-medium-latest"<?=($configuration['mistral_model']??'')=='mistral-medium-latest'?'selected':''?>>🚀 mistral-medium</option>
+                                                    <option value="mistral-large-latest" <?=($configuration['mistral_model']??'')=='mistral-large-latest' ?'selected':''?>>🔥 mistral-large</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                                <input type="text" id="mistral_key_inp" onchange="updateHiddenCfg('mistral_api_key',this.value)" value="<?= htmlspecialchars($configuration['mistral_api_key']??'') ?>" placeholder="..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <input type="text" oninput="document.getElementById('h_mistral_key').value=this.value" value="<?=htmlspecialchars($configuration['mistral_api_key']??'')?>" placeholder="..." autocomplete="off" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card: Configuração Gemini (sempre visível, Gemini não mexer) -->
-                                <div class="cat-section" style="margin-bottom:12px;">
-                                    <div class="cat-grupo-header">
-                                        <div class="cat-grupo-nome"><i class='bx bx-star' style="color:#4285f4;"></i> Google Gemini &nbsp;<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#4285f4;font-size:11px;font-weight:400;">Obter chave</a></div>
-                                    </div>
-                                    <div class="cat-filhos" style="padding:14px 16px;">
-                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                                            <div>
-                                                <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Status</label>
-                                                <select name="gemini_enabled" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <option value="0" <?= ($configuration['gemini_enabled']??'0')=='0'?'selected':'' ?>>⭕ Desativado</option>
-                                                    <option value="1" <?= ($configuration['gemini_enabled']??'0')=='1'?'selected':'' ?>>✅ Ativado</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">Modelo</label>
-                                                <select name="gemini_model" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;">
-                                                    <!-- ── Gemini 2.5 (mais novos) ── -->
-                                                    <option value="gemini-2.5-flash-preview-05-20" <?= ($configuration['gemini_model']??'gemini-2.0-flash')=='gemini-2.5-flash-preview-05-20' ?'selected':'' ?>>✨ gemini-2.5-flash-preview (mais novo, gratuito)</option>
-                                                    <!-- ── Gemini 2.0 (recomendados) ── -->
-                                                    <option value="gemini-2.0-flash"               <?= ($configuration['gemini_model']??'gemini-2.0-flash')=='gemini-2.0-flash'               ?'selected':'' ?>>🚀 gemini-2.0-flash (recomendado, gratuito)</option>
-                                                    <option value="gemini-2.0-flash-lite"          <?= ($configuration['gemini_model']??'')=='gemini-2.0-flash-lite'                           ?'selected':'' ?>>⚡ gemini-2.0-flash-lite (rápido, gratuito)</option>
-                                                    <!-- ── Gemini 1.5 Flash (estáveis) ── -->
-                                                    <option value="gemini-1.5-flash-latest"        <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash-latest'                        ?'selected':'' ?>>🔄 gemini-1.5-flash-latest (sempre mais estável)</option>
-                                                    <option value="gemini-1.5-flash"               <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash'                               ?'selected':'' ?>>🔥 gemini-1.5-flash (estável, gratuito)</option>
-                                                    <option value="gemini-1.5-flash-002"           <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash-002'                           ?'selected':'' ?>>🔥 gemini-1.5-flash-002 (versão 2, gratuito)</option>
-                                                    <option value="gemini-1.5-flash-001"           <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash-001'                           ?'selected':'' ?>>🔥 gemini-1.5-flash-001 (versão 1, gratuito)</option>
-                                                    <option value="gemini-1.5-flash-8b"            <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash-8b'                            ?'selected':'' ?>>💡 gemini-1.5-flash-8b (ultra leve, gratuito)</option>
-                                                    <option value="gemini-1.5-flash-8b-latest"     <?= ($configuration['gemini_model']??'')=='gemini-1.5-flash-8b-latest'                     ?'selected':'' ?>>💡 gemini-1.5-flash-8b-latest (leve + recente)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div style="margin-top:12px;">
-                                            <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
-                                            <input type="password" name="gemini_api_key"
-                                                value="<?= htmlspecialchars($configuration['gemini_api_key']??'') ?>"
-                                                placeholder="AIza..." autocomplete="off"
-                                                style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #444860;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
-                                            <small style="color:#6e728f;font-size:11px;">Mantida em segurança no servidor</small>
                                         </div>
                                     </div>
                                 </div>
@@ -1298,12 +1390,6 @@ $(document).on('click', '.btn-excluir-cat', function(){
 
         // As abas são controladas por showConfigTab() - ver função global abaixo
 
-        // Multi-IA: inicializar seletor de provedor
-        (function(){
-            var curProv = document.getElementById('ia_provedor_val') ? document.getElementById('ia_provedor_val').value : 'gemini';
-            iaCfgSwitch(curProv, {gemini:'#4285f4',openai:'#10a37f',claude:'#d97706',perplexity:'#ef4444',deepseek:'#8b5cf6',mistral:'#9ca3af'}[curProv] || '#7c6af7');
-        })();
-
         // Testar conexão Gemini
         $('#btnTestarGemini').on('click', function(){
             $('#geminiTestResult').show().html('<div class="alert alert-info"><i class="bx bx-loader-alt bx-spin"></i> Testando conexão...</div>');
@@ -1376,43 +1462,6 @@ function _hideAllTabs() {
     document.querySelectorAll('#configTabs li').forEach(function(li) { li.classList.remove('active'); });
 }
 
-function updateHiddenCfg(field, val) {
-    var el = document.getElementById('h_' + field);
-    if (el) el.value = val;
-}
-
-var _iaCfgColors = {gemini:'#4285f4',openai:'#10a37f',claude:'#d97706',perplexity:'#ef4444',deepseek:'#8b5cf6',mistral:'#9ca3af'};
-
-function iaCfgSwitch(prov, color) {
-    // Atualiza hidden do provedor ativo
-    var provEl = document.getElementById('ia_provedor_val');
-    if (provEl) provEl.value = prov;
-
-    // Esconde todos os painéis de provedor
-    document.querySelectorAll('.prov-cfg-sec').forEach(function(el) {
-        el.style.display = 'none';
-    });
-    // Mostra painel do provedor selecionado (exceto gemini que é sempre visível)
-    var panel = document.getElementById('prov-' + prov);
-    if (panel && prov !== 'gemini') panel.style.display = 'block';
-
-    // Atualiza estilo dos botões
-    Object.keys(_iaCfgColors).forEach(function(pk) {
-        var btn = document.getElementById('cfgBtn-' + pk);
-        if (!btn) return;
-        var c = _iaCfgColors[pk];
-        if (pk === prov) {
-            btn.style.border = '2px solid ' + c;
-            btn.style.background = c + '22';
-            btn.style.color = c;
-        } else {
-            btn.style.border = '2px solid rgba(255,255,255,0.1)';
-            btn.style.background = 'rgba(255,255,255,0.04)';
-            btn.style.color = '#9ca3af';
-        }
-    });
-}
-
 function showConfigTab(tabId) {
     _hideAllTabs();
     var target = document.getElementById(tabId);
@@ -1439,5 +1488,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var primeiro = document.querySelector('#configTabs li:first-child');
     if (primeiro) primeiro.classList.add('active');
+});
+
+var _iaCfgColors={gemini:'#4285f4',openai:'#10a37f',claude:'#d97706',perplexity:'#ef4444',deepseek:'#8b5cf6',mistral:'#9ca3af'};
+function iaCfgSwitch(prov,color){
+    document.getElementById('ia_provedor_val').value=prov;
+    document.querySelectorAll('[id^="cfgBtn-"]').forEach(function(b){b.style.border='2px solid rgba(255,255,255,0.1)';b.style.background='rgba(255,255,255,0.04)';b.style.color='#9ca3af';});
+    var ab=document.getElementById('cfgBtn-'+prov);
+    if(ab){ab.style.border='2px solid '+color;ab.style.background=color+'22';ab.style.color=color;}
+    document.querySelectorAll('.prov-cfg-sec').forEach(function(s){s.style.display='none';});
+    var sec=document.getElementById('prov-'+prov);
+    if(sec)sec.style.display='block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    var v=document.getElementById('ia_provedor_val');
+    if(v)iaCfgSwitch(v.value,_iaCfgColors[v.value]||'#6366f1');
 });
 </script>

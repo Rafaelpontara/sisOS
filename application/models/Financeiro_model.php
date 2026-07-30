@@ -13,47 +13,50 @@ class Financeiro_model extends CI_Model
 
     public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array')
     {
-        $this->db->select($fields . ', usuarios.*');
-        $this->db->from($table);
-        $this->db->join('usuarios', 'usuarios.idUsuarios = usuarios_id', 'left');
-        $this->db->order_by('data_vencimento', 'asc');
-        $this->db->limit($perpage, $start);
-        if ($where) {
-            $this->db->where($where);
-        }
+        $whereClause = $where ? "WHERE $where" : '';
+        $limitClause = ($perpage > 0) ? "LIMIT " . (int)$perpage . " OFFSET " . (int)$start : '';
 
-        $query = $this->db->get();
+        $sql = "SELECT lancamentos.*,
+                       u.nome        AS nome,
+                       u.email       AS email_usuario,
+                       u.telefone    AS telefone_usuario
+                FROM lancamentos
+                LEFT JOIN usuarios u ON u.idUsuarios = lancamentos.usuarios_id
+                $whereClause
+                ORDER BY lancamentos.data_vencimento DESC
+                $limitClause";
 
-        $result = ! $one ? $query->result() : $query->row();
-
-        return $result;
+        $query = $this->db->query($sql);
+        if (!$query) return $one ? null : [];
+        return $one ? $query->row() : $query->result();
     }
 
     public function getTotals($where = '')
     {
-        $this->db->select("
-            SUM(case when tipo = 'despesa' then valor - desconto end) as despesas,
-            SUM(case when tipo = 'receita' then (IF(valor_desconto = 0, valor, valor_desconto)) end) as receitas
-        ");
-        $this->db->from('lancamentos');
+        $whereClause = $where ? "WHERE $where" : '';
+        $sql = "SELECT
+            SUM(CASE WHEN baixado=1 AND tipo='receita' THEN IF(valor_desconto=0, valor, valor_desconto) ELSE 0 END) as receitas,
+            SUM(CASE WHEN baixado=1 AND tipo='despesa' THEN valor - desconto ELSE 0 END) as despesas,
+            SUM(CASE WHEN baixado=0 AND tipo='receita' THEN IF(valor_desconto=0, valor, valor_desconto) ELSE 0 END) as receitas_pendentes,
+            SUM(CASE WHEN baixado=0 AND tipo='despesa' THEN valor - desconto ELSE 0 END) as despesas_pendentes
+            FROM lancamentos $whereClause";
 
-        if ($where) {
-            $this->db->where($where);
-        }
-
-        return (array) $this->db->get()->row();
+        return (array) $this->db->query($sql)->row();
     }
 
-    public function getEstatisticasFinanceiro2()
+    public function getEstatisticasFinanceiro2($where = '')
     {
-        $sql = "SELECT SUM(CASE WHEN baixado = 1 AND tipo = 'receita' THEN IF(valor_desconto = 0, valor, valor_desconto) END) as total_receita,
-                       SUM(CASE WHEN baixado = 1 AND tipo = 'despesa' THEN valor - desconto END) as total_despesa,
-                       SUM(CASE WHEN baixado = 1 THEN desconto END) as total_valor_desconto,
-                       SUM(CASE WHEN baixado = 0 THEN valor - valor_desconto END) as total_valor_desconto_pendente,
-                       SUM(CASE WHEN tipo = 'receita' THEN valor END) as total_receita_sem_desconto,
-                       SUM(CASE WHEN tipo = 'despesa' THEN valor END) as total_despesa_sem_desconto,
-                       SUM(CASE WHEN baixado = 0 AND tipo = 'receita' THEN valor_desconto END) as total_receita_pendente,
-                       SUM(CASE WHEN baixado = 0 AND tipo = 'despesa' THEN valor_desconto END) as total_despesa_pendente FROM lancamentos";
+        $whereClause = $where ? "WHERE $where" : '';
+        $sql = "SELECT
+            SUM(CASE WHEN baixado = 1 AND tipo = 'receita' THEN IF(valor_desconto = 0, valor, valor_desconto) ELSE 0 END) as total_receita,
+            SUM(CASE WHEN baixado = 1 AND tipo = 'despesa' THEN valor - desconto ELSE 0 END)                              as total_despesa,
+            SUM(CASE WHEN baixado = 1 THEN desconto ELSE 0 END)                                                           as total_valor_desconto,
+            SUM(CASE WHEN baixado = 0 THEN valor - valor_desconto ELSE 0 END)                                             as total_valor_desconto_pendente,
+            SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END)                                                         as total_receita_sem_desconto,
+            SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END)                                                         as total_despesa_sem_desconto,
+            SUM(CASE WHEN baixado = 0 AND tipo = 'receita' THEN IF(valor_desconto = 0, valor, valor_desconto) ELSE 0 END) as total_receita_pendente,
+            SUM(CASE WHEN baixado = 0 AND tipo = 'despesa' THEN valor - desconto ELSE 0 END)                              as total_despesa_pendente
+            FROM lancamentos $whereClause";
 
         return $this->db->query($sql)->row();
     }
@@ -112,6 +115,9 @@ class Financeiro_model extends CI_Model
     public function count($table, $where)
     {
         $this->db->from($table);
+        if ($table === 'lancamentos') {
+            $this->db->join('usuarios', 'usuarios.idUsuarios = lancamentos.usuarios_id', 'left');
+        }
         if ($where) {
             $this->db->where($where);
         }

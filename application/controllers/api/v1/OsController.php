@@ -51,9 +51,9 @@ class OsController extends REST_Controller
         }
 
         if (! $id) {
-            $perPage = $this->get('perPage', true) ?: 20;
-            $page = $this->get('page', true) ? ($this->get('page', true) * $perPage) : 0;
-            $start = $page ? ($perPage * $page) : 0;
+            $perPage = (int)($this->get('perPage', true) ?: 20);
+            $page    = (int)($this->get('page',    true) ?: 0);
+            $start   = $page * $perPage;
 
             $oss = $this->os_model->getOs(
                 'os',
@@ -81,6 +81,15 @@ class OsController extends REST_Controller
         unset($os->senha);
         $os->totalProdutos = array_sum(array_map(fn ($p) => $p->preco * $p->quantidade, $os->produtos));
         $os->totalServicos = array_sum(array_map(fn ($p) => $p->preco * $p->quantidade, $os->servicos));
+
+        // Nome do atendente/vendedor já resolvido — evita o app precisar
+        // de outra requisição, e evita o mesmo bug do web (usuarios_model
+        // não carregado nesse controller): usa query direta.
+        $os->nomeAtendente = '';
+        if (!empty($os->atendente_id)) {
+            $atend = $this->db->select('nome')->where('idUsuarios', $os->atendente_id)->get('usuarios')->row();
+            $os->nomeAtendente = $atend->nome ?? '';
+        }
 
         // Montando texto para whatsapp
         if ($return = $this->os_model->valorTotalOS($id)) {
@@ -152,6 +161,12 @@ class OsController extends REST_Controller
             'observacoes' => $this->post('observacoes', true),
             'laudoTecnico' => $this->post('laudoTecnico', true),
             'faturado' => 0,
+            'equipamento' => $this->post('equipamento', true),
+            'modelo' => $this->post('modelo', true),
+            'numeroSerie' => $this->post('numeroSerie', true),
+            'senha_tipo' => $this->post('senha_tipo', true) ?: null,
+            'senha_valor' => $this->post('senha_valor', true) ?: null,
+            'atendente_id' => $this->post('atendente_id', true) ?: null,
         ];
 
         if (is_numeric($id = $this->os_model->add('os', $data, true))) {
@@ -189,6 +204,10 @@ class OsController extends REST_Controller
             }
 
             $this->log_app('Adicionou uma OS. ID: ' . $id);
+
+            // Notificação push para todos os técnicos do app
+            $this->load->helper('onesignal');
+            onesignal_nova_os($id, $os->nomeCliente ?? 'Cliente', $os->equipamento ?? '');
 
             $this->response([
                 'status' => true,
@@ -270,6 +289,12 @@ class OsController extends REST_Controller
             'observacoes' => $this->put('observacoes', true),
             'laudoTecnico' => $this->put('laudoTecnico', true),
             'faturado' => 0,
+            'equipamento' => $this->put('equipamento', true),
+            'modelo' => $this->put('modelo', true),
+            'numeroSerie' => $this->put('numeroSerie', true),
+            'senha_tipo' => $this->put('senha_tipo', true) ?: null,
+            'senha_valor' => $this->put('senha_valor', true) ?: null,
+            'atendente_id' => $this->put('atendente_id', true) ?: null,
         ];
 
         if (strtolower($this->put('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {
@@ -763,6 +788,37 @@ class OsController extends REST_Controller
         ], REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
     }
 
+    public function anexos_get($id)
+    {
+        $this->logged_user();
+        $anexos = $this->db
+            ->select('idAnexos, anexo as arquivo, url, thumb, data as dataCadastro')
+            ->where('os_id', $id)
+            ->order_by('idAnexos', 'DESC')
+            ->get('anexos')->result();
+
+        // Montar URL completa para o app
+        foreach ($anexos as &$a) {
+            if (!empty($a->url) && !empty($a->arquivo)) {
+                $a->urlCompleta = rtrim($a->url, '/') . '/' . $a->arquivo;
+            } else {
+                $a->urlCompleta = '';
+            }
+            // thumb completo
+            if (!empty($a->thumb) && !empty($a->url)) {
+                $a->thumbUrl = rtrim($a->url, '/') . '/thumbs/' . $a->thumb;
+            } else {
+                $a->thumbUrl = $a->urlCompleta;
+            }
+            // tipo baseado na extensão
+            $ext = strtolower(pathinfo($a->arquivo ?? '', PATHINFO_EXTENSION));
+            $a->tipo = in_array($ext, ['jpg','jpeg','png','gif','webp']) ? 'imagem' : 'arquivo';
+        }
+        unset($a);
+
+        $this->response(['status' => true, 'result' => $anexos], 200);
+    }
+
     public function anexos_post($id)
     {
         $this->logged_user();
@@ -1048,4 +1104,251 @@ class OsController extends REST_Controller
 
         return true;
     }
+
+    public function checklist_get($id)
+    {
+        $os = $this->db->where('idOs', $id)->get('os')->row();
+        if (!$os) { $this->response(['status'=>false,'message'=>'OS não encontrada.'], 404); return; }
+        $checklist = !empty($os->checklist) ? json_decode($os->checklist, true) : null;
+        $this->response(['status'=>true,'result'=>['idOs'=>$id,'checklist'=>$checklist,
+            'fotos'=>!empty($os->checklist_fotos)?json_decode($os->checklist_fotos,true):[]]], 200);
+    }
+
+    public function checklistSaida_get($id)
+    {
+        $os = $this->db->where('idOs', $id)->get('os')->row();
+        if (!$os) { $this->response(['status'=>false,'message'=>'OS não encontrada.'], 404); return; }
+        $checklist = !empty($os->checklist_saida) ? json_decode($os->checklist_saida, true) : null;
+        $this->response(['status'=>true,'result'=>['idOs'=>$id,'checklist_saida'=>$checklist]], 200);
+    }
+
+
+    /**
+     * POST /api/v1/os/{id}/faturar
+     * Fatura a OS criando lançamento financeiro
+     */
+    public function faturar_post($id)
+    {
+        if (!$id) {
+            $this->response(['status'=>false,'message'=>'ID da OS não informado.'], 400);
+            return;
+        }
+
+        $os = $this->os_model->getById($id);
+        if (!$os) {
+            $this->response(['status'=>false,'message'=>'OS não encontrada.'], 404);
+            return;
+        }
+
+        if ((int)$os->faturado === 1) {
+            $this->response(['status'=>false,'message'=>'OS já está faturada.'], 400);
+            return;
+        }
+
+        // Calcular valor total da OS
+        $valorTotalData    = $this->os_model->valorTotalOS($id);
+        $totalServico      = $valorTotalData['totalServico'];
+        $totalProdutos     = $valorTotalData['totalProdutos'];
+        $valorDescontoDB   = $valorTotalData['valor_desconto'];
+        $valorTotal        = $totalServico + $totalProdutos;
+
+        // Dados do POST
+        $formaPgto  = $this->post('forma_pgto')  ?: 'Dinheiro';
+        $vencimento = $this->post('vencimento')  ?: date('Y-m-d');
+        $recebido   = (int)($this->post('recebido') ?: 0);
+        $descricao  = $this->post('descricao')   ?: "Fatura OS Nº: $id";
+        $garantia   = (int)($this->post('garantia') ?: 0);
+        $obs        = $this->post('observacoes') ?: '';
+
+        // Converter data se vier no formato d/m/Y
+        if (strpos($vencimento, '/') !== false) {
+            $dt = DateTime::createFromFormat('d/m/Y', $vencimento);
+            $vencimento = $dt ? $dt->format('Y-m-d') : date('Y-m-d');
+        }
+
+        $valorTotalFinal = $valorDescontoDB > 0 ? $valorDescontoDB : $valorTotal;
+
+        $this->db->trans_start();
+
+        // Criar lançamento financeiro
+        $lancData = [
+            'descricao'        => $descricao,
+            'valor'            => $valorTotal,
+            'tipo_desconto'    => 'real',
+            'desconto'         => $valorDescontoDB > 0 ? ($valorTotal - $valorDescontoDB) : 0,
+            'valor_desconto'   => $valorTotalFinal,
+            'clientes_id'      => $os->clientes_id,
+            'data_vencimento'  => $vencimento,
+            'data_pagamento'   => $recebido ? $vencimento : null,
+            'baixado'          => $recebido,
+            'forma_pgto'       => $formaPgto,
+            'tipo'             => 'Receita',
+            'observacoes'      => $obs,
+            'usuarios_id'      => $this->session->userdata('id_admin'),
+            'os_id'            => $id,
+        ];
+
+        $lancId = null;
+        if ($this->os_model->add('lancamentos', $lancData)) {
+            $lancId = $this->db->insert_id();
+        }
+
+        // Atualizar OS
+        $osData = [
+            'faturado'       => 1,
+            'status'         => 'Faturado',
+            'valorTotal'     => $valorTotal,
+            'valor_desconto' => $valorTotalFinal,
+        ];
+        if ($garantia > 0) $osData['garantia'] = $garantia;
+        if ($lancId)       $osData['lancamento'] = $lancId;
+
+        $this->db->where('idOs', $id)->update('os', $osData);
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            $this->response(['status'=>false,'message'=>'Erro ao faturar OS.'], 500);
+            return;
+        }
+
+        $this->response([
+            'status'  => true,
+            'message' => 'OS faturada com sucesso!',
+            'result'  => [
+                'idOs'        => $id,
+                'lancamento'  => $lancId,
+                'valorTotal'  => $valorTotalFinal,
+            ],
+        ], 200);
+    }
+
+    /**
+     * POST /api/v1/os/{id}/cancelar
+     */
+    // ══════════════════════════════════════════════════════════════
+    // GET /api/v1/agenda
+    // Params: start (Y-m-d), end (Y-m-d), status
+    // Espelha a lógica de Sisos::calendario() + Sisos_model::calendario()
+    // ══════════════════════════════════════════════════════════════
+    public function agenda_get()
+    {
+        $this->logged_user();
+        if (!$this->permission->checkPermission($this->logged_user()->level, 'vOs')) {
+            $this->response(['status'=>false,'message'=>'Sem permissão.'], 403); return;
+        }
+
+        $start  = $this->get('start')  ?: date('Y-m-01');
+        $end    = $this->get('end')    ?: date('Y-m-t');
+        $status = $this->get('status') ?: null;
+
+        $this->db->select(
+            'os.idOs, os.status, os.dataInicial, os.dataFinal, os.defeito,
+             os.descricaoProduto, os.garantia, os.faturado, os.observacoes,
+             clientes.nomeCliente, clientes.celular,
+             COALESCE((SELECT SUM(p.preco * p.quantidade) FROM produtos_os p WHERE p.os_id = os.idOs), 0) as totalProdutos,
+             COALESCE((SELECT SUM(s.preco * s.quantidade) FROM servicos_os s WHERE s.os_id = os.idOs), 0) as totalServicos'
+        );
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id');
+        $this->db->where('os.dataFinal >=', $start);
+        $this->db->where('os.dataFinal <=', $end);
+        $this->db->group_by('os.idOs');
+        if ($status) $this->db->where('os.status', $status);
+        $this->db->order_by('os.dataFinal', 'ASC');
+        $oss = $this->db->get()->result();
+
+        // Adicionar totalGeral para o app não precisar calcular
+        foreach ($oss as &$os) {
+            $os->totalGeral = floatval($os->totalProdutos) + floatval($os->totalServicos);
+        }
+        unset($os);
+
+        $this->response(['status'=>true,'result'=>$oss], 200);
+    }
+
+    public function cancelar_post($id)
+    {
+        $os = $this->os_model->getById($id);
+        if (!$os) {
+            $this->response(['status'=>false,'message'=>'OS não encontrada.'], 404);
+            return;
+        }
+
+        // Devolver estoque se necessário
+        $this->db->where('idOs', $id)->update('os', [
+            'status'   => 'Cancelado',
+            'faturado' => 0,
+        ]);
+
+        $this->response([
+            'status'  => true,
+            'message' => 'OS cancelada.',
+        ], 200);
+    }
+
+
+    /**
+     * PUT /api/v1/os/{id}/checklist
+     * Salva checklist de entrada sem validar campos obrigatórios da OS
+     */
+    public function checklistSaida_put($id)
+    {
+        return $this->checklist_put($id);
+    }
+
+    public function checklist_put($id)
+    {
+        $_POST = (array) json_decode(file_get_contents('php://input'), true);
+
+        // Verificar se OS existe via query direta (evita problema com os_model->getById)
+        $os = $this->db->where('idOs', $id)->get('os')->row();
+        if (!$os) {
+            $this->response(['status'=>false,'message'=>'OS não encontrada.'], 404);
+            return;
+        }
+
+        $data = [];
+
+        // Checklist de entrada
+        if (isset($_POST['checklist_json'])) {
+            // Garantir que salva como JSON válido (não duplo encode)
+            $ck = $_POST['checklist_json'];
+            if (is_string($ck)) {
+                // Verificar se já é JSON válido
+                $decoded = json_decode($ck, true);
+                $data['checklist'] = ($decoded !== null) ? $ck : json_encode($ck);
+            } else {
+                $data['checklist'] = json_encode($ck);
+            }
+        }
+
+        // Checklist de saída
+        if (isset($_POST['checklist_saida_json'])) {
+            $ck = $_POST['checklist_saida_json'];
+            if (is_string($ck)) {
+                $decoded = json_decode($ck, true);
+                $data['checklist_saida'] = ($decoded !== null) ? $ck : json_encode($ck);
+            } else {
+                $data['checklist_saida'] = json_encode($ck);
+            }
+        }
+
+        // Status simples
+        if (isset($_POST['status'])) {
+            $data['status'] = $_POST['status'];
+        }
+
+        if (empty($data)) {
+            $this->response(['status'=>false,'message'=>'Nenhum dado para atualizar.'], 400);
+            return;
+        }
+
+        $this->db->where('idOs', $id)->update('os', $data);
+
+        $this->response([
+            'status'  => true,
+            'message' => 'Atualizado com sucesso!',
+        ], 200);
+    }
+
 }

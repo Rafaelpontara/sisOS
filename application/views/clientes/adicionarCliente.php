@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
+<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
 <script src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>assets/js/funcoes.js"></script>
@@ -135,6 +137,24 @@
                         <input id="email" type="text" name="email" class="cli-input"
                                value="<?= set_value('email') ?>" placeholder="email@exemplo.com" autocomplete="off" />
                     </div>
+                    <div>
+                        <label class="cli-label">Data de Nascimento</label>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <input type="text" name="dataNascimento" id="dataNascimento" class="cli-input datepicker"
+                                   value="<?= set_value('dataNascimento') ?>" placeholder="DD/MM/AAAA"
+                                   style="max-width:150px;" autocomplete="off" />
+                            <label class="cli-toggle-wrap" style="margin:0;white-space:nowrap;">
+                                <div class="cli-toggle">
+                                    <input type="checkbox" name="notif_aniversario" id="notifAniversario" value="1">
+                                    <span class="cli-toggle-slider"></span>
+                                </div>
+                                <span class="cli-toggle-label" style="display:flex;align-items:center;gap:5px;">
+                                    <i class='bx bxs-cake' style="color:#f97316;font-size:13px;"></i>
+                                    Notificar aniversário
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="cli-grid-2">
@@ -264,6 +284,26 @@ $(document).ready(function() {
             $('#cidade').val(d.localidade);
             $('#estado option[value=' + d.uf + ']').prop('selected', true);
         });
+    });
+
+    // ── Data de Nascimento: calendário PT-BR + máscara ───────
+    $('.datepicker').datepicker({
+        dateFormat: 'dd/mm/yy',
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '-100:+0',
+        maxDate: '0',
+        dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+        dayNamesMin: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+        monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+        monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun',
+                          'Jul','Ago','Set','Out','Nov','Dez'],
+    });
+    // Máscara automática ao digitar: DD/MM/AAAA
+    $('#dataNascimento').on('keypress', function(e) {
+        var v = $(this).val().replace(/\D/g,'');
+        if (v.length === 2 || v.length === 4) $(this).val($(this).val() + '/');
     });
 
     // ── Validação ─────────────────────────────────────────────

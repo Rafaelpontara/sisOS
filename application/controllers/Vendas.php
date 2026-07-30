@@ -27,8 +27,6 @@ class Vendas extends MY_Controller
             redirect(base_url());
         }
 
-        $this->load->library('pagination');
-
         $where_array = [];
 
         $pesquisa = $this->input->get('pesquisa');
@@ -36,38 +34,115 @@ class Vendas extends MY_Controller
         $de = $this->input->get('data');
         $ate = $this->input->get('data2');
 
-        if ($pesquisa) {
-            $where_array['pesquisa'] = $pesquisa;
-        }
-        if ($status) {
-            $where_array['status'] = $status;
-        }
-        if ($de) {
-            $where_array['de'] = $de;
-        }
-        if ($ate) {
-            $where_array['ate'] = $ate;
-        }
+        if ($pesquisa) $where_array['pesquisa'] = $pesquisa;
+        if ($status) $where_array['status'] = $status;
+        if ($de) $where_array['de'] = $de;
+        if ($ate) $where_array['ate'] = $ate;
 
-        $this->data['configuration']['base_url'] = site_url('vendas/gerenciar/');
-        $this->data['configuration']['total_rows'] = $this->vendas_model->count('vendas');
-        
-        if (count($where_array) > 0) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$de}&data2={$ate}";
-            $this->data['configuration']['first_url'] = base_url("index.php/vendas/gerenciar")."?pesquisa={$pesquisa}&status={$status}&data={$de}&data2={$ate}";
-        }
+        $perPage = 24;
 
-        $this->pagination->initialize($this->data['configuration']);
+        $this->data['statTotalFiltrado'] = $this->_contarVendasFiltradas($where_array);
+        $this->data['results'] = $this->vendas_model->get('vendas', '*', $where_array, $perPage, 0);
+        $this->_enriquecerVendas($this->data['results']);
 
-        $this->data['results'] = $this->vendas_model->get('vendas', '*', $where_array, $this->data['configuration']['per_page'], $this->uri->segment(3));
-
-        foreach ($this->data['results'] as $key => $venda) {
-            $this->data['results'][$key]->totalProdutos = $this->vendas_model->getTotalVendas($venda->idVendas);
-        }
-
+        $this->data['perPage'] = $perPage;
         $this->data['view'] = 'vendas/vendas';
 
         return $this->layout();
+    }
+
+    /**
+     * Endpoint AJAX chamado pela rolagem infinita da lista de vendas.
+     */
+    public function carregarMais()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')) {
+            return;
+        }
+
+        $where_array = [];
+        $pesquisa = $this->input->get('pesquisa');
+        $status = $this->input->get('status');
+        $de = $this->input->get('data');
+        $ate = $this->input->get('data2');
+        $antesDe = (int) $this->input->get('antes_de');
+
+        if ($pesquisa) $where_array['pesquisa'] = $pesquisa;
+        if ($status) $where_array['status'] = $status;
+        if ($de) $where_array['de'] = $de;
+        if ($ate) $where_array['ate'] = $ate;
+
+        $perPage = 24;
+
+        $results = $this->vendas_model->get('vendas', '*', $where_array, $perPage, 0, false, 'array', $antesDe);
+        $this->_enriquecerVendas($results);
+
+        echo $this->load->view('vendas/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+    }
+
+    /**
+     * Preenche totalProdutos, nomeVendedor e vencGarantia em cada venda —
+     * usado tanto no carregamento inicial quanto na rolagem infinita.
+     */
+    private function _enriquecerVendas(&$vendas)
+    {
+        foreach ($vendas as $key => $venda) {
+            $vendas[$key]->totalProdutos = $this->vendas_model->getTotalVendas($venda->idVendas);
+
+            if (!empty($venda->usuarios_id)) {
+                $usuario = $this->db->select('nome')
+                    ->where('idUsuarios', $venda->usuarios_id)
+                    ->get('usuarios')->row();
+                $vendas[$key]->nomeVendedor = $usuario->nome ?? '-';
+            } else {
+                $vendas[$key]->nomeVendedor = '-';
+            }
+
+            if (!empty($venda->garantia) && intval($venda->garantia) > 0 && !empty($venda->dataVenda)) {
+                $dataVenda = new DateTime($venda->dataVenda);
+                $dataVenda->modify('+' . intval($venda->garantia) . ' days');
+                $vendas[$key]->vencGarantia = $dataVenda->format('d/m/Y');
+            } else {
+                $vendas[$key]->vencGarantia = '-';
+            }
+        }
+    }
+
+    /**
+     * Conta o total de vendas respeitando os mesmos filtros — usado pra
+     * mostrar "X de Y" e pra rolagem infinita saber quando parar.
+     */
+    private function _contarVendasFiltradas($where_array)
+    {
+        if (empty($where_array)) {
+            return $this->vendas_model->count('vendas');
+        }
+
+        $lista_clientes = [];
+        if (array_key_exists('pesquisa', $where_array)) {
+            $this->db->select('idClientes');
+            $this->db->like('nomeCliente', $where_array['pesquisa']);
+            $this->db->limit(25);
+            foreach ($this->db->get('clientes')->result() as $c) {
+                $lista_clientes[] = $c->idClientes;
+            }
+        }
+
+        $this->db->from('vendas');
+        if (array_key_exists('status', $where_array)) {
+            $this->db->where_in('vendas.status', $where_array['status']);
+        }
+        if (array_key_exists('pesquisa', $where_array) && $lista_clientes) {
+            $this->db->where_in('vendas.clientes_id', $lista_clientes);
+        }
+        if (array_key_exists('de', $where_array)) {
+            $this->db->where('vendas.dataVenda >=', $where_array['de']);
+        }
+        if (array_key_exists('ate', $where_array)) {
+            $this->db->where('vendas.dataVenda <=', $where_array['ate']);
+        }
+
+        return $this->db->count_all_results();
     }
 
     public function adicionar()
@@ -193,8 +268,15 @@ class Vendas extends MY_Controller
 
         $this->data['custom_error'] = '';
         $this->load->model('sisos_model');
-        $this->data['result'] = $this->vendas_model->getById($this->uri->segment(3));
-        $this->data['produtos'] = $this->vendas_model->getProdutos($this->uri->segment(3));
+        $idVendaVis = $this->uri->segment(3);
+        $this->data['result'] = $this->vendas_model->getById($idVendaVis);
+        // JOIN com produtos para ter descricao e codDeBarra
+        $this->data['produtos'] = $this->db
+            ->select('iv.*, p.descricao, p.codDeBarra, p.unidade')
+            ->from('itens_de_vendas iv')
+            ->join('produtos p', 'p.idProdutos = iv.produtos_id', 'left')
+            ->where('iv.vendas_id', $idVendaVis)
+            ->get()->result();
         $this->data['emitente'] = $this->sisos_model->getEmitente();
         $this->data['qrCode'] = $this->vendas_model->getQrCode(
             $this->uri->segment(3),
@@ -638,7 +720,7 @@ class Vendas extends MY_Controller
 
             $data = [
                 'vendas_id' => $venda_id,
-                'descricao' => set_value('descricao'),
+                'descricao' => $this->input->post('descricao'),
                 'valor' => $valorTotal,
                 'desconto' => $vendas->desconto,
                 'tipo_desconto' => 'real',
@@ -647,7 +729,7 @@ class Vendas extends MY_Controller
                 'data_vencimento' => $vencimento,
                 'data_pagamento' => $recebimento,
                 'baixado' => $this->input->post('recebido') == 1 ? true : false,
-                'cliente_fornecedor' => set_value('cliente'),
+                'cliente_fornecedor' => $this->input->post('cliente'),
                 'forma_pgto' => $this->input->post('formaPgto'),
                 'tipo' => 'receita',
                 'usuarios_id' => $this->session->userdata('id_admin'),
@@ -767,6 +849,63 @@ class Vendas extends MY_Controller
         $data['total'] = $total;
 
         $this->load->view('vendas/vendas', $data);
+    }
+
+
+    /**
+     * Cancelar venda faturada — devolve estoque e remove lançamento
+     */
+    public function cancelar()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eVenda')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para cancelar vendas.');
+            redirect(base_url());
+        }
+
+        $id = $this->input->post('id');
+        if (!$id || !is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Venda inválida.');
+            redirect(site_url('vendas/'));
+        }
+
+        $venda = $this->vendas_model->getById($id);
+        if (!$venda) {
+            $this->session->set_flashdata('error', 'Venda não encontrada.');
+            redirect(site_url('vendas/'));
+        }
+
+        if ($venda->status === 'Cancelado') {
+            $this->session->set_flashdata('error', 'Venda já está cancelada.');
+            redirect(site_url('vendas/visualizar/' . $id));
+        }
+
+        // 1. Devolver estoque
+        if ($this->data['configuration']['control_estoque']) {
+            $this->load->model('produtos_model');
+            $itens = $this->db->where('vendas_id', $id)->get('itens_de_vendas')->result();
+            foreach ($itens as $item) {
+                if ($item->produtos_id) {
+                    $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+');
+                    log_info("ESTOQUE: Produto id {$item->produtos_id} voltou ao estoque. Quantidade: {$item->quantidade}. Motivo: Cancelamento Venda #{$id}");
+                }
+            }
+        }
+
+        // 2. Excluir lançamento financeiro vinculado
+        $this->db->where('vendas_id', $id)->delete('lancamentos');
+
+        // 3. Mudar status para Cancelado
+        $motivo = $this->input->post('motivo') ?: 'Cancelado manualmente';
+        $this->db->where('idVendas', $id)->update('vendas', [
+            'status'      => 'Cancelado',
+            'faturado'    => 0,
+            'observacoes' => trim(($venda->observacoes ?? '') . "
+[CANCELADO em " . date('d/m/Y H:i') . " por " . $this->session->userdata('nome') . "] " . $motivo),
+        ]);
+
+        log_info("Venda #{$id} cancelada. Motivo: {$motivo}. Estoque devolvido.");
+        $this->session->set_flashdata('success', "Venda #{$id} cancelada com sucesso. Estoque devolvido.");
+        redirect(site_url('vendas/visualizar/' . $id));
     }
 
 }

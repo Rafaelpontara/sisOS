@@ -22,7 +22,7 @@ $ws = $status_sel ? " AND os.status='$status_sel'" : '';
 $por_status = $this->db->query("SELECT status, COUNT(*) as total FROM os WHERE $w$wt$ws GROUP BY status ORDER BY total DESC")->result();
 $por_tecnico = $this->db->query("SELECT u.nome as tecnico, COUNT(os.idOs) as total,
     SUM(CASE WHEN os.status IN ('Finalizado','Faturado') THEN 1 ELSE 0 END) as finalizadas,
-    AVG(DATEDIFF(COALESCE(os.dataFinal,NOW()),os.dataInicial)) as media_dias
+    AVG(CASE WHEN os.dataFinal IS NOT NULL THEN DATEDIFF(os.dataFinal,os.dataInicial) ELSE NULL END) as media_dias
     FROM os LEFT JOIN usuarios u ON u.idUsuarios=os.usuarios_id
     WHERE $w$ws GROUP BY os.usuarios_id ORDER BY total DESC")->result();
 $por_mes = $this->db->query("SELECT DATE_FORMAT(dataInicial,'%Y-%m') as mes, COUNT(*) as total,
@@ -265,7 +265,9 @@ $statusCores = [
                     <td style="font-size:12px;color:#9ca3af;"><?= htmlspecialchars($r->equipamento ?? '—') ?></td>
                     <td><?php
                         $cor = $statusCores[$r->status] ?? '#9ca3af';
-                        echo '<span style="background:'.str_replace('#','',$cor)!=$cor?'rgba('.implode(',',sscanf(substr($cor,1),'%02x%02x%02x')).', 0.15)':'rgba(156,163,175,0.15)'.';color:'.$cor.';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;">'.htmlspecialchars($r->status).'</span>';
+                        $rgb = sscanf(substr($cor, 1), '%02x%02x%02x');
+                        $bgRgba = 'rgba(' . implode(',', $rgb) . ',0.15)';
+                        echo '<span style="background:' . $bgRgba . ';color:' . $cor . ';padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;">' . htmlspecialchars($r->status) . '</span>';
                     ?></td>
                     <td style="font-weight:700;color:#fbbf24;">R$ <?= number_format($r->valor_total,2,',','.') ?></td>
                 </tr>

@@ -254,6 +254,64 @@ class Relatorios_model extends CI_Model
         return $this->db->query($query, [$precoInicial, $precoFinal])->result();
     }
 
+    /**
+     * Produtos mais vendidos — soma a quantidade usada em cada produto ao
+     * longo das OS's (peças de reparo). Não inclui vendas de balcão/PDV
+     * (itens_de_vendas) porque não confirmei a estrutura exata dessa
+     * tabela ainda — só conta o que passou pelo módulo de OS.
+     */
+    public function produtosMaisVendidosRapid($dataInicial = null, $dataFinal = null)
+    {
+        $where = '';
+        $params = [];
+        if ($dataInicial && $dataFinal) {
+            $where = 'WHERE os.dataInicial BETWEEN ? AND ?';
+            $params = [$dataInicial, $dataFinal];
+        }
+
+        $query = "
+            SELECT produtos.idProdutos, produtos.descricao, produtos.precoVenda,
+                   SUM(produtos_os.quantidade) as qtdVendida,
+                   SUM(produtos_os.quantidade * produtos_os.preco) as valorTotal
+            FROM produtos_os
+            INNER JOIN produtos ON produtos.idProdutos = produtos_os.produtos_id
+            INNER JOIN os ON os.idOs = produtos_os.os_id
+            $where
+            GROUP BY produtos_os.produtos_id
+            ORDER BY qtdVendida DESC
+        ";
+
+        return $this->db->query($query, $params)->result();
+    }
+
+    /**
+     * Serviços mais feitos — mesma lógica, soma a quantidade de cada
+     * serviço realizado nas OS's.
+     */
+    public function servicosMaisFeitosRapid($dataInicial = null, $dataFinal = null)
+    {
+        $where = '';
+        $params = [];
+        if ($dataInicial && $dataFinal) {
+            $where = 'WHERE os.dataInicial BETWEEN ? AND ?';
+            $params = [$dataInicial, $dataFinal];
+        }
+
+        $query = "
+            SELECT servicos.idServicos, servicos.nome, servicos.preco,
+                   SUM(servicos_os.quantidade) as qtdFeita,
+                   SUM(servicos_os.quantidade * servicos_os.preco) as valorTotal
+            FROM servicos_os
+            INNER JOIN servicos ON servicos.idServicos = servicos_os.servicos_id
+            INNER JOIN os ON os.idOs = servicos_os.os_id
+            $where
+            GROUP BY servicos_os.servicos_id
+            ORDER BY qtdFeita DESC
+        ";
+
+        return $this->db->query($query, $params)->result();
+    }
+
     public function osRapid($array = false)
     {
         $query = 'CREATE TEMPORARY TABLE IF NOT EXISTS total_produtos SELECT SUM(subTotal) as total_produto, os_id FROM produtos_os GROUP BY os_id; ';
@@ -343,7 +401,7 @@ class Relatorios_model extends CI_Model
         return $result->result();
     }
 
-    public function financeiroCustom($dataInicial = null, $dataFinal = null, $tipo = null, $situacao = null, $array = false, $cliente = null, $descricao = null)
+    public function financeiroCustom($dataInicial = null, $dataFinal = null, $tipo = null, $situacao = null, $array = false, $cliente = null, $descricao = null, $forma_pgto = null, $categoria = null)
     {
         if ($dataInicial) {
             $this->db->where('data_vencimento >=', $dataInicial);
@@ -357,21 +415,34 @@ class Relatorios_model extends CI_Model
             $this->db->where('tipo', $tipo);
         }
 
-        if ($situacao !== 'todos' && $situacao) {
-            if ($situacao === 'pendente') {
-                $this->db->where('baixado', 0);
-            }
-            if ($situacao === 'pago') {
+        // Aceita '1'/'0' (vindo da view) e 'pago'/'pendente' (legado)
+        if ($situacao !== null && $situacao !== '' && $situacao !== 'todos') {
+            if ($situacao === '1' || $situacao === 'pago') {
                 $this->db->where('baixado', 1);
+            } elseif ($situacao === '0' || $situacao === 'pendente') {
+                $this->db->where('baixado', 0);
             }
         }
 
         if ($cliente) {
-            $this->db->where('lancamentos.clientes_id', $cliente);
+            // Pode vir como ID (numérico) ou nome (texto) dependendo da origem
+            if (is_numeric($cliente)) {
+                $this->db->where('lancamentos.clientes_id', $cliente);
+            } else {
+                $this->db->like('cliente_fornecedor', $cliente);
+            }
         }
 
         if ($descricao) {
             $this->db->like('descricao', $descricao);
+        }
+
+        if ($forma_pgto) {
+            $this->db->where('forma_pgto', $forma_pgto);
+        }
+
+        if ($categoria) {
+            $this->db->where('categorias_id', intval($categoria));
         }
 
         $this->db->order_by('data_vencimento', 'asc');
@@ -382,7 +453,6 @@ class Relatorios_model extends CI_Model
 
         return $result->result();
     }
-
     public function vendasRapid($array = false)
     {
         $this->db->select('vendas.*,clientes.nomeCliente, usuarios.nome');

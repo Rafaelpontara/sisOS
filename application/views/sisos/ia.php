@@ -146,6 +146,44 @@
         </div>
     </div>
 
+    <!-- Seletor rápido de modelo -->
+    <?php
+    $modelosPorProv = [
+        'gemini'     => ['gemini-2.0-flash'=>'🚀 gemini-2.0-flash','gemini-2.0-flash-lite'=>'⚡ gemini-2.0-flash-lite','gemini-1.5-flash'=>'🔥 gemini-1.5-flash','gemini-1.5-flash-8b'=>'💡 gemini-1.5-flash-8b'],
+        'openai'     => ['gpt-4o-mini'=>'⚡ gpt-4o-mini','gpt-4o'=>'🚀 gpt-4o','gpt-4-turbo'=>'🔥 gpt-4-turbo','gpt-3.5-turbo'=>'💡 gpt-3.5-turbo'],
+        'claude'     => ['claude-haiku-4-5-20251001'=>'⚡ claude-haiku-4-5','claude-sonnet-4-6'=>'🚀 claude-sonnet-4-6','claude-opus-4-6'=>'🔥 claude-opus-4-6'],
+        'perplexity' => ['llama-3.1-sonar-small-128k-online'=>'⚡ sonar-small','llama-3.1-sonar-large-128k-online'=>'🚀 sonar-large','llama-3.1-sonar-huge-128k-online'=>'🔥 sonar-huge'],
+        'deepseek'   => ['deepseek-chat'=>'🚀 deepseek-chat','deepseek-reasoner'=>'🧠 deepseek-reasoner'],
+        'mistral'    => ['mistral-small-latest'=>'⚡ mistral-small','mistral-medium-latest'=>'🚀 mistral-medium','mistral-large-latest'=>'🔥 mistral-large'],
+    ];
+    $modelKey = ($iaProv.'_model');
+    $modelAtual = $configuration[$modelKey] ?? '';
+    // Verificar modelo personalizado
+    $customKey = $iaProv.'_model_custom';
+    $customModel = $configuration[$customKey] ?? '';
+    if (!empty($customModel)) $modelAtual = $customModel;
+    $modelos = $modelosPorProv[$iaProv] ?? [];
+    // Adicionar modelo personalizado à lista se existir e não estiver na lista
+    if (!empty($customModel) && !isset($modelos[$customModel])) {
+        $modelos[$customModel] = '✨ '.$customModel.' (personalizado)';
+    }
+    ?>
+    <div class="ia-card" style="margin-bottom:14px;" id="iaModelCard">
+        <div class="ia-card-head"><i class='bx bx-chip' style="color:#22d3ee;"></i><span>Modelo Ativo</span>
+            <span style="margin-left:auto;font-size:11px;color:#6b7280;" id="iaModelBadge"><?= htmlspecialchars($modelAtual) ?></span>
+        </div>
+        <div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;" id="iaModelSwitcher">
+            <?php foreach ($modelos as $mVal => $mLbl): ?>
+            <button onclick="trocarModelo('<?= htmlspecialchars($mVal) ?>')"
+                    class="ia-prov-btn <?= $modelAtual===$mVal?'active':'' ?>"
+                    style="<?= $modelAtual===$mVal?'background:#22d3ee;border-color:#22d3ee;color:#000;':'' ?>"
+                    id="modelBtn_<?= md5($mVal) ?>">
+                <?= htmlspecialchars($mLbl) ?>
+            </button>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
     <div class="ia-grid">
 
         <!-- ══ COLUNA ESQUERDA ══ -->
@@ -480,6 +518,19 @@ function iaBuscar(q) {
 // ── Provider switcher ────────────────────────────
 var _iaProvCurrent = '<?= $iaProv ?>';
 var _iaProvColor   = '<?= $pColor ?>';
+
+function trocarModelo(modelo) {
+    $.post('<?= base_url() ?>index.php/sisos/trocarModelo', {modelo: modelo, provedor: currentProv}, function(res) {
+        if (res && res.ok) {
+            // Atualizar badge
+            $('#iaModelBadge').text(modelo);
+            $('#iaModelName').text(modelo);
+            // Atualizar botões ativos
+            $('#iaModelSwitcher button').removeClass('active').css({background:'',borderColor:'',color:''});
+            $('#modelBtn_' + res.hash).addClass('active').css({background:'#22d3ee',borderColor:'#22d3ee',color:'#000'});
+        }
+    }, 'json');
+}
 
 function trocarProvedor(prov, color, label, hasKey) {
     if (!hasKey) {

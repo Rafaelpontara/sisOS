@@ -8,7 +8,57 @@
 <script src="<?= base_url() ?>assets/js/maskmoney.js"></script>
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/custom.css" />
 
-<style>
+
+    
+    <style>
+    .ck-grupo-titulo{font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;padding:8px 0 6px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+    .ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px;margin-bottom:14px;}
+    .ck-item{display:flex;align-items:center;justify-content:space-between;background:#13151f;border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:8px 10px;gap:8px;transition:border-color .15s;}
+    .ck-item-nome{font-size:12px;color:#c9cad6;flex:1;}
+    .ck-btns{display:flex;gap:4px;flex-shrink:0;}
+    .ck-btn{width:28px;height:24px;border-radius:5px;border:1px solid transparent;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;background:rgba(255,255,255,0.05);color:#6b7280;}
+    .ck-btn.ok-ativo{background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80;}
+    .ck-btn.def-ativo{background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;}
+    .ck-btn.nvf-ativo{background:rgba(107,114,128,0.15);border-color:#6b7280;color:#9ca3af;}
+    .ck-resumo{display:flex;gap:12px;flex-wrap:wrap;padding:10px 14px;background:#13151f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;margin-bottom:14px;font-size:12px;}
+    .ck-resumo-item{display:flex;align-items:center;gap:5px;font-weight:700;}
+    </style>
+
+    <style>
+    .sd-card { background:#161925; border-radius:16px; padding:22px; text-align:center; }
+    .sd-sub { font-size:12px; color:#6b7280; margin:-6px 0 18px; }
+    .sd-toggle { display:inline-flex; background:#1e2235; border-radius:12px; padding:4px; gap:4px; margin-bottom:22px; }
+    .sd-toggle-btn {
+        padding:9px 20px; border-radius:9px; font-size:13px; font-weight:700;
+        color:#6b7280; cursor:pointer; border:none; background:transparent; transition:all .15s;
+    }
+    .sd-toggle-btn.ativo { background:#2e3447; color:#e8eaf0; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .sd-pin-input {
+        width:100%; max-width:280px; margin:0 auto; display:block;
+        background:#1e2235; border:1.5px solid #444860; border-radius:12px;
+        padding:16px; font-size:22px; font-weight:700; letter-spacing:8px;
+        text-align:center; color:#e8eaf0;
+    }
+    .sd-pin-input:focus { outline:none; border-color:#a78bfa; }
+    .sd-hint { font-size:11.5px; color:#6b7280; margin-top:10px; }
+    .sd-grid-wrap { display:flex; flex-direction:column; align-items:center; position:relative; }
+    .sd-grid-badge {
+        position:absolute; top:-6px; right:calc(50% - 100px); background:#2563eb; color:#fff;
+        font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:20px;
+    }
+    .sd-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; background:#12141d; border-radius:16px; padding:22px; position:relative; }
+    .sd-dot {
+        width:16px; height:16px; border-radius:50%; background:#374151;
+        cursor:pointer; transition:background .1s, box-shadow .1s; margin:0 auto;
+        position:relative; z-index:2;
+    }
+    .sd-dot.selecionado { background:#3b82f6; box-shadow:0 0 0 5px rgba(59,130,246,0.25); }
+    .sd-dot.inicio::after {
+        content:''; position:absolute; inset:-9px; border:2px solid #22c55e; border-radius:50%;
+    }
+    </style>
+
+    <style>
 /* ── Reset Bootstrap 2 ── */
 .eos-wrap *,.eos-wrap *::before,.eos-wrap *::after{box-sizing:border-box;}
 .eos-wrap .widget-box,.eos-wrap .row-fluid,.eos-wrap .span12,
@@ -37,7 +87,9 @@
 .eos-btn-print{background:#252a3a;color:#9ca3af;border:1px solid #444860;}
 /* Dropdown imprimir */
 .eos-dropdown{position:relative;display:inline-flex;}
-.eos-dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:#1e2133;border:1px solid #444860;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);z-index:999;min-width:180px;overflow:hidden;}
+.eos-dropdown-menu{display:none;position:absolute;top:100%;margin-top:0;right:0;background:#1e2133;border:1px solid #444860;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);z-index:999;min-width:180px;overflow:hidden;}
+/* Ponte invisível cobre o gap entre botão e menu */
+.eos-dropdown-menu::before{content:"";position:absolute;top:-6px;left:0;right:0;height:6px;background:transparent;}
 .eos-dropdown:hover .eos-dropdown-menu{display:block;}
 .eos-dropdown-item{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:#c9cad6;text-decoration:none;transition:background .12s;white-space:nowrap;}
 .eos-dropdown-item:hover{background:rgba(255,255,255,0.07);color:#e8eaf0;}
@@ -198,7 +250,9 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
                 <button class="eos-btn eos-btn-print"><i class='bx bx-printer'></i> Imprimir <i class='bx bx-chevron-down'></i></button>
                 <div class="eos-dropdown-menu">
                     <a target="_blank" href="<?= site_url('os/imprimir/'.$result->idOs) ?>" class="eos-dropdown-item"><i class='bx bx-file'></i> Papel A4</a>
+                    <a target="_blank" href="<?= site_url('os/imprimir/'.$result->idOs) ?>?checklist=1" class="eos-dropdown-item" style="color:#4ade80;"><i class='bx bx-list-check'></i> A4 + Checklist</a>
                     <a target="_blank" href="<?= site_url('os/imprimirTermica/'.$result->idOs) ?>" class="eos-dropdown-item"><i class='bx bx-receipt'></i> Cupom 80mm</a>
+                    <a target="_blank" href="<?= site_url('os/imprimirTermica/'.$result->idOs) ?>?checklist=1" class="eos-dropdown-item" style="color:#4ade80;"><i class='bx bx-list-check'></i> Cupom + Checklist</a>
                     <?php if ($result->garantias_id): ?>
                     <a target="_blank" href="<?= site_url('garantias/imprimirGarantiaOs/'.$result->idOs) ?>" class="eos-dropdown-item"><i class='bx bx-paperclip'></i> Termo Garantia</a>
                     <?php endif; ?>
@@ -226,6 +280,8 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
         <button class="eos-tab" data-tab="eosTab4"><i class='bx bx-wrench'></i> Serviços <span id="qtdServ" style="background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:2px;"><?= count($servicos) ?></span></button>
         <button class="eos-tab" data-tab="eosTab5"><i class='bx bx-paperclip'></i> Anexos <span style="background:rgba(96,165,250,0.15);color:#60a5fa;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:2px;"><?= count($anexos) ?></span></button>
         <button class="eos-tab" data-tab="eosTab6"><i class='bx bx-note'></i> Anotações <span style="background:rgba(168,85,247,0.15);color:#c084fc;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:2px;"><?= count($anotacoes) ?></span></button>
+        <button class="eos-tab" data-tab="eosTab7"><i class='bx bx-list-check'></i> Checklist Entrada</button>
+        <button class="eos-tab" data-tab="eosTab8"><i class='bx bx-list-ul'></i> Checklist Saída</button>
     </div>
 
     <!-- ══════════════════════════════
@@ -233,6 +289,14 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
     ══════════════════════════════ -->
     <div class="eos-pane active" id="eosTab1">
         <form action="<?= current_url() ?>" method="post" id="formOs">
+            <!-- Campos do checklist ficam DENTRO do form desde o início (não são
+                 injetados só no momento do envio) — o botão Salvar usa AJAX com
+                 e.preventDefault(), então depender do evento "submit" do form
+                 não é confiável (ordem de execução dos handlers). As funções
+                 _ckEntSer()/_ckSaidaSer() escrevem aqui a cada mudança no
+                 checklist, então o valor já está pronto quando o AJAX lê o form. -->
+            <input type="hidden" name="checklist_json" id="checklistEntJsonForm" value="" />
+            <input type="hidden" name="checklist_saida_json" id="checklistSaidaJsonForm" value="" />
             <?= form_hidden('idOs', $result->idOs) ?>
 
             <!-- Pessoas -->
@@ -249,9 +313,21 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
                             </div>
                         </div>
                         <div class="eos-field">
-                            <label class="eos-label">Técnico / Responsável <span class="req">*</span></label>
+                            <label class="eos-label">Técnico Responsável <span class="req">*</span></label>
                             <input id="tecnico" class="eos-input" type="text" name="tecnico" value="<?= htmlspecialchars($result->nome) ?>" autocomplete="off" />
                             <input id="usuarios_id" type="hidden" name="usuarios_id" value="<?= $result->usuarios_id ?>" />
+                        </div>
+                        <div>
+                            <label class="eos-label">Atendente / Vendedor</label>
+                            <?php
+                                $atendNome = '';
+                                if (!empty($result->atendente_id)) {
+                                    $atend = $this->usuarios_model->getById($result->atendente_id);
+                                    $atendNome = $atend->nome ?? '';
+                                }
+                            ?>
+                            <input id="atendente" class="eos-input" type="text" name="atendente" value="<?= htmlspecialchars($atendNome) ?>" autocomplete="off" placeholder="Digite para buscar..." />
+                            <input id="atendente_id" type="hidden" name="atendente_id" value="<?= $result->atendente_id ?? '' ?>" />
                         </div>
                     </div>
                 </div>
@@ -283,11 +359,18 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
                             </select>
                         </div>
                         <div class="eos-field">
+                            <label class="eos-label">Entregue ao Cliente</label>
+                            <select name="entregue" id="entregue" class="eos-select">
+                                <option value="0" <?= empty($result->entregue)?'selected':'' ?>>Não</option>
+                                <option value="1" <?= !empty($result->entregue)?'selected':'' ?>>Sim</option>
+                            </select>
+                        </div>
+                        <div class="eos-field">
                             <label class="eos-label">Data Inicial <span class="req">*</span></label>
                             <input id="dataInicial" autocomplete="off" class="eos-input datepicker" type="text" name="dataInicial" value="<?= date('d/m/Y',strtotime($result->dataInicial)) ?>" />
                         </div>
                         <div class="eos-field">
-                            <label class="eos-label">Data Final <span id="dataFinalLabel"></span></label>
+                            <label class="eos-label">Prev. Entrega <span id="dataFinalLabel"></span></label>
                             <input id="dataFinal" autocomplete="off" class="eos-input datepicker" type="text" name="dataFinal"
                                 value="<?= $result->dataFinal&&$result->dataFinal!='0000-00-00'?date('d/m/Y',strtotime($result->dataFinal)):'' ?>" />
                         </div>
@@ -296,11 +379,7 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
                             <input id="data_retirada" autocomplete="off" class="eos-input datepicker" type="text" name="data_retirada"
                                 value="<?= !empty($result->data_retirada)&&$result->data_retirada!='0000-00-00'?date('d/m/Y',strtotime($result->data_retirada)):'' ?>" />
                         </div>
-                        <div class="eos-field">
-                            <label class="eos-label">Prev. Entrega do Aparelho</label>
-                            <input id="dataEntrega" autocomplete="off" class="eos-input datepicker" type="text" name="dataEntrega"
-                                value="<?= !empty($result->dataEntrega)&&$result->dataEntrega!='0000-00-00'?date('d/m/Y',strtotime($result->dataEntrega)):'' ?>" placeholder="dd/mm/aaaa" />
-                        </div>
+
                         <div class="eos-field">
                             <label class="eos-label">Garantia (dias)</label>
                             <input id="garantia" type="number" min="0" max="9999" class="eos-input" name="garantia" value="<?= $result->garantia ?>" placeholder="0" />
@@ -328,6 +407,85 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
                             <input type="text" name="numeroSerie" class="eos-input" value="<?= htmlspecialchars($result->numeroSerie??'') ?>" placeholder="Ex: SN12345, IMEI 356..." />
                         </div>
                     </div>
+                </div>
+            </div>
+
+
+            <!-- ── Senha do Celular ── -->
+            <div class="eos-card">
+                <div class="eos-card-head"><i class='bx bx-lock-alt' style="color:#a78bfa;"></i><span>Segurança do Dispositivo</span></div>
+                <div class="eos-card-body">
+                    <?php
+                        $senhaAtual  = $result->senha_tipo  ?? '';
+                        $valorAtual  = $result->senha_valor ?? '';
+                    ?>
+                    <!-- Input oculto do tipo (substitui os radios) -->
+                    <input type="hidden" name="senha_tipo" id="senhaTipoFinal" value="<?= htmlspecialchars($senhaAtual) ?>">
+                    <!-- Input oculto ÚNICO que é enviado no submit -->
+                    <input type="hidden" name="senha_valor" id="senhaValorFinal" value="<?= htmlspecialchars($valorAtual) ?>">
+
+                    <div class="sd-card">
+                        <div class="sd-sub">Informe a senha para que o técnico possa testar todas as funções.</div>
+
+                        <div class="sd-toggle" id="senhaTipoChips">
+                            <?php
+                            $opcoes = [
+                                ['valor'=>'',       'label'=>'Sem senha'],
+                                ['valor'=>'pin',    'label'=>'Senha Padrão'],
+                                ['valor'=>'padrao', 'label'=>'Desenho'],
+                            ];
+                            foreach ($opcoes as $op):
+                                $ativo = $senhaAtual === $op['valor'] ? 'ativo' : '';
+                            ?>
+                            <button type="button"
+                                    class="sd-toggle-btn <?= $ativo ?>"
+                                    data-tipo="<?= $op['valor'] ?>"
+                                    onclick="sisosToggleSenha('<?= $op['valor'] ?>')">
+                                <?= $op['label'] ?>
+                            </button>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- PIN / Senha Padrão -->
+                        <div id="wrapSenhaPin" style="display:<?= $senhaAtual==='pin' ? 'block' : 'none' ?>;">
+                            <div style="font-size:10.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Senha Numérica ou Alfanumérica</div>
+                            <input type="text" id="senhaValorPin"
+                                   class="sd-pin-input" maxlength="8" inputmode="numeric" pattern="[0-9]*"
+                                   value="<?= ($senhaAtual==='pin') ? htmlspecialchars($valorAtual) : '' ?>"
+                                   placeholder="••••"
+                                   oninput="document.getElementById('senhaValorFinal').value=this.value">
+                            <div class="sd-hint">Caso não tenha senha, deixe em branco.</div>
+                        </div>
+
+                        <!-- Desenho / Padrão Android -->
+                        <div id="wrapSenhaPadrao" style="display:<?= $senhaAtual==='padrao' ? 'block' : 'none' ?>;">
+                            <input type="hidden" id="senhaValorPadrao" value="<?= htmlspecialchars($senhaAtual==='padrao' ? $valorAtual : '') ?>">
+                            <div class="sd-grid-wrap">
+                                <span class="sd-grid-badge" id="padraoContagem">0 pontos</span>
+                                <div class="sd-grid" id="padraoGrid">
+                                    <svg id="padraoSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
+                                        <defs>
+                                            <marker id="setaPadrao" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+                                                <path d="M0,0 L6,3 L0,6 Z" fill="#3b82f6"></path>
+                                            </marker>
+                                        </defs>
+                                    </svg>
+                                    <?php for($pi=1;$pi<=9;$pi++): ?>
+                                    <div class="sd-dot" data-n="<?= $pi ?>"></div>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
+                            <div class="sd-hint" id="padraoInicioFim" style="min-height:15px;"></div>
+                            <button type="button" onclick="sisosPatternClear()"
+                                    style="margin-top:14px;background:rgba(239,68,68,0.12);color:#f87171;
+                                           border:1px solid rgba(239,68,68,0.25);border-radius:8px;
+                                           padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;">
+                                <i class='bx bx-refresh'></i> Limpar
+                            </button>
+                            <div class="sd-hint">Clique nos pontos na ordem do padrão.</div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -621,6 +779,130 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
         </div>
     </div>
 
+    <!-- ══ eosTab7 — Checklist de Entrada ══ -->
+    <div class="eos-pane" id="eosTab7">
+        <div class="eos-card">
+            <div class="eos-card-head">
+                <i class='bx bx-list-check' style="color:#4ade80;"></i>
+                <span>Checklist de Entrada — Condições ao Receber</span>
+            </div>
+            <div class="eos-card-body">
+                <p style="font-size:12px;color:#9ca3af;margin-bottom:14px;">
+                    Para cada item informe: <strong style="color:#4ade80;">OK</strong>,
+                    <strong style="color:#f87171;">Defeito/Detalhe</strong> ou
+                    <strong style="color:#6b7280;">Não Verificado</strong>.
+                </p>
+                <?php
+                $ckEntAtual = [];
+                $ckEntObs   = '';
+                if (!empty($result->checklist)) {
+                    $ckEntDec = json_decode($result->checklist, true) ?: [];
+                    $ckEntAtual = $ckEntDec['itens'] ?? [];
+                    $ckEntObs   = $ckEntDec['obs']   ?? '';
+                }
+                $ckEntGrupos = [
+                    'Tela & Display'       => ['Tela sem trincas','Tela sem manchas ou pixels mortos','Touch funcionando','Brilho funcionando'],
+                    'Estrutura & Corpo'    => ['Tampa traseira sem trincas','Bordas sem amassados','Sem sinais de queda','Sem sinais de líquido / oxidação'],
+                    'Botões & Conectores'  => ['Botão power funcionando','Botão volume funcionando','Botão home / biometria funcionando','Entrada de carga sem danos','Entrada de fone sem danos','Slot de chip / SD sem danos'],
+                    'Câmera & Áudio'       => ['Câmera traseira sem danos','Câmera frontal sem danos','Auto-falante funcionando','Microfone funcionando'],
+                    'Bateria & Sistema'    => ['Aparelho ligando','Bateria carregando','Sem superaquecimento','Wi-Fi funcionando','Bluetooth funcionando','Sinal de rede funcionando'],
+                    'Acessórios Entregues' => ['Carregador entregue','Cabo entregue','Fone entregue','Capa/película entregue','Caixa entregue'],
+                ];
+                ?>
+                <div class="ck-resumo" id="ckEntResumo">
+                    <span class="ck-resumo-item" style="color:#4ade80;"><i class='bx bx-check-circle'></i> <span id="erOk">0</span> OK</span>
+                    <span class="ck-resumo-item" style="color:#f87171;"><i class='bx bx-error-circle'></i> <span id="erDef">0</span> Defeito</span>
+                    <span class="ck-resumo-item" style="color:#6b7280;"><i class='bx bx-minus-circle'></i> <span id="erNvf">0</span> N/V</span>
+                </div>
+                <input type="hidden" name="checklist_json" id="checklistEntJson"
+                       value="<?= htmlspecialchars($result->checklist ?? '') ?>">
+                <?php foreach ($ckEntGrupos as $grupo => $itens): ?>
+                <div class="ck-grupo-titulo"><i class='bx bx-chevron-right'></i> <?= $grupo ?></div>
+                <div class="ck-grid">
+                    <?php foreach ($itens as $item):
+                        $est = $ckEntAtual[$item] ?? '';
+                    ?>
+                    <div class="ck-item" data-item="<?= htmlspecialchars($item) ?>">
+                        <span class="ck-item-nome"><?= htmlspecialchars($item) ?></span>
+                        <div class="ck-btns">
+                            <button type="button" class="ck-btn <?= $est==='ok' ? 'ok-ativo' : '' ?>" data-estado="ok" onclick="ckEntSetEstado(this,'ok')">OK</button>
+                            <button type="button" class="ck-btn <?= $est==='defeito' ? 'def-ativo' : '' ?>" data-estado="defeito" onclick="ckEntSetEstado(this,'defeito')">⚠</button>
+                            <button type="button" class="ck-btn <?= $est==='nvf' ? 'nvf-ativo' : '' ?>" data-estado="nvf" onclick="ckEntSetEstado(this,'nvf')">—</button>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endforeach; ?>
+                <div style="margin-top:10px;">
+                    <label class="eos-label">Observações</label>
+                    <textarea id="ckEntObs" class="eos-input" rows="3" style="width:100%;"
+                              placeholder="Riscos, avarias específicas, itens entregues..."><?= htmlspecialchars($ckEntObs) ?></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ eosTab8 — Checklist de Saída ══ -->
+    <div class="eos-pane" id="eosTab8">
+        <div class="eos-card">
+            <div class="eos-card-head">
+                <i class='bx bx-list-ul' style="color:#22d3ee;"></i>
+                <span>Checklist de Saída — Condições na Entrega</span>
+            </div>
+            <div class="eos-card-body">
+                <p style="font-size:12px;color:#9ca3af;margin-bottom:14px;">
+                    Verifique o equipamento antes de entregar ao cliente.
+                </p>
+                <?php
+                $ckSaidaAtual = [];
+                $ckSaidaObs   = '';
+                if (!empty($result->checklist_saida)) {
+                    $ckSaidaDec = json_decode($result->checklist_saida, true) ?: [];
+                    $ckSaidaAtual = $ckSaidaDec['itens'] ?? [];
+                    $ckSaidaObs   = $ckSaidaDec['obs']   ?? '';
+                }
+                $ckSaidaGrupos = [
+                    'Tela & Display'       => ['Tela sem trincas','Touch funcionando','Brilho funcionando'],
+                    'Estrutura & Corpo'    => ['Tampa traseira íntegra','Sem novos danos físicos'],
+                    'Botões & Conectores'  => ['Botão power funcionando','Botão volume funcionando','Entrada de carga funcionando'],
+                    'Câmera & Áudio'       => ['Câmera traseira funcionando','Câmera frontal funcionando','Alto-falante funcionando','Microfone funcionando'],
+                    'Serviço Realizado'    => ['Problema relatado resolvido','Aparelho testado e funcionando','Dados do cliente preservados','Bateria carregando normalmente','Wi-Fi funcionando','Sinal de rede funcionando'],
+                    'Entrega'              => ['Acessórios devolvidos','Senha/bloqueio configurado','Cliente orientado sobre garantia'],
+                ];
+                ?>
+                <div class="ck-resumo" id="ckSaidaResumo">
+                    <span class="ck-resumo-item" style="color:#4ade80;"><i class='bx bx-check-circle'></i> <span id="srOk">0</span> OK</span>
+                    <span class="ck-resumo-item" style="color:#f87171;"><i class='bx bx-error-circle'></i> <span id="srDef">0</span> Defeito</span>
+                    <span class="ck-resumo-item" style="color:#6b7280;"><i class='bx bx-minus-circle'></i> <span id="srNvf">0</span> N/V</span>
+                </div>
+                <input type="hidden" name="checklist_saida_json" id="checklistSaidaJson"
+                       value="<?= htmlspecialchars($result->checklist_saida ?? '') ?>">
+                <?php foreach ($ckSaidaGrupos as $grupo => $itens): ?>
+                <div class="ck-grupo-titulo"><i class='bx bx-chevron-right'></i> <?= $grupo ?></div>
+                <div class="ck-grid">
+                    <?php foreach ($itens as $item):
+                        $est = $ckSaidaAtual[$item] ?? '';
+                    ?>
+                    <div class="ck-item" data-item="<?= htmlspecialchars($item) ?>">
+                        <span class="ck-item-nome"><?= htmlspecialchars($item) ?></span>
+                        <div class="ck-btns">
+                            <button type="button" class="ck-btn <?= $est==='ok' ? 'ok-ativo' : '' ?>" data-estado="ok" onclick="ckSaidaSetEstado(this,'ok')">OK</button>
+                            <button type="button" class="ck-btn <?= $est==='defeito' ? 'def-ativo' : '' ?>" data-estado="defeito" onclick="ckSaidaSetEstado(this,'defeito')">⚠</button>
+                            <button type="button" class="ck-btn <?= $est==='nvf' ? 'nvf-ativo' : '' ?>" data-estado="nvf" onclick="ckSaidaSetEstado(this,'nvf')">—</button>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endforeach; ?>
+                <div style="margin-top:10px;">
+                    <label class="eos-label">Observações da entrega</label>
+                    <textarea id="ckSaidaObs" class="eos-input" rows="3" style="width:100%;"
+                              placeholder="Orientações ao cliente, itens devolvidos..."><?= htmlspecialchars($ckSaidaObs) ?></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /.eos-wrap -->
 
 <!-- ── Modal Visualizar Anexo ── -->
@@ -689,11 +971,11 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div class="form-group">
                     <label>Valor Total</label>
-                    <input class="money" id="valor" name="valor" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." value="<?= number_format($totalGeral,2,'.',') ?>" />
+                    <input class="money" id="valor" name="valor" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." value="<?= number_format($totalGeral,2,'.','') ?>" />
                 </div>
                 <div class="form-group">
                     <label>Valor com Desconto</label>
-                    <input class="money" id="faturar-desconto" name="faturar-desconto" type="text" value="<?= number_format($result->valor_desconto,2,'.',') ?>" />
+                    <input class="money" id="faturar-desconto" name="faturar-desconto" type="text" value="<?= number_format($result->valor_desconto,2,'.','') ?>" />
                 </div>
                 <div class="form-group">
                     <label>Data de Entrada *</label>
@@ -733,7 +1015,245 @@ if ($this->permission->checkPermission($this->session->userdata('permissao'), 'e
 </div>
 
 <script>
-$(document).ready(function() {
+// ── Senha do celular — funções GLOBAIS (fora do ready) ──────────────────
+function sisosToggleSenha(tipo) {
+    var tipoEl = document.getElementById('senhaTipoFinal');
+    var tipoAnterior = tipoEl ? tipoEl.value : '';
+    if (tipoEl) tipoEl.value = tipo;
+
+    document.getElementById('wrapSenhaPin').style.display    = tipo === 'pin'    ? 'block' : 'none';
+    document.getElementById('wrapSenhaPadrao').style.display = tipo === 'padrao' ? 'block' : 'none';
+
+    // Só limpa o valor se REALMENTE mudou de tipo
+    if (tipo !== tipoAnterior) {
+        var elFinal = document.getElementById('senhaValorFinal');
+        if (tipo === 'pin') {
+            var pinEl = document.getElementById('senhaValorPin');
+            if (pinEl) pinEl.value = '';
+            if (elFinal) elFinal.value = '';
+        } else if (tipo === 'padrao') {
+            _padraoSeq = []; sisosPatternRender();
+        } else {
+            if (elFinal) elFinal.value = '';
+        }
+    }
+    document.querySelectorAll('.sd-toggle-btn').forEach(function(btn) {
+        btn.classList.toggle('ativo', btn.dataset.tipo === tipo);
+    });
+}
+
+var _padraoSeq = [];
+<?php if(isset($result) && ($result->senha_tipo??'')==='padrao' && !empty($result->senha_valor)): ?>
+_padraoSeq = '<?= $result->senha_valor ?>'.split('-').map(Number).filter(n=>n>0);
+<?php endif; ?>
+
+function sisosPatternRender() {
+    document.querySelectorAll('.sd-dot').forEach(function(el) {
+        var n   = parseInt(el.dataset.n);
+        var idx = _padraoSeq.indexOf(n);
+        el.classList.toggle('selecionado', idx >= 0);
+        el.classList.toggle('inicio', idx === 0);
+    });
+
+    var contadorEl = document.getElementById('padraoContagem');
+    if (contadorEl) contadorEl.textContent = _padraoSeq.length + ' ponto' + (_padraoSeq.length === 1 ? '' : 's');
+
+    var infoEl = document.getElementById('padraoInicioFim');
+    if (infoEl) {
+        infoEl.innerHTML = _padraoSeq.length
+            ? '<span style="color:#4ade80;">● Início: ponto ' + _padraoSeq[0] + '</span>' +
+              (_padraoSeq.length > 1 ? ' &nbsp;→&nbsp; <span style="color:#3b82f6;">Fim: ponto ' + _padraoSeq[_padraoSeq.length - 1] + '</span>' : '')
+            : '';
+    }
+
+    // Desenha as linhas conectando os pontos, com uma seta no último trecho
+    // (mostrando a direção de onde o desenho termina)
+    var svg = document.getElementById('padraoSvg');
+    var grid = document.getElementById('padraoGrid');
+    if (svg && grid) {
+        var defs = svg.querySelector('defs');
+        svg.innerHTML = '';
+        svg.appendChild(defs);
+
+        if (_padraoSeq.length > 1) {
+            var gridRect = grid.getBoundingClientRect();
+            var pontos = _padraoSeq.map(function(n) {
+                var dot = grid.querySelector('.sd-dot[data-n="' + n + '"]');
+                var r = dot.getBoundingClientRect();
+                return {
+                    x: r.left + r.width / 2 - gridRect.left,
+                    y: r.top + r.height / 2 - gridRect.top
+                };
+            });
+
+            for (var i = 0; i < pontos.length - 1; i++) {
+                var linha = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                linha.setAttribute('x1', pontos[i].x);
+                linha.setAttribute('y1', pontos[i].y);
+                linha.setAttribute('x2', pontos[i + 1].x);
+                linha.setAttribute('y2', pontos[i + 1].y);
+                linha.setAttribute('stroke', '#3b82f6');
+                linha.setAttribute('stroke-width', '3');
+                linha.setAttribute('stroke-linecap', 'round');
+                // Seta só no último trecho, indicando onde o desenho termina
+                if (i === pontos.length - 2) {
+                    linha.setAttribute('marker-end', 'url(#setaPadrao)');
+                }
+                svg.appendChild(linha);
+            }
+        }
+    }
+
+    var v = _padraoSeq.join('-');
+    var elVis   = document.getElementById('senhaValorPadrao');
+    var elFinal = document.getElementById('senhaValorFinal');
+    if (elVis)   elVis.value   = v;
+    if (elFinal) elFinal.value = v;
+}
+
+function sisosPatternClear() { _padraoSeq = []; sisosPatternRender(); }
+
+// ── Desenhar o padrão arrastando (mouse ou dedo), igual a um desbloqueio
+//    de tela de verdade — clicar em um ponto só também funciona. ──────
+(function() {
+    var grid = document.getElementById('padraoGrid');
+    if (!grid) return;
+    var arrastando = false;
+
+    function pontoNoEvento(clientX, clientY) {
+        var el = document.elementFromPoint(clientX, clientY);
+        return el && el.classList.contains('sd-dot') ? parseInt(el.dataset.n) : null;
+    }
+
+    function iniciar(clientX, clientY) {
+        var n = pontoNoEvento(clientX, clientY);
+        if (n === null) return;
+        arrastando = true;
+        _padraoSeq = [n];
+        sisosPatternRender();
+    }
+    function continuar(clientX, clientY) {
+        if (!arrastando) return;
+        var n = pontoNoEvento(clientX, clientY);
+        if (n !== null && !_padraoSeq.includes(n)) {
+            _padraoSeq.push(n);
+            sisosPatternRender();
+        }
+    }
+    function finalizar() { arrastando = false; }
+
+    grid.addEventListener('mousedown', function(e) { iniciar(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', function(e) { if (arrastando) continuar(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', finalizar);
+
+    grid.addEventListener('touchstart', function(e) {
+        var t = e.touches[0];
+        iniciar(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    grid.addEventListener('touchmove', function(e) {
+        var t = e.touches[0];
+        continuar(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    grid.addEventListener('touchend', finalizar);
+
+    // Recalcula as linhas se a janela for redimensionada (posições dos pontos mudam)
+    window.addEventListener('resize', function() { if (_padraoSeq.length) sisosPatternRender(); });
+})();
+
+
+    // ── Checklist de Entrada ────────────────────────────────────────────
+    var _ckEntEstados = {};
+    <?php if (!empty($ckEntAtual)): ?>
+    _ckEntEstados = <?= json_encode($ckEntAtual) ?>;
+    <?php endif; ?>
+
+    function ckEntSetEstado(btn, estado) {
+        var item = btn.closest('.ck-item');
+        var nome = item.dataset.item;
+        _ckEntEstados[nome] = estado;
+        item.querySelectorAll('.ck-btn').forEach(function(b){ b.classList.remove('ok-ativo','def-ativo','nvf-ativo'); });
+        btn.classList.add(estado==='ok'?'ok-ativo':estado==='defeito'?'def-ativo':'nvf-ativo');
+        item.style.borderColor = estado==='ok'?'rgba(74,222,128,0.3)':estado==='defeito'?'rgba(248,113,113,0.3)':'rgba(107,114,128,0.2)';
+        _ckEntResumo(); _ckEntSer();
+    }
+    function _ckEntResumo(){
+        var ok=0,def=0,nvf=0;
+        Object.values(_ckEntEstados).forEach(function(v){if(v==='ok')ok++;else if(v==='defeito')def++;else nvf++;});
+        var eo=document.getElementById('erOk'),ed=document.getElementById('erDef'),en=document.getElementById('erNvf');
+        if(eo)eo.textContent=ok; if(ed)ed.textContent=def; if(en)en.textContent=nvf;
+    }
+    function _ckEntSer(){
+        var obs=document.getElementById('ckEntObs');
+        var json=JSON.stringify({itens:_ckEntEstados,obs:obs?obs.value:'',v:2});
+        var el=document.getElementById('checklistEntJson');
+        if(el) el.value=json;
+        var elForm=document.getElementById('checklistEntJsonForm');
+        if(elForm) elForm.value=json;
+    }
+
+    // ── Checklist de Saída ──────────────────────────────────────────────
+    var _ckSaidaEstados = {};
+    <?php if (!empty($ckSaidaAtual)): ?>
+    _ckSaidaEstados = <?= json_encode($ckSaidaAtual) ?>;
+    <?php endif; ?>
+
+    function ckSaidaSetEstado(btn, estado) {
+        var item = btn.closest('.ck-item');
+        var nome = item.dataset.item;
+        _ckSaidaEstados[nome] = estado;
+        item.querySelectorAll('.ck-btn').forEach(function(b){ b.classList.remove('ok-ativo','def-ativo','nvf-ativo'); });
+        btn.classList.add(estado==='ok'?'ok-ativo':estado==='defeito'?'def-ativo':'nvf-ativo');
+        item.style.borderColor = estado==='ok'?'rgba(74,222,128,0.3)':estado==='defeito'?'rgba(248,113,113,0.3)':'rgba(107,114,128,0.2)';
+        _ckSaidaResumo(); _ckSaidaSer();
+    }
+    function _ckSaidaResumo(){
+        var ok=0,def=0,nvf=0;
+        Object.values(_ckSaidaEstados).forEach(function(v){if(v==='ok')ok++;else if(v==='defeito')def++;else nvf++;});
+        var so=document.getElementById('srOk'),sd=document.getElementById('srDef'),sn=document.getElementById('srNvf');
+        if(so)so.textContent=ok; if(sd)sd.textContent=def; if(sn)sn.textContent=nvf;
+    }
+    function _ckSaidaSer(){
+        var obs=document.getElementById('ckSaidaObs');
+        var json=JSON.stringify({itens:_ckSaidaEstados,obs:obs?obs.value:'',v:2});
+        var el=document.getElementById('checklistSaidaJson');
+        if(el) el.value=json;
+        var elForm=document.getElementById('checklistSaidaJsonForm');
+        if(elForm) elForm.value=json;
+    }
+
+    // Restaurar visual ao carregar + sincronizar no submit
+    document.addEventListener('DOMContentLoaded', function(){
+        // Entrada
+        Object.entries(_ckEntEstados).forEach(function(e){
+            document.querySelectorAll('#eosTab7 .ck-item').forEach(function(item){
+                if(item.dataset.item===e[0]){
+                    var btn=item.querySelector('.ck-btn[data-estado="'+e[1]+'"]');
+                    if(btn) ckEntSetEstado(btn,e[1]);
+                }
+            });
+        });
+        // Saída
+        Object.entries(_ckSaidaEstados).forEach(function(e){
+            document.querySelectorAll('#eosTab8 .ck-item').forEach(function(item){
+                if(item.dataset.item===e[0]){
+                    var btn=item.querySelector('.ck-btn[data-estado="'+e[1]+'"]');
+                    if(btn) ckSaidaSetEstado(btn,e[1]);
+                }
+            });
+        });
+        _ckEntResumo(); _ckSaidaResumo();
+    });
+
+    $(document).ready(function() {
+    <?php if (($senhaAtual ?? '') === 'padrao'): ?>
+    sisosPatternRender(); // inicializa grid ao carregar — só quando o tipo salvo
+                           // é realmente "padrão", senão isso apagava o PIN
+                           // (ou qualquer outro tipo) assim que a página abria.
+    <?php endif; ?>
+
+
     // ── Tabs ───────────────────────────────────────────────
     $('.eos-tab').on('click', function() {
         var t = $(this).data('tab');
@@ -747,7 +1267,18 @@ $(document).ready(function() {
     $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
 
     // ── WYSIWYG dark ───────────────────────────────────────
+    // Inicializa editor Trumbowyg
     $('.editor').trumbowyg({ lang: 'pt_br', semantic: { 'strikethrough': 's' } });
+
+    // Sincroniza o conteúdo dos editores de volta para os textareas ANTES de submeter
+    $('form').on('submit', function() {
+        _ckEntSer(); _ckSaidaSer();
+        $('.editor').each(function() {
+            var $ta = $(this);
+            var html = $ta.trumbowyg('html');
+            $ta.val(html);
+        });
+    });
 
     // ── MaskMoney ──────────────────────────────────────────
     $('.money').maskMoney();
@@ -1033,5 +1564,9 @@ $(document).ready(function() {
     $('#quantidade,#quantidade_servico').on('keyup', function() {
         this.value = this.value.replace(/[^0-9]/g,'');
     });
+
+    // (O checklist agora é mantido sempre atualizado direto nos campos
+    // checklistEntJsonForm/checklistSaidaJsonForm, dentro do formOs — ver
+    // _ckEntSer()/_ckSaidaSer() acima. Não depende mais do evento "submit".)
 });
 </script>

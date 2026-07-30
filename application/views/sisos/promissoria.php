@@ -96,8 +96,22 @@
    PRINT CSS
 ══════════════════════════════ */
 @media print {
-    body > *:not(#promPrintArea) { display:none!important; }
-    #promPrintArea { display:block!important; margin:0!important; padding:15mm!important; box-shadow:none!important; }
+    /* Oculta tudo incluindo wrappers do layout */
+    body * { visibility:hidden !important; }
+    /* Mostra apenas a promissória */
+    #promPrintArea, #promPrintArea * { visibility:visible !important; }
+    #promPrintArea {
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        width:210mm !important;
+        min-height:297mm !important;
+        padding:15mm !important;
+        margin:0 !important;
+        background:#fff !important;
+        box-shadow:none !important;
+        z-index:99999 !important;
+    }
     @page { size:A4; margin:0; }
 }
 </style>
@@ -422,20 +436,30 @@ function preencherPrint() {
 
 function imprimirPromissoria() {
     if (!preencherPrint()) return;
-    window.print();
+    // Garante que a área está visível antes de abrir o diálogo
+    document.getElementById('promPrintArea').style.display = 'block';
+    setTimeout(function(){
+        window.print();
+        // Restaura após impressão
+        setTimeout(function(){
+            document.getElementById('promPrintArea').style.display = 'none';
+        }, 1000);
+    }, 150);
 }
 
 function gerarPDF() {
     if (!preencherPrint()) return;
-
-    // Usa o print do navegador em modo PDF
     var originalTitle = document.title;
     var num = $('#prom_numero').val() || 'promissoria';
     document.title = 'Promissoria_' + num.replace(/\//g,'-');
-
-    // Força Print para PDF
-    window.print();
-    document.title = originalTitle;
+    document.getElementById('promPrintArea').style.display = 'block';
+    setTimeout(function(){
+        window.print();
+        document.title = originalTitle;
+        setTimeout(function(){
+            document.getElementById('promPrintArea').style.display = 'none';
+        }, 1000);
+    }, 150);
 }
 
 function limparForm() {

@@ -131,6 +131,34 @@ if (!empty($orcamentos)):
 </div>
 <?php endif; ?>
 
+<!-- Pesquisa de Satisfação — OS finalizadas ainda não avaliadas -->
+<?php if (!empty($pesquisasPendentes)): ?>
+<div class="mc-card" style="border-color:rgba(167,139,250,0.4);margin-bottom:14px;">
+    <div class="mc-card-head" style="background:rgba(167,139,250,0.07);">
+        <div class="mc-card-head-left">
+            <i class='bx bx-happy-heart-eyes' style="color:#a78bfa;"></i>
+            <span style="color:#a78bfa;">Avalie seu atendimento</span>
+        </div>
+        <span class="mc-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;"><?= count($pesquisasPendentes) ?></span>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+        <?php foreach ($pesquisasPendentes as $p): ?>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 14px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:12.5px;font-weight:700;color:#e8eaf0;">OS #<?= str_pad($p->idOs, 4, '0', STR_PAD_LEFT) ?></div>
+                <div style="font-size:11.5px;color:#9ca3af;">
+                    <?= htmlspecialchars(trim(strip_tags($p->descricaoProduto ?? '')) ?: 'Seu aparelho') ?>
+                </div>
+            </div>
+            <a href="<?= base_url() ?>index.php/mine/pesquisa/<?= $p->idOs ?>" target="_blank" class="mc-btn mc-btn-success">
+                <i class='bx bx-star'></i> Avaliar
+            </a>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Últimas OS -->
 <div class="mc-card">
     <div class="mc-card-head">

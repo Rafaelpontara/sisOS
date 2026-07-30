@@ -1,603 +1,224 @@
-<div class="span12" style="margin-left: 0">
-    <form action="<?php echo base_url(); ?>index.php/permissoes/adicionar" id="formPermissao" method="post">
-        <div class="span12" style="margin-left: 0">
-            <div class="widget-box">
-                <div class="widget-title" style="margin: -20px 0 0">
-               <span class="icon">
-               <i class="fas fa-lock"></i>
-               </span>
-                    <h5>Cadastro de Permissão</h5>
+<script src="<?= base_url() ?>assets/js/validate.js"></script>
+
+<style>
+.fp-wrap { max-width: 900px; }
+.fp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.fp-title { display: flex; align-items: center; gap: 10px; }
+.fp-title i { font-size: 22px; color: #f59e0b; }
+.fp-title h4 { margin: 0; font-size: 16px; font-weight: 700; color: #e2e4f0; }
+
+/* Nome da permissão */
+.fp-top-card { background: #181b2a; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.fp-nome-field { flex: 1; min-width: 220px; }
+.fp-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 5px; }
+.fp-input { background: #13151f; border: 1px solid #3b3f58; color: #e2e4f0; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; width: 100%; box-sizing: border-box; transition: border-color .15s; }
+.fp-input:focus { border-color: #f59e0b; outline: none; box-shadow: 0 0 0 3px rgba(245,158,11,.1); }
+.fp-input::placeholder { color: #4b5563; font-weight: 400; }
+.fp-input.error { border-color: #f87171; }
+
+/* Marcar todos */
+.fp-mark-all { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.fp-mark-all input[type=checkbox] { display: none; }
+.fp-mark-all .fp-toggle { width: 36px; height: 20px; background: #3b3f58; border-radius: 20px; position: relative; transition: background .2s; flex-shrink: 0; }
+.fp-mark-all .fp-toggle::after { content: ''; width: 14px; height: 14px; background: #fff; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left .2s; }
+.fp-mark-all.checked .fp-toggle { background: #f59e0b; }
+.fp-mark-all.checked .fp-toggle::after { left: 19px; }
+.fp-mark-all span { font-size: 12px; font-weight: 700; color: #d97706; }
+
+/* Módulos */
+.fp-module { background: #181b2a; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+.fp-module-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; cursor: pointer; transition: background .15s; user-select: none; }
+.fp-module-head:hover { background: rgba(255,255,255,.03); }
+.fp-module-head-left { display: flex; align-items: center; gap: 10px; }
+.fp-module-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.fp-module-icon i { font-size: 16px; }
+.fp-module-name { font-size: 13px; font-weight: 700; color: #e2e4f0; }
+.fp-module-count { font-size: 11px; color: #6b7280; background: rgba(255,255,255,.06); padding: 2px 8px; border-radius: 10px; }
+.fp-chevron { font-size: 16px; color: #6b7280; transition: transform .2s; }
+.fp-module.open .fp-chevron { transform: rotate(180deg); }
+.fp-module-body { display: none; padding: 16px 18px; border-top: 1px solid rgba(255,255,255,.05); }
+.fp-module.open .fp-module-body { display: block; }
+.fp-perms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.fp-perm-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #13151f; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; cursor: pointer; transition: all .15s; }
+.fp-perm-item:hover { border-color: rgba(255,255,255,.15); background: #1a1e30; }
+.fp-perm-item input[type=checkbox] { display: none; }
+.fp-perm-box { width: 16px; height: 16px; border: 2px solid #3b3f58; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.fp-perm-box i { font-size: 11px; color: #fff; opacity: 0; transition: opacity .1s; }
+.fp-perm-item.checked .fp-perm-box { background: #f59e0b; border-color: #f59e0b; }
+.fp-perm-item.checked .fp-perm-box i { opacity: 1; }
+.fp-perm-label { font-size: 12px; color: #c9cad6; font-weight: 500; }
+.fp-perm-item.checked .fp-perm-label { color: #fbbf24; font-weight: 600; }
+
+/* Ações */
+.fp-actions { display: flex; gap: 10px; margin-top: 4px; }
+.fp-btn-save { display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; background: linear-gradient(135deg,#f59e0b,#d97706); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+.fp-btn-save:hover { opacity: .85; }
+.fp-btn-back { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; background: rgba(255,255,255,.06); color: #9ca3af; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all .15s; }
+.fp-btn-back:hover { background: rgba(255,255,255,.1); color: #e2e4f0; }
+span.error { color: #f87171; font-size: 11px; margin-top: 3px; display: block; }
+</style>
+
+<div class="fp-wrap">
+    <div class="fp-header">
+        <div class="fp-title">
+            <i class='bx bx-shield-quarter'></i>
+            <h4>Cadastro de Permissão</h4>
+        </div>
+        <a href="<?= site_url() ?>/permissoes" class="fp-btn-back">
+            <i class='bx bx-arrow-back'></i> Voltar
+        </a>
+    </div>
+
+    <form action="<?= base_url() ?>index.php/permissoes/adicionar" id="formPermissao" method="post">
+
+        <!-- Nome + Marcar todos -->
+        <div class="fp-top-card">
+            <div class="fp-nome-field">
+                <label class="fp-label">Nome da Permissão *</label>
+                <input type="text" name="nome" id="nome" class="fp-input" placeholder="Ex: Técnico, Atendente, Gerente...">
+            </div>
+            <div class="fp-mark-all" id="markAllToggle">
+                <input type="checkbox" id="marcarTodos" name="marcarTodos" value="1">
+                <div class="fp-toggle"></div>
+                <span>Marcar Todos</span>
+            </div>
+        </div>
+
+        <!-- Módulos de permissão -->
+        <?php
+        $modulos = [
+            ['id'=>'mod-clientes',   'icon'=>'bx-group',            'color'=>'#3b82f6', 'bg'=>'rgba(59,130,246,.12)',  'nome'=>'Clientes',              'perms'=>[
+                ['vCliente','Visualizar','checked'], ['aCliente','Adicionar',''], ['eCliente','Editar',''], ['dCliente','Excluir','']
+            ]],
+            ['id'=>'mod-produtos',   'icon'=>'bx-package',          'color'=>'#8b5cf6', 'bg'=>'rgba(139,92,246,.12)', 'nome'=>'Produtos',              'perms'=>[
+                ['vProduto','Visualizar','checked'], ['aProduto','Adicionar',''], ['eProduto','Editar',''], ['dProduto','Excluir','']
+            ]],
+            ['id'=>'mod-servicos',   'icon'=>'bx-wrench',           'color'=>'#06b6d4', 'bg'=>'rgba(6,182,212,.12)',  'nome'=>'Serviços',              'perms'=>[
+                ['vServico','Visualizar','checked'], ['aServico','Adicionar',''], ['eServico','Editar',''], ['dServico','Excluir','']
+            ]],
+            ['id'=>'mod-os',         'icon'=>'bx-file',             'color'=>'#f59e0b', 'bg'=>'rgba(245,158,11,.12)', 'nome'=>'Ordens de Serviço (OS)', 'perms'=>[
+                ['vOs','Visualizar','checked'], ['aOs','Adicionar',''], ['eOs','Editar',''], ['dOs','Excluir','']
+            ]],
+            ['id'=>'mod-solucoes',   'icon'=>'bx-bulb',             'color'=>'#fb923c', 'bg'=>'rgba(251,146,60,.12)', 'nome'=>'Soluções Técnicas',      'perms'=>[
+                ['vSolucao','Visualizar','checked'], ['aSolucao','Adicionar',''], ['eSolucao','Editar',''], ['dSolucao','Excluir','']
+            ]],
+            ['id'=>'mod-pedidos',    'icon'=>'bx-cart-alt',         'color'=>'#a78bfa', 'bg'=>'rgba(167,139,250,.12)', 'nome'=>'Pedidos & Anotações',    'perms'=>[
+                ['vPedido','Visualizar','checked'], ['aPedido','Adicionar',''], ['ePedido','Editar',''], ['dPedido','Excluir','']
+            ]],
+            ['id'=>'mod-vendas',     'icon'=>'bx-cart-alt',         'color'=>'#22c55e', 'bg'=>'rgba(34,197,94,.12)',  'nome'=>'Vendas',                'perms'=>[
+                ['vVenda','Visualizar','checked'], ['aVenda','Adicionar',''], ['eVenda','Editar',''], ['dVenda','Excluir','']
+            ]],
+            ['id'=>'mod-cobrancas',  'icon'=>'bx-credit-card-front','color'=>'#ef4444', 'bg'=>'rgba(239,68,68,.12)',  'nome'=>'Cobranças',             'perms'=>[
+                ['vCobranca','Visualizar','checked'], ['aCobranca','Adicionar',''], ['eCobranca','Editar',''], ['dCobranca','Excluir','']
+            ]],
+            ['id'=>'mod-garantias',  'icon'=>'bx-shield-check',     'color'=>'#a78bfa', 'bg'=>'rgba(167,139,250,.12)','nome'=>'Garantias',             'perms'=>[
+                ['vGarantia','Visualizar','checked'], ['aGarantia','Adicionar',''], ['eGarantia','Editar',''], ['dGarantia','Excluir','']
+            ]],
+            ['id'=>'mod-arquivos',   'icon'=>'bx-folder',           'color'=>'#fb923c', 'bg'=>'rgba(251,146,60,.12)', 'nome'=>'Arquivos',              'perms'=>[
+                ['vArquivo','Visualizar','checked'], ['aArquivo','Adicionar',''], ['eArquivo','Editar',''], ['dArquivo','Excluir','']
+            ]],
+            ['id'=>'mod-financeiro', 'icon'=>'bx-bar-chart-alt-2',  'color'=>'#34d399', 'bg'=>'rgba(52,211,153,.12)', 'nome'=>'Financeiro',            'perms'=>[
+                ['vPagamento','Ver Pagamento','checked'], ['aPagamento','Add Pagamento',''], ['ePagamento','Editar Pgto',''], ['dPagamento','Excluir Pgto',''],
+                ['vLancamento','Ver Lançamento','checked'],['aLancamento','Add Lançamento',''],['eLancamento','Editar Lanç.',''],['dLancamento','Excluir Lanç.','']
+            ]],
+            ['id'=>'mod-relatorios', 'icon'=>'bx-chart',            'color'=>'#60a5fa', 'bg'=>'rgba(96,165,250,.12)', 'nome'=>'Relatórios',            'perms'=>[
+                ['rCliente','Rel. Clientes',''], ['rServico','Rel. Serviços',''], ['rOs','Rel. OS',''], ['rProduto','Rel. Produtos',''],
+                ['rVenda','Rel. Vendas',''],     ['rFinanceiro','Rel. Financeiro','']
+            ]],
+            ['id'=>'mod-sistema',    'icon'=>'bx-cog',              'color'=>'#9ca3af', 'bg'=>'rgba(156,163,175,.12)','nome'=>'Configurações e Sistema','perms'=>[
+                ['cUsuario','Usuários',''], ['cEmitente','Emitente',''], ['cPermissao','Permissões',''], ['cBackup','Backup',''],
+                ['cAuditoria','Auditoria',''], ['cEmail','E-mails',''],  ['cSistema','Sistema','']
+            ]],
+        ];
+        ?>
+
+        <?php foreach ($modulos as $i => $mod): ?>
+        <div class="fp-module <?= $i === 0 ? 'open' : '' ?>" id="<?= $mod['id'] ?>">
+            <div class="fp-module-head" onclick="toggleMod('<?= $mod['id'] ?>')">
+                <div class="fp-module-head-left">
+                    <div class="fp-module-icon" style="background:<?= $mod['bg'] ?>">
+                        <i class='bx <?= $mod['icon'] ?>' style="color:<?= $mod['color'] ?>;"></i>
+                    </div>
+                    <span class="fp-module-name"><?= $mod['nome'] ?></span>
+                    <span class="fp-module-count"><?= count($mod['perms']) ?> permissões</span>
                 </div>
-                <div class="widget-content">
-                    <div class="span6">
-                        <label>Nome da Permissão</label>
-                        <input name="nome" type="text" id="nome" class="span12" />
-                    </div>
-                    <div class="span6">
-                        <br />
-                        <label>
-                            <input name="marcarTodos" type="checkbox" value="1" id="marcarTodos" />
-                            <span class="lbl"> Marcar Todos</span>
+                <i class='bx bx-chevron-down fp-chevron'></i>
+            </div>
+            <div class="fp-module-body">
+                <div class="fp-perms-grid">
+                    <?php foreach ($mod['perms'] as $perm): ?>
+                        <label class="fp-perm-item <?= $perm[2] ? 'checked' : '' ?>" onclick="togglePerm(this)">
+                            <input type="checkbox" name="<?= $perm[0] ?>" class="marcar" value="1" <?= $perm[2] ? 'checked' : '' ?>>
+                            <div class="fp-perm-box"><i class='bx bx-check'></i></div>
+                            <span class="fp-perm-label"><?= $perm[1] ?></span>
                         </label>
-                        <br />
-                    </div>
-                    <div class="accordion" id="collapse-group">
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
-                                      <span><i class='bx bx-group icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Clientes</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse in accordion-body" id="collapseGOne">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vCliente" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Cliente</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aCliente" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Cliente</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eCliente" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Cliente</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dCliente" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Cliente</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGTwo" data-toggle="collapse">
-                                      <span><i class='bx bx-package icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Produtos</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGTwo">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vProduto" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Produto</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aProduto" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Produto</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eProduto" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Produto</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dProduto" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Produto</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree" data-toggle="collapse">
-                                      <span><i class='bx bx-stopwatch icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Serviços</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vServico" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Serviço</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aServico" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Serviço</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eServico" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Serviço</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dServico" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Serviço</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree3" data-toggle="collapse">
-                                      <span><i class='bx bx-spreadsheet icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Ordem de Serviços - OS</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree3">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vOs" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar OS</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aOs" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar OS</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eOs" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar OS</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dOs" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir OS</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree33" data-toggle="collapse">
-                                      <span><i class='bx bx-cart-alt icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Vendas</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree33">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vVenda" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Venda</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aVenda" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Venda</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eVenda" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Venda</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dVenda" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Venda</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree333" data-toggle="collapse">
-                                      <span><i class='bx bx-credit-card-front icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Cobranças</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree333">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vCobranca" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Cobranças</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aCobranca" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Cobranças</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eCobranca" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Cobranças</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dCobranca" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Cobranças</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree3333" data-toggle="collapse">
-                                      <span><i class='bx bx-receipt icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Garantias</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree3333">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vGarantia" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Garantia</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aGarantia" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Garantia</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eGarantia" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Garantia</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dGarantia" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Garantia</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree33333" data-toggle="collapse">
-                                      <span><i class='bx bx-box icon-cli'></i></span>
-                                      <h5 style="padding-left: 28px">Arquivos</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree33333">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vArquivo" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Arquivo</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aArquivo" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Arquivo</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eArquivo" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Arquivo</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dArquivo" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Arquivo</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree333343" data-toggle="collapse">
-                                      <span><i class="bx bx-bar-chart-square icon-cli"></i></span>
-                                      <h5 style="padding-left: 28px">Financeiro</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree333343">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vPagamento" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Pagamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aPagamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Pagamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="ePagamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Pagamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dPagamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Pagamento</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="vLancamento" class="marcar" type="checkbox" checked="checked" value="1" />
-                                                    <span class="lbl"> Visualizar Lançamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="aLancamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Adicionar Lançamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="eLancamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Editar Lançamento</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="dLancamento" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Excluir Lançamento</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree333335" data-toggle="collapse">
-                                      <span><i class="bx bx-chart icon-cli"></i></span>
-                                      <h5 style="padding-left: 28px">Relatórios</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree333335">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="rCliente" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório Cliente</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="rServico" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório Serviço</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="rOs" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório OS</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="rProduto" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório Produto</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="rVenda" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório Venda</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="rFinanceiro" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Relatório Financeiro</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-group widget-box">
-                            <div class="accordion-heading">
-                                <div class="widget-title">
-                                    <a data-parent="#collapse-group" href="#collapseGThree333338" data-toggle="collapse">
-                                      <span><i class="bx bx-cog icon-cli"></i></span>
-                                      <h5 style="padding-left: 28px">Configurações e Sistema</h5>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="collapse accordion-body" id="collapseGThree333338">
-                                <div class="widget-content">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="cUsuario" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Configurar Usuário</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="cEmitente" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Configurar Emitente</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="cPermissao" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Configurar Permissão</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="cBackup" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Backup</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <label>
-                                                    <input name="cAuditoria" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Auditoria</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="cEmail" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Emails</span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label>
-                                                    <input name="cSistema" class="marcar" type="checkbox" value="1" />
-                                                    <span class="lbl"> Sistema</span>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display:flex;justify-content: center">
-                                <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Confirmar</span></button>
-                                <a title="Voltar" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/permissoes">
-                                  <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
+        <?php endforeach; ?>
+
+        <div class="fp-actions">
+            <button type="submit" class="fp-btn-save">
+                <i class='bx bx-shield-plus'></i> Criar Permissão
+            </button>
+            <a href="<?= site_url() ?>/permissoes" class="fp-btn-back">
+                <i class='bx bx-x'></i> Cancelar
+            </a>
+        </div>
+
     </form>
 </div>
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/validate.js"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#marcarTodos").change(function() {
-            $("input:checkbox").prop('checked', $(this).prop("checked"));
-        });
-        $("#formPermissao").validate({
-            rules: {
-                nome: {
-                    required: true
-                }
-            },
-            messages: {
-                nome: {
-                    required: 'Campo obrigatório'
-                }
-            }
+
+<script>
+$(document).ready(function() {
+
+    // Toggle módulo
+    window.toggleMod = function(id) {
+        var el = document.getElementById(id);
+        el.classList.toggle('open');
+    };
+
+    // Toggle permissão individual
+    window.togglePerm = function(label) {
+        var cb = label.querySelector('input[type=checkbox]');
+        cb.checked = !cb.checked;
+        label.classList.toggle('checked', cb.checked);
+        atualizarMarkAll();
+    };
+
+    // Marcar todos toggle
+    $('#markAllToggle').click(function(e) {
+        if ($(e.target).is('input')) return;
+        var cb = $('#marcarTodos');
+        var novoEstado = !cb.prop('checked');
+        cb.prop('checked', novoEstado);
+        $(this).toggleClass('checked', novoEstado);
+        $('.marcar').each(function() {
+            $(this).prop('checked', novoEstado);
+            $(this).closest('.fp-perm-item').toggleClass('checked', novoEstado);
         });
     });
+
+    function atualizarMarkAll() {
+        var total   = $('.marcar').length;
+        var checked = $('.marcar:checked').length;
+        var todos   = total === checked;
+        $('#marcarTodos').prop('checked', todos);
+        $('#markAllToggle').toggleClass('checked', todos);
+    }
+
+    // Abrir todos os módulos com itens marcados
+    $('.marcar:checked').each(function() {
+        $(this).closest('.fp-module').addClass('open');
+    });
+
+    // Validação
+    $('#formPermissao').validate({
+        rules: { nome: { required: true } },
+        messages: { nome: { required: 'Informe o nome da permissão' } },
+        errorClass: 'error',
+        errorElement: 'span'
+    });
+});
 </script>

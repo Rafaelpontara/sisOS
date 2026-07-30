@@ -1,6 +1,14 @@
 <?php
 $totalServico  = 0;
 $totalProdutos = 0;
+
+// A logo salva no banco às vezes vem como caminho relativo (ex:
+// "assets/uploads/arquivo.png"), o que quebra dependendo da URL da página
+// atual. Se não começar com http(s):// ou //, completa com o endereço do site.
+$logoSrc = $emitente->url_logo ?? '';
+if ($logoSrc && !preg_match('#^(https?:)?//#i', $logoSrc)) {
+    $logoSrc = base_url() . ltrim($logoSrc, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -22,7 +30,7 @@ $totalProdutos = 0;
                     </div>
                 <?php else : ?>
                     <div class="imgLogo" class="align-middle">
-                        <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
+                        <img src="<?= $logoSrc ?>" class="img-fluid" style="width:140px;">
                     </div>
                     <div class="emitente">
                         <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
@@ -30,7 +38,7 @@ $totalProdutos = 0;
                             <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
                         <?php endif; ?>
                         <span class="align-middle">
-                            <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
+                            Endereço: <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
                             <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
                         </span>
                     </div>
@@ -86,15 +94,105 @@ $totalProdutos = 0;
                     <div>
                         <span><b><?= $result->nomeCliente ?></b></span><br />
                         <span>CPF/CNPJ: <?= $result->documento ?></span><br />
-                        <span><?= $result->contato_cliente.' '.$result->telefone ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
-                        <span><?= $result->email ?></span><br />
+                        <span>Contato: <?= trim($result->contato_cliente.' '.$result->telefone.($result->telefone && $result->celular ? ' / '.$result->celular : $result->celular)) ?></span><br />
+                        <span>E-mail: <?= $result->email ?></span><br />
                     </div>
                     <div style="text-align: right;">
-                        <span><?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
+                        <span>Endereço: <?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
                         <span><?= $result->complemento.' - '.$result->cidade.' - '.$result->estado ?></span><br />
                         <span>CEP: <?= $result->cep ?></span><br />
                     </div>
                 </div>
+
+                <?php if (!empty($result->equipamento) || !empty($result->numeroSerie)) : ?>
+                    <div class="subtitle">EQUIPAMENTO</div>
+                    <div class="dados">
+                        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                            <?php if (!empty($result->equipamento)) : ?>
+                            <div>
+                                <b>Equipamento / Produto:</b> <?= htmlspecialchars((string)$result->equipamento) ?>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($result->numeroSerie)) : ?>
+                            <div>
+                                <b>Nº de Série / IMEI:</b> <?= htmlspecialchars((string)$result->numeroSerie) ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+
+
+                <?php
+                // ── Senha do Celular ──────────────────────────────────────
+                $tipoLabelA4 = [
+                    'pin'    => 'PIN / Código Numérico',
+                    'padrao' => 'Padrão de Desbloqueio (Android)',
+                ];
+                if (!empty($result->senha_tipo)):
+                    $labelSenha = $tipoLabelA4[$result->senha_tipo] ?? $result->senha_tipo;
+                ?>
+                <div class="subtitle">SENHA DO CELULAR</div>
+                <div class="dados">
+                    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+                        <div><b>Tipo:</b> <?= htmlspecialchars($labelSenha) ?></div>
+                        <?php if (!empty($result->senha_valor)): ?>
+                        <div>
+                            <b>Código:</b>
+                            <span style="font-family:monospace;font-size:14px;font-weight:700;
+                                         background:#f1f5f9;padding:2px 10px;border-radius:4px;
+                                         border:1.5px solid #cbd5e1;">
+                                <?= htmlspecialchars($result->senha_valor) ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php
+                // ── Checklist de Entrada (só imprime se ?checklist=1) ─────
+                $exibirChecklist = ($this->input->get('checklist') == '1');
+                if ($exibirChecklist && !empty($result->checklist)):
+                    $_ckA4  = json_decode($result->checklist, true) ?: [];
+                    $_ckA4v = $_ckA4['v'] ?? 1;
+                    if (!empty($_ckA4['itens']) || !empty($_ckA4['obs'])):
+                ?>
+                <div class="subtitle">CHECKLIST DE ENTRADA</div>
+                <div class="dados">
+                    <?php if (!empty($_ckA4['itens'])): ?>
+                    <?php if ($_ckA4v == 2): ?>
+                    <!-- Formato novo v2: item => estado -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-bottom:6px;">
+                        <?php foreach($_ckA4['itens'] as $_itNome => $_itEst):
+                            $s   = $_itEst==='ok' ? '✓' : ($_itEst==='defeito' ? '⚠' : '—');
+                            $cor = $_itEst==='ok' ? '#16a34a' : ($_itEst==='defeito' ? '#dc2626' : '#9ca3af');
+                            $lbl = $_itEst==='ok' ? 'OK' : ($_itEst==='defeito' ? 'DEFEITO' : 'N/V');
+                        ?>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:11px;padding:2px 0;">
+                            <span style="color:<?= $cor ?>;font-weight:700;min-width:10px;"><?= $s ?></span>
+                            <span style="flex:1;"><?= htmlspecialchars($_itNome) ?></span>
+                            <span style="font-size:9px;font-weight:700;color:<?= $cor ?>;background:<?= $_itEst==='defeito' ? '#fef2f2' : ($_itEst==='ok' ? '#f0fdf4' : '#f9fafb') ?>;padding:1px 5px;border-radius:3px;"><?= $lbl ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                    <!-- Formato legado v1: array simples -->
+                    <div style="display:flex;flex-wrap:wrap;gap:3px 22px;margin-bottom:6px;">
+                        <?php foreach($_ckA4['itens'] as $_itNome => $_itEst): ?>
+                        <div style="font-size:11px;"><span style="color:#16a34a;font-weight:700;">✓</span> <?= htmlspecialchars($_itEst) ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                    <?php endif; ?>
+                    <?php if (!empty($_ckA4['obs'])): ?>
+                    <div style="font-size:11px;color:#555;border-top:1px solid #e5e7eb;padding-top:4px;margin-top:4px;">
+                        <b>Obs.:</b> <?= nl2br(htmlspecialchars($_ckA4['obs'])) ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; endif; ?>
 
                 <?php if ($result->descricaoProduto) : ?>
                     <div class="subtitle">DESCRIÇÃO</div>
@@ -154,7 +252,7 @@ $totalProdutos = 0;
                                 <?php foreach ($produtos as $p) :
                                     $totalProdutos = $totalProdutos + $p->subTotal;
                                     echo '<tr>';
-                                    echo '  <td>' . $p->descricao . '</td>';
+                                    echo '  <td>' . htmlspecialchars($p->descricao ?? '') . '</td>';
                                     echo '  <td class="text-center">' . $p->quantidade . '</td>';
                                     echo '  <td class="text-center">' . number_format($p->preco ?: $p->precoVenda, 2, ',', '.') . '</td>';
                                     echo '  <td class="text-end">R$ ' . number_format($p->subTotal, 2, ',', '.') . '</td>';
@@ -188,7 +286,7 @@ $totalProdutos = 0;
                         $subtotal = $preco * ($s->quantidade ?: 1);
                         $totalServico = $totalServico + $subtotal;
                         echo '<tr>';
-                        echo '  <td>' . $s->nome . '</td>';
+                        echo '  <td>' . htmlspecialchars($s->nome ?? '') . '</td>';
                         echo '  <td class="text-center">' . ($s->quantidade ?: 1) . '</td>';
                         echo '  <td class="text-center">' . number_format($preco, 2, ',', '.') . '</td>';
                         echo '  <td class="text-end">R$ ' . number_format($subtotal, 2, ',', '.') . '</td>';
@@ -251,6 +349,38 @@ $totalProdutos = 0;
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <?php
+                // ── Checklist de Saída ────────────────────────────────────
+                if (!empty($result->checklist_saida)):
+                    $_ckS = json_decode($result->checklist_saida, true) ?: [];
+                    if (!empty($_ckS['itens']) || !empty($_ckS['obs'])):
+                ?>
+                <div class="subtitle">CHECKLIST DE SAÍDA</div>
+                <div class="dados">
+                    <?php if (!empty($_ckS['itens'])): ?>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-bottom:6px;">
+                        <?php foreach($_ckS['itens'] as $_sNome => $_sEst):
+                            $ss   = $_sEst==='ok' ? '✓' : ($_sEst==='defeito' ? '⚠' : '—');
+                            $sc   = $_sEst==='ok' ? '#16a34a' : ($_sEst==='defeito' ? '#dc2626' : '#9ca3af');
+                            $sl   = $_sEst==='ok' ? 'OK' : ($_sEst==='defeito' ? 'DEFEITO' : 'N/V');
+                        ?>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:11px;padding:2px 0;">
+                            <span style="color:<?= $sc ?>;font-weight:700;min-width:10px;"><?= $ss ?></span>
+                            <span style="flex:1;"><?= htmlspecialchars($_sNome) ?></span>
+                            <span style="font-size:9px;font-weight:700;color:<?= $sc ?>;background:<?= $_sEst==='defeito' ? '#fef2f2' : ($_sEst==='ok' ? '#f0fdf4' : '#f9fafb') ?>;padding:1px 5px;border-radius:3px;"><?= $sl ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($_ckS['obs'])): ?>
+                    <div style="font-size:11px;color:#555;border-top:1px solid #e5e7eb;padding-top:4px;margin-top:4px;">
+                        <b>Obs.:</b> <?= nl2br(htmlspecialchars($_ckS['obs'])) ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; endif; ?>
+
             </section>
             <footer>
                 <div class="detalhes">
@@ -274,7 +404,7 @@ $totalProdutos = 0;
                         </div>
                     <?php else : ?>
                         <div class="imgLogo" class="align-middle">
-                            <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
+                            <img src="<?= $logoSrc ?>" class="img-fluid" style="width:140px;">
                         </div>
                         <div class="emitente">
                             <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
@@ -282,7 +412,7 @@ $totalProdutos = 0;
                                 <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
                             <?php endif; ?>
                             <span class="align-middle">
-                                <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
+                                Endereço: <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
                                 <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
                             </span>
                         </div>
@@ -341,15 +471,106 @@ $totalProdutos = 0; ?>
                         <div>
                             <span><b><?= $result->nomeCliente ?></b></span><br />
                             <span>CPF/CNPJ: <?= $result->documento ?></span><br />
-                            <span><?= $result->contato_cliente.' '.$result->telefone ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
-                            <span><?= $result->email ?></span><br />
+                            <span>Contato: <?= trim($result->contato_cliente.' '.$result->telefone.($result->telefone && $result->celular ? ' / '.$result->celular : $result->celular)) ?></span><br />
+                            <span>E-mail: <?= $result->email ?></span><br />
                         </div>
                         <div style="text-align: right;">
-                            <span><?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
+                            <span>Endereço: <?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
                             <span><?= $result->complemento.' - '.$result->cidade.' - '.$result->estado ?></span><br />
                             <span>CEP: <?= $result->cep ?></span><br />
                         </div>
                     </div>
+
+                    <?php if (!empty($result->equipamento) || !empty($result->numeroSerie)) : ?>
+                        <div class="subtitle">EQUIPAMENTO</div>
+                        <div class="dados">
+                            <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                                <?php if (!empty($result->equipamento)) : ?>
+                                <div><b>Equipamento / Produto:</b> <?= htmlspecialchars((string)$result->equipamento) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($result->numeroSerie)) : ?>
+                                <div><b>Nº de Série / IMEI:</b> <?= htmlspecialchars((string)$result->numeroSerie) ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+
+                    <?php
+                // ── Senha do Celular ──────────────────────────────────────
+                $tipoLabelA4 = [
+                    'pin'            => 'PIN / Código Numérico',
+                    'padrao'         => 'Padrão de Desbloqueio (Android)',
+                    'face'           => 'Reconhecimento Facial',
+                    'digital'        => 'Digital (Fingerprint)',
+                    'iphone_face'    => 'Face ID (iPhone)',
+                    'iphone_digital' => 'Touch ID (iPhone)',
+                ];
+                if (!empty($result->senha_tipo)):
+                    $labelSenha = $tipoLabelA4[$result->senha_tipo] ?? $result->senha_tipo;
+                ?>
+                    <div class="subtitle">SENHA DO CELULAR</div>
+                    <div class="dados">
+                        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+                            <div><b>Tipo:</b> <?= htmlspecialchars($labelSenha) ?></div>
+                            <?php if (!empty($result->senha_valor)): ?>
+                            <div>
+                            <b>Código:</b>
+                            <span style="font-family:monospace;font-size:14px;font-weight:700;
+                                         background:#f1f5f9;padding:2px 10px;border-radius:4px;
+                                         border:1.5px solid #cbd5e1;">
+                                    <?= htmlspecialchars($result->senha_valor) ?>
+                            </span>
+                        </div>
+                            <?php endif; ?>
+                    </div>
+                </div>
+                    <?php endif; ?>
+
+                    <?php
+                // ── Checklist de Entrada ──────────────────────────────────
+                $_ckA4 = null;
+                if ($exibirChecklist && !empty($result->checklist)) $_ckA4 = json_decode($result->checklist, true);
+                $_ckA4v2 = isset($_ckA4['v']) ? $_ckA4['v'] : 1;
+                if ($_ckA4 && (!empty($_ckA4['itens']) || !empty($_ckA4['obs']))):
+                ?>
+                    <div class="subtitle">CHECKLIST DE ENTRADA</div>
+                    <div class="dados">
+                        <?php if (!empty($_ckA4['itens'])): ?>
+                        <?php if ($_ckA4v2 == 2): ?>
+                        <!-- Formato novo v2: item => estado -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-bottom:6px;">
+                            <?php foreach($_ckA4['itens'] as $_itNome => $_itEst):
+                                $s2   = $_itEst==='ok' ? '✓' : ($_itEst==='defeito' ? '⚠' : '—');
+                                $cor2 = $_itEst==='ok' ? '#16a34a' : ($_itEst==='defeito' ? '#dc2626' : '#9ca3af');
+                                $lbl2 = $_itEst==='ok' ? 'OK' : ($_itEst==='defeito' ? 'DEFEITO' : 'N/V');
+                            ?>
+                            <div style="display:flex;align-items:center;gap:4px;font-size:11px;padding:2px 0;">
+                                <span style="color:<?= $cor2 ?>;font-weight:700;min-width:10px;"><?= $s2 ?></span>
+                                <span style="flex:1;"><?= htmlspecialchars($_itNome) ?></span>
+                                <span style="font-size:9px;font-weight:700;color:<?= $cor2 ?>;background:<?= $_itEst==='defeito' ? '#fef2f2' : ($_itEst==='ok' ? '#f0fdf4' : '#f9fafb') ?>;padding:1px 5px;border-radius:3px;"><?= $lbl2 ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php else: ?>
+                        <!-- Formato legado v1: array simples -->
+                        <div style="display:flex;flex-wrap:wrap;gap:4px 24px;margin-bottom:6px;">
+                            <?php foreach($_ckA4['itens'] as $_itEst): ?>
+                            <div style="display:flex;align-items:center;gap:5px;font-size:12px;">
+                                <span style="color:#22c55e;font-size:13px;font-weight:700;">✓</span>
+                                <?= htmlspecialchars($_itEst) ?>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                        <?php endif; ?>
+                        <?php if (!empty($_ckA4['obs'])): ?>
+                        <div style="font-size:12px;color:#555;border-top:1px solid #e5e7eb;padding-top:5px;margin-top:4px;">
+                            <b>Obs.:</b> <?= nl2br(htmlspecialchars($_ckA4['obs'])) ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
 
                     <?php if ($result->descricaoProduto) : ?>
                         <div class="subtitle">DESCRIÇÃO</div>
@@ -409,7 +630,7 @@ $totalProdutos = 0; ?>
                                     <?php foreach ($produtos as $p) :
                                         $totalProdutos = $totalProdutos + $p->subTotal;
                                         echo '<tr>';
-                                        echo '  <td>' . $p->descricao . '</td>';
+                                        echo '  <td>' . htmlspecialchars($p->descricao ?? '') . '</td>';
                                         echo '  <td class="text-center">' . $p->quantidade . '</td>';
                                         echo '  <td class="text-center">' . number_format($p->preco ?: $p->precoVenda, 2, ',', '.') . '</td>';
                                         echo '  <td class="text-end">R$ ' . number_format($p->subTotal, 2, ',', '.') . '</td>';
@@ -443,7 +664,7 @@ $totalProdutos = 0; ?>
                             $subtotal = $preco * ($s->quantidade ?: 1);
                             $totalServico = $totalServico + $subtotal;
                             echo '<tr>';
-                            echo '  <td>' . $s->nome . '</td>';
+                            echo '  <td>' . htmlspecialchars($s->nome ?? '') . '</td>';
                             echo '  <td class="text-center">' . ($s->quantidade ?: 1) . '</td>';
                             echo '  <td class="text-center">' . number_format($preco, 2, ',', '.') . '</td>';
                             echo '  <td class="text-end">R$ ' . number_format($subtotal, 2, ',', '.') . '</td>';
@@ -506,6 +727,38 @@ $totalProdutos = 0; ?>
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <?php
+                // ── Checklist de Saída ────────────────────────────────────
+                if (!empty($result->checklist_saida)):
+                    $_ckS = json_decode($result->checklist_saida, true) ?: [];
+                    if (!empty($_ckS['itens']) || !empty($_ckS['obs'])):
+                ?>
+                    <div class="subtitle">CHECKLIST DE SAÍDA</div>
+                    <div class="dados">
+                        <?php if (!empty($_ckS['itens'])): ?>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin-bottom:6px;">
+                            <?php foreach($_ckS['itens'] as $_sNome => $_sEst):
+                            $ss   = $_sEst==='ok' ? '✓' : ($_sEst==='defeito' ? '⚠' : '—');
+                            $sc   = $_sEst==='ok' ? '#16a34a' : ($_sEst==='defeito' ? '#dc2626' : '#9ca3af');
+                            $sl   = $_sEst==='ok' ? 'OK' : ($_sEst==='defeito' ? 'DEFEITO' : 'N/V');
+                        ?>
+                            <div style="display:flex;align-items:center;gap:4px;font-size:11px;padding:2px 0;">
+                            <span style="color:<?= $sc ?>;font-weight:700;min-width:10px;"><?= $ss ?></span>
+                            <span style="flex:1;"><?= htmlspecialchars($_sNome) ?></span>
+                            <span style="font-size:9px;font-weight:700;color:<?= $sc ?>;background:<?= $_sEst==='defeito' ? '#fef2f2' : ($_sEst==='ok' ? '#f0fdf4' : '#f9fafb') ?>;padding:1px 5px;border-radius:3px;"><?= $sl ?></span>
+                        </div>
+                            <?php endforeach; ?>
+                    </div>
+                        <?php endif; ?>
+                        <?php if (!empty($_ckS['obs'])): ?>
+                        <div style="font-size:11px;color:#555;border-top:1px solid #e5e7eb;padding-top:4px;margin-top:4px;">
+                        <b>Obs.:</b> <?= nl2br(htmlspecialchars($_ckS['obs'])) ?>
+                    </div>
+                        <?php endif; ?>
+                </div>
+                    <?php endif; endif; ?>
+
                 </section>
                 <footer>
                     <div class="detalhes">
@@ -530,7 +783,7 @@ $totalProdutos = 0; ?>
                         </div>
                     <?php else : ?>
                         <div id="imgLogo" class="align-middle">
-                            <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
+                            <img src="<?= $logoSrc ?>" class="img-fluid" style="width:140px;">
                         </div>
                         <div style="padding-left: 10px; padding-right: 10px; margin-top: 3px;">
                             <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
@@ -538,7 +791,7 @@ $totalProdutos = 0; ?>
                                 <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
                             <?php endif; ?>
                             <span class="align-middle">
-                                <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
+                                Endereço: <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
                                 <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
                             </span>
                         </div>

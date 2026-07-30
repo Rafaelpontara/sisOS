@@ -50,6 +50,13 @@ class MY_Controller extends CI_Controller
     {
         parent::__construct();
 
+        // Impede o navegador de cachear páginas do sistema.
+        // Resolve o problema de lançamentos não aparecerem em alguns PCs
+        // após ações como faturar OS ou criar lançamento financeiro.
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: Sat, 01 Jan 2000 00:00:00 GMT');
+
         if ((! session_id()) || (! $this->session->userdata('logado'))) {
             redirect('login');
         }

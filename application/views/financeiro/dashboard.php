@@ -1,4 +1,6 @@
-<script src="<?= base_url() ?>assets/js/chart.js/Chart.min.js"></script>
+<link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
+<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
 <?php
 $t = $totais;
 $recPagas  = (float)($t->receitas_pagas    ?? 0);
@@ -74,26 +76,44 @@ $nomeMes = $meses[(int)$mes] . ' ' . $ano;
 .sp-pend{background:rgba(245,158,11,0.15);color:#fbbf24;}
 
 /* ── Modais dark ── */
-.modal-dark .modal-header{background:#1a1d2e;border-bottom:1px solid rgba(255,255,255,0.08);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
-.modal-dark .modal-header h3{margin:0;font-size:16px;font-weight:800;color:#e8eaf0;display:flex;align-items:center;gap:8px;}
-.modal-dark .modal-header .close{color:#9ca3af;font-size:22px;background:none;border:none;cursor:pointer;line-height:1;}
-.modal-dark .modal-body{background:#13151f;padding:20px;}
-.modal-dark .modal-footer{background:#1a1d2e;border-top:1px solid rgba(255,255,255,0.08);padding:12px 20px;display:flex;justify-content:flex-end;gap:8px;}
-.modal-dark .form-group{margin-bottom:14px;}
-.modal-dark label{font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.modal-dark .modal-header{background:linear-gradient(135deg,#1a1d2e 0%,#1e2133 100%);border-bottom:1px solid rgba(255,255,255,0.08);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;}
+.modal-dark .modal-header h3{margin:0;font-size:17px;font-weight:800;color:#e8eaf0;display:flex;align-items:center;gap:10px;letter-spacing:-.3px;}
+.modal-dark .modal-header .close{color:#9ca3af;font-size:22px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;cursor:pointer;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.modal-dark .modal-header .close:hover{background:rgba(255,255,255,0.12);color:#fff;}
+.modal-dark .modal-body{background:#0f1120;padding:22px;}
+.modal-dark .modal-footer{background:#1a1d2e;border-top:1px solid rgba(255,255,255,0.08);padding:16px 22px;display:flex;justify-content:flex-end;gap:10px;}
+.modal-dark .modal-footer .button{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .2s;letter-spacing:.2px;}
+.modal-dark .modal-footer .btn-warning{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);}
+.modal-dark .modal-footer .btn-warning:hover{background:rgba(251,191,36,0.18);border-color:rgba(251,191,36,0.4);}
+.modal-dark .modal-footer .btn-success{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:1px solid rgba(34,197,94,0.3);box-shadow:0 2px 8px rgba(34,197,94,0.2);}
+.modal-dark .modal-footer .btn-success:hover{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 4px 12px rgba(34,197,94,0.3);}
+.modal-dark .modal-footer .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:1px solid rgba(239,68,68,0.3);box-shadow:0 2px 8px rgba(239,68,68,0.2);}
+.modal-dark .modal-footer .btn-danger:hover{background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 4px 12px rgba(239,68,68,0.3);}
+.modal-dark .modal-footer .button i{font-size:16px;}
+.modal-dark .form-group{margin-bottom:16px;}
+.modal-dark label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px;}
 .modal-dark input[type=text],
 .modal-dark input[type=number],
 .modal-dark textarea,
-.modal-dark select{background:#1e2133;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;width:100%;font-size:13px;box-sizing:border-box;transition:border-color .15s;}
+.modal-dark select{background:#161829;border:1px solid rgba(255,255,255,0.08);color:#e8eaf0;border-radius:10px;padding:10px 14px;width:100%;font-size:13px;box-sizing:border-box;transition:all .15s;font-family:inherit;}
+.modal-dark input[type=text]:hover,
+.modal-dark input[type=number]:hover,
+.modal-dark textarea:hover,
+.modal-dark select:hover{border-color:rgba(255,255,255,0.15);}
 .modal-dark input[type=text]:focus,
+.modal-dark input[type=number]:focus,
 .modal-dark textarea:focus,
-.modal-dark select:focus{border-color:#6366f1;outline:none;}
-.modal-dark textarea{min-height:70px;resize:vertical;}
+.modal-dark select:focus{border-color:rgba(99,102,241,0.6);outline:none;background:#1a1d30;box-shadow:0 0 0 3px rgba(99,102,241,0.08);}
+.modal-dark textarea{min-height:75px;resize:vertical;}
 .modal-dark .row-cols{display:flex;gap:12px;flex-wrap:wrap;}
 .modal-dark .row-cols > div{flex:1;min-width:140px;}
-.modal-dark .modal-title-rec{color:#4ade80;}
-.modal-dark .modal-title-desp{color:#f87171;}
-.modal-dark .check-row{display:flex;align-items:center;gap:8px;padding:8px 0;}
+.modal-dark .modal-title-rec{color:#4ade80;font-size:20px;}
+.modal-dark .modal-title-desp{color:#f87171;font-size:20px;}
+.modal-dark .check-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;margin-bottom:4px;}
+.modal-dark .check-row label{font-size:13px;font-weight:600;color:#c4c6d0;text-transform:none;letter-spacing:0;margin:0;cursor:pointer;}
+.modal-dark .check-row input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#6366f1;}
+.modal-dark .divider{border:none;border-top:1px solid rgba(255,255,255,0.07);margin:12px 0;}
+.modal-dark .info-badge{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;margin-bottom:16px;border:1px solid;}
 .modal-dark .check-row input[type=checkbox]{width:16px;height:16px;accent-color:#6366f1;}
 .modal-dark .check-row label{margin:0;text-transform:none;font-size:13px;color:#c9cad6;}
 .modal-dark .divider{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:14px 0;}
@@ -216,22 +236,26 @@ $nomeMes = $meses[(int)$mes] . ' ' . $ano;
             <?php if (empty($lancamentos)): ?>
                 <tr><td colspan="11" style="text-align:center;padding:30px;color:#6b7280;">Nenhum lançamento neste período.</td></tr>
             <?php else: foreach ($lancamentos as $i => $l):
-                $valorTotal = $l->valor_desconto > 0 ? $l->valor_desconto : $l->valor;
+                // Convenção do sistema: 'valor' já é o líquido final.
+                // 'Sub.Total' precisa mostrar o valor ORIGINAL (antes do desconto),
+                // então somamos o desconto de volta. 'V.Total' é o próprio 'valor'.
+                $descontoAtual = floatval($l->desconto ?? 0);
+                $subTotalOriginal = floatval($l->valor) + $descontoAtual;
                 $catNome = '';
                 if ($l->nome_grupo) $catNome = $l->nome_grupo . ' › ' . $l->nome_categoria;
                 elseif ($l->nome_categoria) $catNome = $l->nome_categoria;
             ?>
             <tr>
                 <td style="color:#6b7280;font-size:12px;"><?= $i+1 ?></td>
-                <td><span class="sp <?= $l->tipo==='receita'?'sp-rec':'sp-desp' ?>"><?= ucfirst($l->tipo) ?></span></td>
+                <td><span class="sp <?= strtolower($l->tipo)==='receita'?'sp-rec':'sp-desp' ?>"><?= ucfirst(strtolower($l->tipo)) ?></span></td>
                 <td style="font-weight:600;color:#e8eaf0;"><?= htmlspecialchars($l->descricao) ?></td>
                 <td style="font-size:12px;color:#9ca3af;"><?= htmlspecialchars($catNome ?: '—') ?></td>
                 <td style="font-size:12px;"><?= date('d/m/Y', strtotime($l->data_vencimento)) ?></td>
                 <td><span class="sp <?= $l->baixado?'sp-pago':'sp-pend' ?>"><?= $l->baixado?'Pago':'Pendente' ?></span></td>
                 <td style="font-size:12px;color:#9ca3af;"><?= htmlspecialchars($l->forma_pgto ?: '—') ?></td>
-                <td>R$ <?= number_format($l->valor,2,',','.') ?></td>
-                <td style="color:#f87171;">R$ <?= number_format($l->desconto,2,',','.') ?></td>
-                <td style="font-weight:700;color:#e8eaf0;">R$ <?= number_format($valorTotal,2,',','.') ?></td>
+                <td>R$ <?= number_format($subTotalOriginal,2,',','.') ?></td>
+                <td style="color:#f87171;">R$ <?= number_format($descontoAtual,2,',','.') ?></td>
+                <td style="font-weight:700;color:#e8eaf0;">R$ <?= number_format($l->valor,2,',','.') ?></td>
                 <td>
                     <a href="<?= site_url('financeiro/lancamentos?id='.$l->idLancamentos) ?>" class="act-btn ab-v" style="width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:rgba(96,165,250,0.15);color:#60a5fa;text-decoration:none;">
                         <i class="bx bx-show"></i>
@@ -303,7 +327,17 @@ $nomeMes = $meses[(int)$mes] . ' ' . $ano;
                 <div>
                     <div class="form-group">
                         <label>Desconto (R$)</label>
-                        <input type="text" name="descontos" id="rec_descontos" class="money-rec" placeholder="0,00" />
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input type="text" name="descontos" id="rec_descontos" class="money-rec" placeholder="0,00" style="flex:1;" />
+                            <button type="button" onclick="aplicarDescontoRec()" style="padding:8px 12px;border-radius:8px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;"><i class='bx bx-check'></i> Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>Valor c/ Desconto</label>
+                        <input type="text" name="valor_desconto" id="rec_valor_desconto_calc" readonly placeholder="0,00" style="color:#fbbf24;font-weight:700;cursor:default;" />
+                        <div style="font-size:10px;color:#6b7280;margin-top:3px;">Calculado automaticamente</div>
                     </div>
                 </div>
             </div>
@@ -507,6 +541,25 @@ $nomeMes = $meses[(int)$mes] . ' ' . $ano;
                 </div>
             </div>
 
+            <div class="row-cols">
+                <div>
+                    <div class="form-group">
+                        <label>Desconto (R$)</label>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input type="text" name="descontos_desp" id="desp_descontos" class="money-desp" placeholder="0,00" style="flex:1;" />
+                            <button type="button" onclick="aplicarDescontoDesp()" style="padding:8px 12px;border-radius:8px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;"><i class='bx bx-check'></i> Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>Valor c/ Desconto</label>
+                        <input type="text" name="valor_desconto_desp" id="desp_valor_desconto" readonly placeholder="0,00" style="color:#fbbf24;font-weight:700;cursor:default;" />
+                        <div style="font-size:10px;color:#6b7280;margin-top:3px;">Calculado automaticamente</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Fornecedor / Empresa *</label>
                 <input type="text" name="fornecedor_desp" id="desp_fornecedor" required placeholder="Digite para buscar..." />
@@ -624,7 +677,44 @@ jQuery(document).ready(function($) {
     $(".money-rec, .money-desp, .money-parc").maskMoney({ thousands: '.', decimal: ',' });
 
     // ── Datepickers ───────────────────────────────────────────────
-    $(".datepicker").datepicker({ dateFormat: 'dd/mm/yy' });
+    var dpOpts = {
+        dateFormat: 'dd/mm/yy',
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '-5:+5',
+        dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+        dayNamesMin: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+        monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+        monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun',
+                          'Jul','Ago','Set','Out','Nov','Dez'],
+        firstDay: 0
+    };
+    $(".datepicker").datepicker(dpOpts);
+
+    // Reinicializa datepicker ao abrir qualquer modal (garante funcionamento)
+    $(document).on('shown.bs.modal show.bs.modal', '.modal', function() {
+        $(this).find('.datepicker').each(function() {
+            if (!$(this).hasClass('hasDatepicker')) {
+                $(this).datepicker(dpOpts);
+            }
+        });
+    });
+    // Compatibilidade Bootstrap 2 (show event)
+    $(document).on('shown', '.modal', function() {
+        $(this).find('.datepicker').each(function() {
+            if (!$(this).hasClass('hasDatepicker')) {
+                $(this).datepicker(dpOpts);
+            }
+        });
+    });
+    // Máscara automática DD/MM/AAAA nos campos de data ao digitar
+    $(document).on('input', '.datepicker', function() {
+        var v = $(this).val().replace(/\D/g, '');
+        if (v.length >= 3 && v.length <= 4)  v = v.substring(0,2) + '/' + v.substring(2);
+        else if (v.length >= 5)               v = v.substring(0,2) + '/' + v.substring(2,4) + '/' + v.substring(4,8);
+        $(this).val(v);
+    });
 
     // ── Autocomplete — Receita: cliente ──────────────────────────
     $("#rec_cliente").autocomplete({
@@ -658,6 +748,25 @@ jQuery(document).ready(function($) {
             return false;
         }
     });
+
+    // ── Receita: calcular valor com desconto ────────────────────
+    function aplicarDescontoRec() {
+        var valor    = parseFloat(($('#rec_valor').val() || '0').replace(/\./g,'').replace(',','.')) || 0;
+        var desconto = parseFloat(($('#rec_descontos').val() || '0').replace(/\./g,'').replace(',','.')) || 0;
+        if (desconto > valor) desconto = valor;
+        var total = valor - desconto;
+        $('#rec_valor_desconto_calc').val(total.toFixed(2).replace('.',','));
+        $('#rec_valor_desconto').val(total.toFixed(2));
+    }
+
+    // ── Despesa: calcular valor com desconto ─────────────────────
+    function aplicarDescontoDesp() {
+        var valor    = parseFloat(($('#desp_valor').val() || '0').replace(/\./g,'').replace(',','.')) || 0;
+        var desconto = parseFloat(($('#desp_descontos').val() || '0').replace(/\./g,'').replace(',','.')) || 0;
+        if (desconto > valor) desconto = valor;
+        var total = valor - desconto;
+        $('#desp_valor_desconto').val(total.toFixed(2).replace('.',','));
+    }
 
     // ── Receita: toggle "Já foi recebido?" ───────────────────────
     $('#rec_recebido').on('change', function() {

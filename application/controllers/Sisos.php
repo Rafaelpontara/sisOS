@@ -16,8 +16,21 @@ class Sisos extends MY_Controller
         // Real dashboard stats
         $this->data['os_hoje']        = $this->sisos_model->getOsHoje();
         $this->data['os_vencidas']    = $this->sisos_model->getOsVencidas();
-        $this->data['receita_hoje']   = $this->sisos_model->getReceitaHoje();
         $this->data['estoque_baixo']  = $this->sisos_model->getEstoqueBaixo();
+
+        // "Receita de hoje" só é calculada/exposta pra quem tem permissão
+        // financeira — antes aparecia pra qualquer usuário logado.
+        $podeVerFinanceiro = $this->permission->checkPermission($this->session->userdata('permissao'), 'vLancamento')
+            || $this->permission->checkPermission($this->session->userdata('permissao'), 'aLancamento')
+            || $this->permission->checkPermission($this->session->userdata('permissao'), 'rFinanceiro');
+        $this->data['pode_ver_financeiro'] = $podeVerFinanceiro;
+        $this->data['receita_hoje']  = $podeVerFinanceiro ? $this->sisos_model->getReceitaHoje() : null;
+        $this->data['receita_ontem'] = $podeVerFinanceiro ? $this->sisos_model->getReceitaOntem() : 0;
+
+        // Comparação "vs ontem" dos cards do topo
+        $this->data['os_ontem']         = $this->sisos_model->getOsOntem();
+        $this->data['os_vencidas_ontem'] = $this->sisos_model->getOsVencidasOntem();
+        $this->data['estoque_zerado']   = $this->sisos_model->getEstoqueZerado();
         $this->data['os_por_status']  = $this->sisos_model->getOsPorStatus();
         $this->data['os_por_tecnico'] = $this->sisos_model->getOsPorTecnico();
         $this->data['notificacoes']   = $this->sisos_model->getNotificacoes();
@@ -758,8 +771,16 @@ class Sisos extends MY_Controller
         $osId = $this->input->post('os_id');
         if (!$osId) { echo json_encode(['ok'=>false,'erro'=>'OS não informada.']); return; }
 
-        $feat = $this->db->where('config','gemini_feat_diagnostico')->get('configuracoes')->row();
-        if (!($feat && $feat->valor)) { echo json_encode(['ok'=>false,'erro'=>'Recurso não habilitado.']); return; }
+        // Verifica se algum provedor de IA está configurado
+        $apiKey = $this->_getIaApiKey();
+        if (!$apiKey) {
+            // Fallback: verifica gemini_feat_diagnostico (legado)
+            $feat = $this->db->where('config','gemini_feat_diagnostico')->get('configuracoes')->row();
+            if (!($feat && $feat->valor)) {
+                echo json_encode(['ok'=>false,'erro'=>'IA não configurada. Configure o provedor em Configurações → IA.']);
+                return;
+            }
+        }
 
         $os = $this->db->select('os.*, clientes.nomeCliente')->from('os')
             ->join('clientes','clientes.idClientes = os.clientes_id','left')

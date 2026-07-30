@@ -280,8 +280,65 @@ class Mine extends CI_Controller
         $data['menuPainel'] = 'painel';
         $data['compras'] = $this->Conecte_model->getLastCompras($this->session->userdata('cliente_id'));
         $data['os'] = $this->Conecte_model->getLastOs($this->session->userdata('cliente_id'));
+
+        // OS finalizadas/faturadas do cliente que ainda não tiveram a
+        // Pesquisa de Satisfação respondida — mostradas como convite pra
+        // avaliar no topo do painel.
+        $data['pesquisasPendentes'] = $this->db->query(
+            "SELECT idOs, descricaoProduto, dataFinal
+             FROM os
+             WHERE clientes_id = ?
+               AND status IN ('Finalizado','Faturado')
+               AND idOs NOT IN (
+                   SELECT os_id FROM pesquisas_satisfacao WHERE respondida = 1
+               )
+             ORDER BY dataFinal DESC
+             LIMIT 5",
+            [$this->session->userdata('cliente_id')]
+        )->result();
+
         $data['output'] = 'conecte/painel';
         $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Gera (ou reaproveita) o link da Pesquisa de Satisfação pra uma OS do
+     * próprio cliente logado, e redireciona pra página pública de resposta —
+     * mesma tabela/token usados pelo link enviado via WhatsApp/Pós-Venda.
+     */
+    public function pesquisa($idOs = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $clienteId = $this->session->userdata('cliente_id');
+
+        // Garante que a OS pertence mesmo ao cliente logado — sem isso, um
+        // cliente poderia forjar o ID de outra pessoa na URL.
+        $os = $this->db->where('idOs', $idOs)->where('clientes_id', $clienteId)->get('os')->row();
+        if (! $os) {
+            show_404();
+            return;
+        }
+
+        $existente = $this->db->where('os_id', $idOs)->order_by('id', 'desc')
+            ->get('pesquisas_satisfacao')->row();
+
+        if ($existente) {
+            redirect(site_url('pesquisa/responder/' . $existente->token));
+            return;
+        }
+
+        $token = bin2hex(random_bytes(16));
+        $this->db->insert('pesquisas_satisfacao', [
+            'os_id'        => $idOs,
+            'clientes_id'  => $clienteId,
+            'token'        => $token,
+            'data_criacao' => date('Y-m-d H:i:s'),
+        ]);
+
+        redirect(site_url('pesquisa/responder/' . $token));
     }
 
     public function conta()
@@ -665,6 +722,162 @@ class Mine extends CI_Controller
         $this->load->view('conecte/imprimirOs', $data);
     }
 
+    /**
+     * Garantia Digital — página pública (sem exigir login do cliente),
+     * acessada via QR Code impresso/enviado ao cliente. Mesma lógica que
+     * existia em Os::garantiaDigital(), só que aqui em Mine (que não herda
+     * o MY_Controller/login de funcionário) para não travar o cliente numa
+     * tela de login que ele não tem credencial.
+     */
+    public function garantia($idOs = null)
+    {
+        if (!$idOs || !is_numeric($idOs)) {
+            show_404();
+            return;
+        }
+
+        $this->load->model('sisos_model');
+        $this->load->model('os_model');
+
+        $os = $this->os_model->getById($idOs);
+        $emitente = $this->sisos_model->getEmitente();
+
+        if (!$os) {
+            show_404();
+            return;
+        }
+
+        // Só exibe garantia para OS finalizadas/faturadas com garantia definida
+        $statusValidos = ['Finalizado', 'Faturado'];
+        if (!in_array($os->status, $statusValidos) || !$os->garantia) {
+            // Mensagem simples e direta, sem depender de criar uma view nova
+            echo '<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8">'
+                . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+                . '<title>Garantia indisponível</title></head>'
+                . '<body style="font-family:Arial,sans-serif;background:#0f1117;color:#e8eaf0;'
+                . 'display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;text-align:center;">'
+                . '<div><h2 style="margin-bottom:10px;">Garantia não disponível</h2>'
+                . '<p style="color:#9ca3af;">Esta Ordem de Serviço não possui garantia digital disponível no momento.</p></div>'
+                . '</body></html>';
+            return;
+        }
+
+        $produtos = $this->os_model->getProdutos($idOs);
+        $servicos = $this->os_model->getServicos($idOs);
+        $link     = site_url('mine/garantia/' . $idOs);
+        $qrUrl    = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' . urlencode($link);
+
+        $data = [
+            'os'       => $os,
+            'emitente' => $emitente,
+            'produtos' => $produtos,
+            'servicos' => $servicos,
+            'link'     => $link,
+            'qrUrl'    => $qrUrl,
+        ];
+
+        // Reaproveita a mesma view standalone que já existia
+        $this->load->view('os/garantia_digital', $data);
+    }
+
+    /**
+     * Link de Acompanhamento — página pública (sem login) que mostra o
+     * status da OS em tempo real pro cliente, acessada por um token único
+     * e não-adivinhável (não pelo número da OS).
+     */
+    public function acompanhar($token = null)
+    {
+        if (!$token) {
+            show_404();
+            return;
+        }
+
+        $this->load->model('sisos_model');
+        $this->load->model('os_model');
+
+        $os = $this->db->where('tracking_token', $token)->get('os')->row();
+
+        if (!$os) {
+            show_404();
+            return;
+        }
+
+        $emitente = $this->sisos_model->getEmitente();
+
+        // Etapas do "trilho" de progresso — mapeia os status reais da OS
+        // pra uma sequência simples de mostrar ao cliente.
+        $etapas = ['Recebido', 'Em Análise / Serviço', 'Pronto', 'Entregue'];
+        $statusParaEtapa = [
+            'Aberto' => 0, 'Orçamento' => 0, 'Negociação' => 0,
+            'Aguardando Peças' => 1, 'Em Andamento' => 1, 'Aprovado' => 1, 'Em Teste' => 1, 'Aguardando Autorização' => 1,
+            'Finalizado' => 2,
+            'Faturado' => 3,
+        ];
+        $etapaAtual = $statusParaEtapa[$os->status] ?? 0;
+        $cancelado  = in_array($os->status, ['Cancelado', 'Recusado', 'Sem Conserto', 'Não foi Possível', 'Não temos Peças']);
+
+        // Aguardando aprovação de orçamento? Só mostra os botões quando a
+        // OS está de fato em orçamento e o cliente ainda não decidiu nada.
+        $aguardandoAprovacao = ($os->status === 'Orçamento') && ($os->aprovacao_status === 'pendente');
+
+        $data = [
+            'os'          => $os,
+            'emitente'    => $emitente,
+            'etapas'      => $etapas,
+            'etapaAtual'  => $etapaAtual,
+            'cancelado'   => $cancelado,
+            'aguardandoAprovacao' => $aguardandoAprovacao,
+            'token'       => $token,
+        ];
+
+        $this->load->view('os/acompanhar', $data);
+    }
+
+    /**
+     * Recebe a decisão do cliente (aprovar/recusar orçamento) pelo Link de
+     * Acompanhamento público. Só aceita se a OS realmente estiver com
+     * orçamento pendente — evita reenvio/decisão duplicada.
+     */
+    public function decidirOrcamento($token = null)
+    {
+        header('Content-Type: application/json');
+
+        if (!$token) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Link inválido.']);
+            return;
+        }
+
+        $decisao = $this->input->post('decisao');
+        if (!in_array($decisao, ['aprovado', 'recusado'], true)) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Decisão inválida.']);
+            return;
+        }
+
+        $this->load->model('os_model');
+        $os = $this->db->where('tracking_token', $token)->get('os')->row();
+
+        if (!$os) {
+            echo json_encode(['sucesso' => false, 'erro' => 'OS não encontrada.']);
+            return;
+        }
+        if ($os->status !== 'Orçamento' || $os->aprovacao_status !== 'pendente') {
+            echo json_encode(['sucesso' => false, 'erro' => 'Este orçamento já foi decidido ou não está mais pendente.']);
+            return;
+        }
+
+        $novoStatus = ($decisao === 'aprovado') ? 'Aprovado' : 'Recusado';
+
+        $this->os_model->edit('os', [
+            'aprovacao_status' => $decisao,
+            'aprovacao_data'   => date('Y-m-d H:i:s'),
+            'status'           => $novoStatus,
+        ], 'idOs', $os->idOs);
+
+        log_info('Cliente ' . $decisao . ' o orçamento pelo Link de Acompanhamento. OS ID: ' . $os->idOs);
+
+        echo json_encode(['sucesso' => true, 'novoStatus' => $novoStatus]);
+    }
+
     public function visualizarCompra($id = null)
     {
         if (! session_id() || ! $this->session->userdata('conectado')) {
@@ -803,7 +1016,7 @@ class Mine extends CI_Controller
                 'descricaoProduto' => $this->security->xss_clean($this->input->post('descricaoProduto')),
                 'defeito' => $this->security->xss_clean($this->input->post('defeito')),
                 'status' => 'Aberto',
-                'observacoes' => $this->security->xss_clean(set_value('observacoes')),
+                'observacoes' => $this->security->xss_clean($this->input->post('observacoes')),
                 'faturado' => 0,
             ];
 
@@ -871,19 +1084,19 @@ class Mine extends CI_Controller
             $this->session->set_flashdata('error', 'Os caracteres da imagem não foram preenchidos corretamente!');
         } else {
             $data = [
-                'nomeCliente' => set_value('nomeCliente'),
-                'documento' => set_value('documento'),
-                'telefone' => set_value('telefone'),
+                'nomeCliente' => $this->input->post('nomeCliente'),
+                'documento' => $this->input->post('documento'),
+                'telefone' => $this->input->post('telefone'),
                 'celular' => $this->input->post('celular'),
-                'email' => set_value('email'),
+                'email' => $this->input->post('email'),
                 'senha' => password_hash($this->input->post('senha'), PASSWORD_DEFAULT),
-                'rua' => set_value('rua'),
-                'complemento' => set_value('complemento'),
-                'numero' => set_value('numero'),
-                'bairro' => set_value('bairro'),
-                'cidade' => set_value('cidade'),
-                'estado' => set_value('estado'),
-                'cep' => set_value('cep'),
+                'rua' => $this->input->post('rua'),
+                'complemento' => $this->input->post('complemento'),
+                'numero' => $this->input->post('numero'),
+                'bairro' => $this->input->post('bairro'),
+                'cidade' => $this->input->post('cidade'),
+                'estado' => $this->input->post('estado'),
+                'cep' => $this->input->post('cep'),
                 'dataCadastro' => date('Y-m-d'),
                 'contato' => $this->input->post('contato'),
             ];

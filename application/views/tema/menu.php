@@ -227,6 +227,13 @@
                         <span class="title-tooltip">Ordens</span>
                     </a>
                 </li>
+                <li class="<?php if (isset($menuMesa)) echo 'active'; ?>">
+                    <a data-g="green" class="tip-bottom" href="<?= site_url('os/mesa') ?>">
+                        <i class='bx bx-grid-alt iconX'></i>
+                        <span class="title">Mesa de Trabalho</span>
+                        <span class="title-tooltip">Mesa de Trabalho</span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')): ?>
                 <li class="<?php if (isset($menuVendas)) echo 'active'; ?>">
@@ -252,6 +259,40 @@
                         <i class='bx bx-box iconX'></i>
                         <span class="title">Arquivos</span>
                         <span class="title-tooltip">Arquivos</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <li class="<?php if (isset($menuPosVenda)) echo 'active'; ?>">
+                    <a data-g="green" class="tip-bottom" href="<?= site_url('posvenda') ?>">
+                        <i class='bx bx-message-rounded-dots iconX'></i>
+                        <span class="title">Pós-Venda</span>
+                        <span class="title-tooltip">Pós-Venda</span>
+                    </a>
+                </li>
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vSolucao')): ?>
+                <li class="<?php if (isset($menuSolucoes)) echo 'active'; ?>">
+                    <a data-g="green" class="tip-bottom" href="<?= site_url('solucoes') ?>">
+                        <i class='bx bx-bulb iconX'></i>
+                        <span class="title">Soluções Técnicas</span>
+                        <span class="title-tooltip">Soluções Técnicas</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vPedido')): ?>
+                <li class="<?php if (isset($menuPedidos)) echo 'active'; ?>">
+                    <a data-g="green" class="tip-bottom" href="<?= site_url('pedidos') ?>">
+                        <i class='bx bx-cart-alt iconX'></i>
+                        <span class="title">Pedidos &amp; Anotações</span>
+                        <span class="title-tooltip">Pedidos &amp; Anotações</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs')): ?>
+                <li class="<?php if (isset($menuPesquisa)) echo 'active'; ?>">
+                    <a data-g="green" class="tip-bottom" href="<?= site_url('pesquisa/resultados') ?>">
+                        <i class='bx bx-happy-heart-eyes iconX'></i>
+                        <span class="title">Pesquisa de Satisfação</span>
+                        <span class="title-tooltip">Pesquisa de Satisfação</span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -351,6 +392,13 @@
         </div>
 
         <div class="botton-content">
+            <li>
+                <a class="tip-bottom" href="<?= site_url('tutorial') ?>">
+                    <i class='bx bx-book-open iconX'></i>
+                    <span class="title">Manual do Sistema</span>
+                    <span class="title-tooltip">Manual do Sistema</span>
+                </a>
+            </li>
             <li>
                 <a class="tip-bottom" href="<?= site_url('login/sair') ?>">
                     <i class='bx bx-log-out-circle iconX'></i>

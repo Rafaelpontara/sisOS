@@ -2,6 +2,13 @@
 $totalServico = 0;
 $totalProdutos = 0;
 function mcSB4($s){$m=['Aberto'=>'mb-blue','Em Andamento'=>'mb-indigo','Orçamento'=>'mb-amber','Finalizado'=>'mb-green','Faturado'=>'mb-green','Cancelado'=>'mb-red','Aguardando Peças'=>'mb-amber','Aprovado'=>'mb-purple'];$c=$m[$s]??'mb-gray';return '<span class="mc-badge '.$c.'">'.htmlspecialchars($s).'</span>';}
+
+// Mesma correção usada nas impressões — caminho relativo da logo quebra
+// dependendo da URL da página atual.
+$logoSrc = $emitente->url_logo ?? '';
+if ($logoSrc && !preg_match('#^(https?:)?//#i', $logoSrc)) {
+    $logoSrc = base_url() . ltrim($logoSrc, '/');
+}
 ?>
 
 <!-- Header -->
@@ -37,7 +44,7 @@ function mcSB4($s){$m=['Aberto'=>'mb-blue','Em Andamento'=>'mb-indigo','Orçamen
     <div class="mc-card-head"><div class="mc-card-head-left"><i class='bx bx-building' style="color:#60a5fa;"></i><span>Assistência Técnica</span></div></div>
     <div class="mc-card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
         <?php if ($emitente->url_logo): ?>
-        <img src="<?= $emitente->url_logo ?>" style="max-height:52px;max-width:140px;object-fit:contain;" alt="Logo">
+        <img src="<?= $logoSrc ?>" style="max-height:52px;max-width:140px;object-fit:contain;" alt="Logo">
         <?php endif; ?>
         <div>
             <div style="font-size:15px;font-weight:700;color:#e8eaf0;"><?= htmlspecialchars($emitente->nome) ?></div>
@@ -73,6 +80,9 @@ function mcSB4($s){$m=['Aberto'=>'mb-blue','Em Andamento'=>'mb-indigo','Orçamen
                     if(count($parts)==3){$ts=strtotime($parts[2].'-'.$parts[1].'-'.$parts[0]);$ok=$ts>=strtotime('today');}else{$ok=false;}
                 ?>
                 — <span class="mc-badge <?= $ok?'mb-green':'mb-red' ?>"><?= $ok?'válida até '.$venc:'vencida em '.$venc ?></span>
+                <a href="<?= site_url('mine/garantia/'.$result->idOs) ?>" target="_blank" class="mc-btn mc-btn-ghost" style="padding:4px 12px;font-size:11px;margin-left:8px;">
+                    <i class='bx bx-shield-quarter'></i> Ver Garantia Digital
+                </a>
                 <?php endif; ?>
                 </span>
             </div>

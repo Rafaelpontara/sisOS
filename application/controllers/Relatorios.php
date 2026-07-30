@@ -155,6 +155,57 @@ class Relatorios extends MY_Controller
         pdf_create($html, 'relatorio_produtos' . date('d/m/y'), true);
     }
 
+    /**
+     * Produtos Mais Vendidos — ranking por quantidade usada em OS (peças de
+     * reparo). Aceita ?dataInicial=Y-m-d&dataFinal=Y-m-d opcionalmente pra
+     * filtrar um período; sem isso, mostra o histórico completo.
+     */
+    public function produtosMaisVendidosRapid()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rProduto')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerar relatórios de produtos.');
+            redirect(base_url());
+        }
+
+        $dataInicial = $this->input->get('dataInicial');
+        $dataFinal   = $this->input->get('dataFinal');
+
+        $data['produtos']    = $this->Relatorios_model->produtosMaisVendidosRapid($dataInicial, $dataFinal);
+        $data['emitente']    = $this->Sisos_model->getEmitente();
+        $data['periodo']     = ($dataInicial && $dataFinal) ? (date('d/m/Y', strtotime($dataInicial)) . ' até ' . date('d/m/Y', strtotime($dataFinal))) : 'Histórico completo';
+        $data['title']       = 'Relatório de Produtos Mais Vendidos';
+        $data['topo']        = $this->load->view('relatorios/imprimir/imprimirTopo', $data, true);
+
+        $this->load->helper('mpdf');
+        $html = $this->load->view('relatorios/imprimir/imprimirProdutosMaisVendidos', $data, true);
+        pdf_create($html, 'relatorio_produtos_mais_vendidos' . date('d/m/y'), true);
+    }
+
+    /**
+     * Serviços Mais Feitos — mesma lógica, ranking de serviços por
+     * quantidade realizada nas OS's.
+     */
+    public function servicosMaisFeitosRapid()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rServico')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerar relatórios de serviços.');
+            redirect(base_url());
+        }
+
+        $dataInicial = $this->input->get('dataInicial');
+        $dataFinal   = $this->input->get('dataFinal');
+
+        $data['servicos']    = $this->Relatorios_model->servicosMaisFeitosRapid($dataInicial, $dataFinal);
+        $data['emitente']    = $this->Sisos_model->getEmitente();
+        $data['periodo']     = ($dataInicial && $dataFinal) ? (date('d/m/Y', strtotime($dataInicial)) . ' até ' . date('d/m/Y', strtotime($dataFinal))) : 'Histórico completo';
+        $data['title']       = 'Relatório de Serviços Mais Feitos';
+        $data['topo']        = $this->load->view('relatorios/imprimir/imprimirTopo', $data, true);
+
+        $this->load->helper('mpdf');
+        $html = $this->load->view('relatorios/imprimir/imprimirServicosMaisFeitos', $data, true);
+        pdf_create($html, 'relatorio_servicos_mais_feitos' . date('d/m/y'), true);
+    }
+
     public function produtosRapidMin()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rProduto')) {
@@ -719,15 +770,17 @@ class Relatorios extends MY_Controller
         }
 
         $dataInicial = $this->input->get('dataInicial');
-        $dataFinal = $this->input->get('dataFinal');
-        $tipo = $this->input->get('tipo');
-        $situacao = $this->input->get('situacao');
-        $format = $this->input->get('format');
-        $cliente = $this->input->get('cliente') ?: null;
-        $descricao = $this->input->get('descricao') ?: null;
+        $dataFinal   = $this->input->get('dataFinal');
+        $tipo        = $this->input->get('tipo');
+        $situacao    = $this->input->get('situacao');
+        $format      = $this->input->get('format');
+        $cliente     = $this->input->get('cliente')      ?: null;
+        $descricao   = $this->input->get('descricao')    ?: null;
+        $forma_pgto  = $this->input->get('forma_pgto')   ?: null;
+        $categoria   = $this->input->get('categoria_id') ?: null;
 
         if ($format == 'xls') {
-            $lancamentos = $this->Relatorios_model->financeiroCustom($dataInicial, $dataFinal, $tipo, $situacao, true, $cliente, $descricao);
+            $lancamentos = $this->Relatorios_model->financeiroCustom($dataInicial, $dataFinal, $tipo, $situacao, true, $cliente, $descricao, $forma_pgto, $categoria);
 
             $lancamentosFormatados = array_map(function ($item) {
                 return [
@@ -775,7 +828,7 @@ class Relatorios extends MY_Controller
             return;
         }
 
-        $data['lancamentos'] = $this->Relatorios_model->financeiroCustom($dataInicial, $dataFinal, $tipo, $situacao, false, $cliente, $descricao);
+        $data['lancamentos'] = $this->Relatorios_model->financeiroCustom($dataInicial, $dataFinal, $tipo, $situacao, false, $cliente, $descricao, $forma_pgto, $categoria);
         $data['emitente'] = $this->Sisos_model->getEmitente();
         $data['title'] = 'Relatório Financeiro Customizado';
         $data['topo'] = $this->load->view('relatorios/imprimir/imprimirTopo', $data, true);
@@ -1111,5 +1164,26 @@ class Relatorios extends MY_Controller
                 ->set_output($fileContents)
                 ->_display();
         }
+    }
+
+    // ─── Relatório de Lucratividade ────────────────────────────────────────
+    public function comissao()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para acessar este relatório.');
+            redirect(base_url());
+        }
+        $this->data['view'] = 'relatorios/rel_comissao';
+        return $this->layout();
+    }
+
+    public function lucratividade()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para acessar este relatório.');
+            redirect(base_url());
+        }
+        $this->data['view'] = 'relatorios/rel_lucratividade';
+        return $this->layout();
     }
 }

@@ -279,9 +279,9 @@ class Sisos_model extends CI_Model
 
     public function getEstatisticasFinanceiro()
     {
-        $sql = "SELECT SUM(CASE WHEN baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) as total_receita,
+        $sql = "SELECT SUM(CASE WHEN baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) as total_receita,
                        SUM(CASE WHEN baixado = 1 AND tipo = 'despesa' THEN valor END) as total_despesa,
-                       SUM(CASE WHEN baixado = 0 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) as total_receita_pendente,
+                       SUM(CASE WHEN baixado = 0 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) as total_receita_pendente,
                        SUM(CASE WHEN baixado = 0 AND tipo = 'despesa' THEN valor END) as total_despesa_pendente FROM lancamentos";
         if ($this->db->query($sql) !== false) {
             return $this->db->query($sql)->row();
@@ -300,29 +300,29 @@ class Sisos_model extends CI_Model
 
         $sql = "
             SELECT
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_JAN_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_JAN_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_JAN_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_FEV_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_FEV_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_FEV_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_MAR_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_MAR_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_MAR_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_ABR_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_ABR_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_ABR_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_MAI_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_MAI_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_MAI_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_JUN_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_JUN_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_JUN_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_JUL_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_JUL_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_JUL_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_AGO_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_AGO_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_AGO_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_SET_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_SET_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_SET_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_OUT_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_OUT_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_OUT_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_NOV_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_NOV_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_NOV_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_DEZ_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0)  END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
             WHERE EXTRACT(YEAR FROM data_pagamento) = ?
@@ -340,10 +340,12 @@ class Sisos_model extends CI_Model
         if (! $numbersOnly) {
             $numbersOnly = date('Y');
         }
+        // 'valor' já é o total final pago — não subtrair desconto de novo.
+        // LOWER(tipo) para pegar 'Receita' (PDV) e 'receita' (formulário web).
         $sql = '
             SELECT
-                SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_" . date('m') . '_REC,
-                SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_" . date('m') . '_DES
+                SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND LOWER(tipo) = 'receita' THEN COALESCE(valor, 0) END) AS VALOR_" . date('m') . '_REC,
+                SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND LOWER(tipo) = 'despesa' THEN COALESCE(valor, 0) END) AS VALOR_" . date('m') . '_DES
             FROM lancamentos
             WHERE EXTRACT(YEAR FROM data_pagamento) = ?
         ';
@@ -364,29 +366,29 @@ class Sisos_model extends CI_Model
 
         $sql = "
             SELECT
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_JAN_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_JAN_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 1) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_JAN_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_FEV_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_FEV_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 2) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_FEV_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_MAR_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_MAR_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 3) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_MAR_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_ABR_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_ABR_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 4) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_ABR_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_MAI_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_MAI_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 5) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_MAI_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_JUN_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_JUN_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 6) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_JUN_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_JUL_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_JUL_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 7) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_JUL_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_AGO_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_AGO_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 8) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_AGO_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_SET_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_SET_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 9) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_SET_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_OUT_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_OUT_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 10) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_OUT_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_NOV_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_NOV_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 11) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_NOV_DES,
-                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_DEZ_REC,
+                SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND LOWER(tipo) = 'receita' THEN valor END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
             WHERE EXTRACT(YEAR FROM data_pagamento) = ?
@@ -416,14 +418,20 @@ class Sisos_model extends CI_Model
     public function getReceitaHoje()
     {
         try {
-            // Tenta com data_baixa primeiro, senão usa data_vencimento
+            // 'valor' no lançamento já é o total final pago (pós-desconto).
+            // NÃO subtrair desconto de novo — causaria valor menor que o real.
+            // LOWER(tipo) para pegar 'Receita' (PDV) e 'receita' (formulário web).
             $cols = $this->db->query("SHOW COLUMNS FROM lancamentos LIKE 'data_baixa'")->result();
             if (!empty($cols)) {
-                $sql = "SELECT SUM(valor - (IF(tipo_desconto='real', desconto, (desconto*valor)/100))) as total
-                        FROM lancamentos WHERE baixado=1 AND tipo='receita' AND DATE(data_baixa)=CURDATE()";
+                $sql = "SELECT SUM(COALESCE(valor, 0)) as total
+                        FROM lancamentos
+                        WHERE baixado=1 AND LOWER(tipo)='receita'
+                        AND DATE(data_baixa)=CURDATE()";
             } else {
-                $sql = "SELECT SUM(valor - (IF(tipo_desconto='real', desconto, (desconto*valor)/100))) as total
-                        FROM lancamentos WHERE baixado=1 AND tipo='receita' AND DATE(data_vencimento)=CURDATE()";
+                $sql = "SELECT SUM(COALESCE(valor, 0)) as total
+                        FROM lancamentos
+                        WHERE baixado=1 AND LOWER(tipo)='receita'
+                        AND DATE(data_vencimento)=CURDATE()";
             }
             $result = $this->db->query($sql);
             if ($result === false) return 0;
@@ -455,6 +463,86 @@ class Sisos_model extends CI_Model
         } catch (Exception $e) { return 0; }
     }
 
+    // ── Comparações "vs ontem" para os cards do dashboard ────────────────
+    // Mesma lógica exata dos métodos de hoje acima, só trocando a data.
+
+    public function getOsOntem()
+    {
+        try {
+            $this->db->where('DATE(dataInicial)', date('Y-m-d', strtotime('-1 day')));
+            return $this->db->count_all_results('os');
+        } catch (Exception $e) { return 0; }
+    }
+
+    public function getReceitaOntem()
+    {
+        try {
+            $ontem = date('Y-m-d', strtotime('-1 day'));
+            $cols = $this->db->query("SHOW COLUMNS FROM lancamentos LIKE 'data_baixa'")->result();
+            if (!empty($cols)) {
+                $sql = "SELECT SUM(COALESCE(valor, 0)) as total
+                        FROM lancamentos
+                        WHERE baixado=1 AND LOWER(tipo)='receita'
+                        AND DATE(data_baixa) = ?";
+            } else {
+                $sql = "SELECT SUM(COALESCE(valor, 0)) as total
+                        FROM lancamentos
+                        WHERE baixado=1 AND LOWER(tipo)='receita'
+                        AND DATE(data_vencimento) = ?";
+            }
+            $result = $this->db->query($sql, [$ontem]);
+            if ($result === false) return 0;
+            $r = $result->row();
+            return $r->total ?? 0;
+        } catch (Exception $e) {
+            return 0;
+        }
+    }
+
+    public function getOsVencidasOntem()
+    {
+        try {
+            $ontem = date('Y-m-d', strtotime('-1 day'));
+            $this->db->where('dataFinal <', $ontem);
+            $this->db->where('dataFinal IS NOT NULL', null, false);
+            $this->db->where_in('status', ['Aberto','Em Andamento','Aguardando Peças','Aprovado','Orçamento']);
+            return $this->db->count_all_results('os');
+        } catch (Exception $e) { return 0; }
+    }
+
+    public function getEstoqueZerado()
+    {
+        try {
+            $sql = "SELECT COUNT(*) as total FROM produtos WHERE estoque <= 0";
+            $r = $this->db->query($sql);
+            if (!$r) return 0;
+            $row = $r->row();
+            return $row->total ?? 0;
+        } catch (Exception $e) { return 0; }
+    }
+
+    // ── Atividades Recentes ───────────────────────────────────────────────
+    // OBS: usa dataInicial (OS) e dataVenda (Vendas) como "quando aconteceu",
+    // pois não existe coluna de última atualização nessas tabelas. Ou seja,
+    // uma OS que mudou de status há pouco só aparece aqui se dataInicial for
+    // recente — não é um log de alterações de verdade, é uma aproximação.
+    public function getAtividadesRecentes($limite = 5)
+    {
+        try {
+            $limite = (int)$limite;
+            $sql = "
+                (SELECT 'os' as tipo, idOs as id, status, dataInicial as quando
+                 FROM os ORDER BY dataInicial DESC LIMIT $limite)
+                UNION ALL
+                (SELECT 'venda' as tipo, idVendas as id, status, dataVenda as quando
+                 FROM vendas ORDER BY dataVenda DESC LIMIT $limite)
+                ORDER BY quando DESC LIMIT $limite
+            ";
+            $result = $this->db->query($sql);
+            return $result ? $result->result() : [];
+        } catch (Exception $e) { return []; }
+    }
+
     public function getLancamentosPendentes()
     {
         try {
@@ -468,15 +556,15 @@ class Sisos_model extends CI_Model
     public function getOsPorTecnico()
     {
         try {
-            $sql = "SELECT u.nome_admin as tecnico,
+            $sql = "SELECT u.nome as tecnico,
                         COUNT(o.idOs) as total,
-                        SUM(CASE WHEN o.status='Finalizado' THEN 1 ELSE 0 END) as finalizadas,
+                        SUM(CASE WHEN o.status IN ('Finalizado','Faturado') THEN 1 ELSE 0 END) as finalizadas,
                         AVG(CASE WHEN o.dataFinal IS NOT NULL AND o.dataInicial IS NOT NULL
                             THEN DATEDIFF(o.dataFinal, o.dataInicial) ELSE NULL END) as media_dias
                     FROM os o
                     LEFT JOIN usuarios u ON o.usuarios_id = u.idUsuarios
                     WHERE o.dataInicial >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-                    GROUP BY o.usuarios_id, u.nome_admin
+                    GROUP BY o.usuarios_id, u.nome
                     ORDER BY total DESC";
             $r = $this->db->query($sql);
             return $r ? $r->result() : [];
@@ -493,7 +581,7 @@ class Sisos_model extends CI_Model
         $vencidas = $this->getOsVencidas();
         if ($vencidas > 0) {
             $notifs[] = ['tipo' => 'danger', 'icone' => 'bx-time-five',
-                'msg' => "$vencidas OS com prazo vencido", 'link' => site_url('os')];
+                'msg' => "$vencidas OS com prazo vencido", 'link' => site_url('os/gerenciar') . '?vencidas=1'];
         }
 
         // Estoque baixo
@@ -507,7 +595,23 @@ class Sisos_model extends CI_Model
         $pendentes = $this->getLancamentosPendentes();
         if ($pendentes > 0) {
             $notifs[] = ['tipo' => 'warning', 'icone' => 'bx-dollar-circle',
-                'msg' => "$pendentes pagamento(s) pendente(s) vencido(s)", 'link' => site_url('financeiro/lancamentos')];
+                'msg' => "$pendentes pagamento(s) pendente(s) vencido(s)",
+                'link' => site_url('financeiro/lancamentos') . '?status=0&vencimento_de=01/01/2000&vencimento_ate=' . date('d/m/Y', strtotime('-1 day'))];
+        }
+
+        // Aniversariantes do dia (só clientes com "Notificar aniversário" ligado)
+        $aniversariantes = $this->db
+            ->select('idClientes, nomeCliente')
+            ->where('notif_aniversario', 1)
+            ->where('dataNascimento IS NOT NULL', null, false)
+            ->where('MONTH(dataNascimento) = MONTH(CURDATE())', null, false)
+            ->where('DAY(dataNascimento) = DAY(CURDATE())', null, false)
+            ->get('clientes')->result();
+
+        foreach ($aniversariantes as $c) {
+            $notifs[] = ['tipo' => 'info', 'icone' => 'bx-cake',
+                'msg' => 'Hoje é aniversário de ' . $c->nomeCliente,
+                'link' => site_url('clientes/visualizar/' . $c->idClientes)];
         }
 
         return $notifs;

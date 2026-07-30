@@ -5,42 +5,81 @@
 <style>
 .pg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
 .pg-title{font-size:22px;font-weight:800;color:#e8eaf0;display:flex;align-items:center;gap:10px;}
-.pg-title i{font-size:24px;color:#f97316;}
+.pg-title i{font-size:24px;color:#a78bfa;}
 .pg-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .btn-add{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:13px;font-weight:700;text-decoration:none;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,0.3);transition:transform .15s;}
 .btn-add:hover{transform:translateY(-2px);color:#fff;}
 .btn-entrega{display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:8px;background:rgba(96,165,250,0.15);color:#60a5fa;font-size:13px;font-weight:700;text-decoration:none;border:1px solid rgba(96,165,250,0.25);transition:all .15s;}
 .btn-entrega:hover{background:rgba(96,165,250,0.25);color:#60a5fa;}
+
+/* Estatísticas */
+.os-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.os-stat{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:transform .15s;}
+.os-stat:hover{transform:translateY(-2px);}
+.os-stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.os-stat-val{font-size:20px;font-weight:800;color:#e8eaf0;line-height:1;}
+.os-stat-label{font-size:10.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-top:3px;}
+
 .filter-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;}
 .filter-bar input,.filter-bar select{padding:8px 10px;border-radius:7px;border:1px solid #444860;background:#252a3a;color:#e8eaf0;font-size:13px;}
-.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:#f97316;}
-.btn-filter{padding:8px 18px;border-radius:7px;background:#f97316;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;}
-.btn-filter:hover{background:#ea6a00;}
-.tbl-wrap{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-bottom:14px;}
-.tbl-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:8px;}
-.tbl-tl{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:8px;}
-.tbl-tl select{background:#252a3a;border:1px solid #444860;color:#e8eaf0;padding:4px 8px;border-radius:6px;font-size:12px;}
-.tbl-ts input{background:#252a3a;border:1px solid #444860;color:#e8eaf0;padding:6px 10px;border-radius:6px;font-size:12px;width:180px;}
-.tbl-wrap table{width:100%;border-collapse:collapse;}
-.tbl-wrap thead th{background:#252a3a;color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;}
-.tbl-wrap tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s;}
-.tbl-wrap tbody tr:hover{background:rgba(249,115,22,0.04);}
-.tbl-wrap tbody td{padding:10px 12px;font-size:13px;color:#c9cad6;vertical-align:middle;}
-.act-btns{display:flex;gap:4px;}
-.act-btn{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;transition:background .15s,transform .12s;border:none;cursor:pointer;}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:#a78bfa;}
+.btn-filter{padding:8px 18px;border-radius:7px;background:#a78bfa;border:none;color:#111;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-filter:hover{background:#8b5cf6;}
+
+.tbl-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.tbl-tl{font-size:12px;color:#6b7280;}
+.tbl-ts input{background:#1e2235;border:1px solid #444860;color:#e8eaf0;padding:7px 12px;border-radius:7px;font-size:12px;width:200px;}
+.tbl-ts input:focus{outline:none;border-color:#a78bfa;}
+
+/* Grade de OS */
+.os-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.os-card{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.os-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#a78bfa,#7c3aed);opacity:0;transition:opacity .15s;}
+.os-card:hover{transform:translateY(-3px);border-color:rgba(167,139,250,0.3);box-shadow:0 10px 24px rgba(0,0,0,0.25);}
+.os-card:hover::before{opacity:1;}
+
+.os-card-top{display:flex;align-items:center;justify-content:space-between;}
+.os-num{font-size:12px;color:#6b7280;font-weight:700;}
+.os-cliente{color:#e8eaf0;font-weight:700;font-size:15px;text-decoration:none;}
+.os-cliente:hover{color:#a78bfa;}
+.os-tecnico{color:#9ca3af;font-size:12px;display:flex;align-items:center;gap:6px;}
+.os-tecnico i{font-size:13px;}
+
+.os-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);}
+.os-row-label{color:#6b7280;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;display:block;}
+.os-row-val{font-size:12.5px;font-weight:600;}
+
+.os-financeiro{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);}
+.os-total{font-size:16px;font-weight:800;color:#e8eaf0;}
+.os-desconto{font-size:11px;color:#f87171;margin-left:6px;}
+
+.os-card-footer{display:flex;align-items:center;gap:5px;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);}
+.act-btn{width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;transition:background .15s,transform .12s;border:none;cursor:pointer;}
 .act-btn:hover{transform:scale(1.1);}
 .ab-v{background:rgba(96,165,250,0.15);color:#60a5fa;}.ab-v:hover{background:rgba(96,165,250,0.3);color:#60a5fa;}
 .ab-p{background:rgba(167,139,250,0.15);color:#a78bfa;}.ab-p:hover{background:rgba(167,139,250,0.3);color:#a78bfa;}
+.ab-t{background:rgba(6,182,212,0.15);color:#22d3ee;}.ab-t:hover{background:rgba(6,182,212,0.3);color:#22d3ee;}
 .ab-e{background:rgba(34,197,94,0.15);color:#4ade80;}.ab-e:hover{background:rgba(34,197,94,0.3);color:#4ade80;}
 .ab-d{background:rgba(239,68,68,0.15);color:#f87171;}.ab-d:hover{background:rgba(239,68,68,0.3);color:#f87171;}
-.sp{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;}
+
+.sp{padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;display:inline-block;}
 .sp-ab{background:rgba(96,165,250,0.15);color:#60a5fa;}
 .sp-fi{background:rgba(34,197,94,0.15);color:#4ade80;}
+.sp-fat{background:rgba(6,182,212,0.15);color:#22d3ee;}
 .sp-ca{background:rgba(239,68,68,0.15);color:#f87171;}
 .sp-or{background:rgba(245,158,11,0.15);color:#fbbf24;}
 .sp-an{background:rgba(167,139,250,0.15);color:#a78bfa;}
 .sp-ot{background:rgba(255,255,255,0.08);color:#9ca3af;}
-#tabela_length,.dataTables_length,#tabela_info,.dataTables_info,#tabela_filter,.dataTables_filter,.dataTables_paginate{display:none!important;}
+
+.os-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:#6b7280;}
+.os-empty i{font-size:44px;display:block;margin-bottom:10px;opacity:.3;}
+
+.tbl-wrap{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+.tbl-wrap table{width:100%;border-collapse:collapse;}
+.tbl-wrap thead th{background:#252a3a;color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;}
+.tbl-wrap tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s;}
+.tbl-wrap tbody tr:hover{background:rgba(167,139,250,0.04);}
+.tbl-wrap tbody td{padding:10px 12px;font-size:13px;color:#c9cad6;vertical-align:middle;}
 </style>
 
 <div class="new122">
@@ -51,12 +90,46 @@
             <a href="<?= base_url() ?>index.php/os/adicionar" class="btn-add"><i class='bx bx-plus-circle'></i> Nova OS</a>
             <?php endif; ?>
             <a href="<?= site_url('os/gerenciar?entrega_hoje=1') ?>" class="btn-entrega"><i class='bx bx-calendar-check'></i> Entregas Hoje</a>
+            <div class="os-view-toggle">
+                <button type="button" class="ovt-btn <?= $visualizacaoAtual === 'grade' ? 'ativo' : '' ?>" onclick="osTrocarVisualizacao('grade')" title="Ver em grade"><i class='bx bx-grid-alt'></i></button>
+                <button type="button" class="ovt-btn <?= $visualizacaoAtual === 'lista' ? 'ativo' : '' ?>" onclick="osTrocarVisualizacao('lista')" title="Ver em lista"><i class='bx bx-list-ul'></i></button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .os-view-toggle{display:flex;background:#1a1d2e;border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:3px;gap:2px;}
+    .ovt-btn{width:34px;height:32px;border:none;background:transparent;color:#6b7280;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .ovt-btn.ativo{background:rgba(167,139,250,0.15);color:#a78bfa;}
+    </style>
+    <script>
+    function osTrocarVisualizacao(modo) {
+        var params = new URLSearchParams(window.location.search);
+        params.set('visualizacao', modo);
+        window.location.href = '<?= site_url('os/gerenciar') ?>?' + params.toString();
+    }
+    </script>
+    <!-- Estatísticas -->
+    <div class="os-stats">
+        <div class="os-stat">
+            <div class="os-stat-icon" style="background:rgba(167,139,250,0.15);"><i class='bx bx-file-blank' style="color:#a78bfa;"></i></div>
+            <div><div class="os-stat-val"><?= (int)($statTotalOs ?? 0) ?></div><div class="os-stat-label">Total de OS</div></div>
+        </div>
+        <div class="os-stat">
+            <div class="os-stat-icon" style="background:rgba(96,165,250,0.15);"><i class='bx bx-time' style="color:#60a5fa;"></i></div>
+            <div><div class="os-stat-val"><?= (int)($statEmAberto ?? 0) ?></div><div class="os-stat-label">Em Aberto</div></div>
+        </div>
+        <div class="os-stat">
+            <a href="<?= site_url('os/gerenciar') ?>?vencidas=1" style="text-decoration:none;display:flex;align-items:center;gap:14px;width:100%;">
+                <div class="os-stat-icon" style="background:rgba(239,68,68,0.15);"><i class='bx bx-time-five' style="color:#f87171;"></i></div>
+                <div><div class="os-stat-val"><?= (int)($statVencidas ?? 0) ?></div><div class="os-stat-label">Vencidas</div></div>
+            </a>
         </div>
     </div>
 
     <!-- Filtros -->
     <form method="get" action="<?= base_url() ?>index.php/os/gerenciar" class="filter-bar">
-        <input type="text" name="pesquisa" placeholder="Cliente ou Nº OS..." value="<?= $this->input->get('pesquisa') ?>" style="width:180px;">
+        <input type="text" name="pesquisa" placeholder="Cliente ou Nº OS..." value="<?= htmlspecialchars($this->input->get('pesquisa') ?? '') ?>" style="width:180px;">
         <select name="status">
             <option value="">Todos os Status</option>
             <?php foreach(["Aberto","Orçamento","Negociação","Aprovado","Aguardando Peças","Em Andamento","Aguardando Autorização","Em Teste","Finalizado","Faturado","Sem Conserto","Não foi Possível","Não temos Peças","Recusado","Cancelado"] as $s): ?>
@@ -65,73 +138,146 @@
         </select>
         <input type="text" name="data" autocomplete="off" class="datepicker" placeholder="Data inicial" value="<?= $this->input->get('data') ?>" style="width:130px;">
         <input type="text" name="data2" autocomplete="off" class="datepicker" placeholder="Data final" value="<?= $this->input->get('data2') ?>" style="width:130px;">
+        <select name="entregue">
+            <option value="">Entregue: Todos</option>
+            <option value="1" <?= $this->input->get('entregue')==='1'?'selected':'' ?>>Entregue: Sim</option>
+            <option value="0" <?= $this->input->get('entregue')==='0'?'selected':'' ?>>Entregue: Não</option>
+        </select>
         <button type="submit" class="btn-filter"><i class='bx bx-filter-alt'></i> Filtrar</button>
     </form>
 
+    <?php if ($visualizacaoAtual === 'lista'): ?>
+    <!-- ── Visualização em Lista (tabela + rolagem infinita) ── -->
+    <div class="tbl-toolbar">
+        <div class="tbl-tl"><span id="os-count-label-lista" style="color:#e8eaf0;font-weight:600;"><?= isset($results) ? count($results) : 0 ?> de <?= (int)($configuration['total_rows'] ?? 0) ?> OS carregadas</span></div>
+        <div class="tbl-ts"><input type="text" placeholder="Filtrar o que já carregou..." oninput="ftLista(this.value)"></div>
+    </div>
     <div class="tbl-wrap">
-        <div class="tbl-toolbar">
-            <div class="tbl-tl">
-                Exibir <select onchange="fs(this.value)"><option>10</option><option>25</option><option>50</option><option>100</option></select>
-                registros &nbsp;·&nbsp; <span style="color:#e8eaf0;font-weight:600;"><?= isset($results) ? count($results) : 0 ?> OS</span>
-            </div>
-            <div class="tbl-ts"><input type="text" placeholder="Filtrar..." oninput="ft(this.value)"></div>
-        </div>
-        <table id="tabela" class="table">
+        <table id="tabelaLista" class="table">
             <thead>
                 <tr>
                     <th>#</th><th>Cliente</th><th>Técnico</th><th>Data</th>
                     <th>Venc. Garantia</th><th>Total</th><th>Desconto</th>
-                    <th>C/ Desconto</th><th>Faturado</th><th>Status</th><th>Ações</th>
+                    <th>C/ Desconto</th><th>Faturado</th><th>Entregue</th><th>Status</th><th>Ações</th>
                 </tr>
             </thead>
-            <tbody>
-            <?php
-            if (!isset($results) || !$results) {
-                echo '<tr><td colspan="11" style="text-align:center;padding:40px;color:#6b7280;"><i class="bx bx-file-blank" style="font-size:40px;display:block;margin-bottom:8px;opacity:.3;"></i>Nenhuma OS encontrada</td></tr>';
-            } else {
-                foreach ($results as $r) {
-                    $dataInicial = $r->dataInicial ? date('d/m/Y', strtotime($r->dataInicial)) : '-';
-                    $dataFinal   = $r->dataFinal   ? date('d/m/Y', strtotime($r->dataFinal))   : '-';
-                    $hoje = date('Y-m-d');
-                    if ($r->dataFinal && $r->dataFinal < $hoje && !in_array($r->status, ['Finalizado','Cancelado','Faturado'])) {
-                        $corGarantia = '#ef4444'; $vencGarantia = 'VENCIDA';
-                    } elseif ($r->dataFinal) {
-                        $corGarantia = '#22c55e'; $vencGarantia = $dataFinal;
-                    } else {
-                        $corGarantia = '#6b7280'; $vencGarantia = 'Sem prazo';
-                    }
-                    $spMap = ['Aberto'=>'ab','Orçamento'=>'or','Finalizado'=>'fi','Faturado'=>'fi','Cancelado'=>'ca','Recusado'=>'ca','Em Andamento'=>'an','Aprovado'=>'an'];
-                    $spC = isset($spMap[$r->status]) ? 'sp-'.$spMap[$r->status] : 'sp-ot';
-                    echo '<tr>';
-                    echo '<td style="color:#6b7280;font-size:12px;">' . $r->idOs . '</td>';
-                    echo '<td><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="color:#e8eaf0;font-weight:600;text-decoration:none;">' . htmlspecialchars($r->nomeCliente) . '</a></td>';
-                    echo '<td style="color:#9ca3af;font-size:12px;">' . htmlspecialchars($r->nome) . '</td>';
-                    echo '<td style="font-size:12px;">' . $dataInicial . '</td>';
-                    echo '<td><span style="color:' . $corGarantia . ';font-size:12px;">' . $vencGarantia . '</span></td>';
-                    echo '<td style="font-weight:600;">R$ ' . number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.') . '</td>';
-                    echo '<td style="color:#f87171;">R$ ' . number_format(floatval($r->desconto), 2, ',', '.') . '</td>';
-                    echo '<td style="font-weight:600;color:#e8eaf0;">R$ ' . number_format(floatval($r->valor_desconto), 2, ',', '.') . '</td>';
-                    echo '<td style="color:#4ade80;">R$ ' . number_format($r->faturado ? floatval($r->valor_desconto) : 0, 2, ',', '.') . '</td>';
-                    echo '<td><span class="sp ' . $spC . '">' . $r->status . '</span></td>';
-                    echo '<td><div class="act-btns">';
-                    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                        echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" class="act-btn ab-v" title="Ver"><i class="bx bx-show"></i></a>';
-                        echo '<a href="' . base_url() . 'index.php/os/imprimir/' . $r->idOs . '" target="_blank" class="act-btn ab-p" title="Imprimir A4"><i class="bx bx-printer"></i></a>';
-                        echo '<a href="' . base_url() . 'index.php/os/imprimirTermica/' . $r->idOs . '" target="_blank" class="act-btn" style="background:rgba(6,182,212,0.15);color:#22d3ee;border-radius:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;" title="Cupom 80mm"><i class="bx bx-receipt"></i></a>';
-                    }
-                    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-                        echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="act-btn ab-e" title="Editar"><i class="bx bx-edit"></i></a>';
-                    }
-                    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs')) {
-                        echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="act-btn ab-d" title="Excluir"><i class="bx bx-trash-alt"></i></a>';
-                    }
-                    echo '</div></td></tr>';
-                }
-            } ?>
+            <tbody id="os-lista-tbody">
+                <?php echo $this->load->view('os/_table_rows_partial', ['results' => $results ?? []], true); ?>
             </tbody>
         </table>
     </div>
-    <?= $this->pagination->create_links() ?>
+    <div id="os-sentinel-lista" style="display:flex;justify-content:center;padding:24px 0;">
+        <div id="os-loading-lista" style="display:none;align-items:center;gap:8px;color:#9ca3af;font-size:13px;">
+            <i class='bx bx-loader-alt bx-spin'></i> Carregando mais OS...
+        </div>
+        <div id="os-fim-lista" style="display:none;color:#6b7280;font-size:12px;">
+            Isso é tudo — não há mais OS para carregar com esses filtros.
+        </div>
+    </div>
+    <script>
+    function ftLista(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('#tabelaLista tbody tr').forEach(function(tr) {
+            tr.style.display = tr.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none';
+        });
+    }
+
+    (function() {
+        var tbody = document.getElementById('os-lista-tbody');
+        var loadingEl = document.getElementById('os-loading-lista');
+        var fimEl = document.getElementById('os-fim-lista');
+        var countLabel = document.getElementById('os-count-label-lista');
+        var perPage = 24;
+        var totalGeral = <?= (int)($configuration['total_rows'] ?? 0) ?>;
+        var qtdCarregada = <?= (int)count($results ?? []) ?>;
+        var carregando = false;
+        var acabou = qtdCarregada >= totalGeral;
+
+        var filtros = {
+            pesquisa: <?= json_encode($this->input->get('pesquisa') ?? '') ?>,
+            status: <?= json_encode($this->input->get('status') ?? '') ?>,
+            data: <?= json_encode($this->input->get('data') ?? '') ?>,
+            data2: <?= json_encode($this->input->get('data2') ?? '') ?>,
+            numero_os: <?= json_encode($this->input->get('numero_os') ?? '') ?>,
+            entregue: <?= json_encode($this->input->get('entregue') ?? '') ?>,
+            entrega_hoje: <?= json_encode($this->input->get('entrega_hoje') ?? '') ?>,
+            vencidas: <?= json_encode($this->input->get('vencidas') ?? '') ?>,
+            modo: 'lista'
+        };
+
+        function ultimoIdCarregado() {
+            var linhas = tbody.querySelectorAll('tr[data-id]');
+            if (!linhas.length) return 0;
+            return parseInt(linhas[linhas.length - 1].getAttribute('data-id'), 10) || 0;
+        }
+
+        function carregarMais() {
+            if (carregando || acabou) return;
+            carregando = true;
+            loadingEl.style.display = 'flex';
+
+            var params = new URLSearchParams(filtros);
+            params.set('antes_de', ultimoIdCarregado());
+            var url = '<?= site_url("os/carregarMais") ?>?' + params.toString();
+
+            fetch(url)
+                .then(function(res) { return res.text(); })
+                .then(function(html) {
+                    if (html.trim() === '') {
+                        acabou = true;
+                        fimEl.style.display = 'block';
+                    } else {
+                        var temp = document.createElement('tbody');
+                        temp.innerHTML = html;
+                        var novasLinhas = temp.querySelectorAll('tr');
+                        novasLinhas.forEach(function(tr) { tbody.appendChild(tr); });
+                        qtdCarregada += novasLinhas.length;
+                        if (novasLinhas.length < perPage) {
+                            acabou = true;
+                            fimEl.style.display = 'block';
+                        }
+                        if (countLabel) countLabel.textContent = qtdCarregada + ' de ' + totalGeral + ' OS carregadas';
+                    }
+                })
+                .catch(function() {})
+                .finally(function() {
+                    carregando = false;
+                    loadingEl.style.display = 'none';
+                });
+        }
+
+        if (acabou) fimEl.style.display = 'block';
+
+        var sentinel = document.getElementById('os-sentinel-lista');
+        if (sentinel && 'IntersectionObserver' in window) {
+            new IntersectionObserver(function(entries) {
+                entries.forEach(function(e) { if (e.isIntersecting) carregarMais(); });
+            }, { rootMargin: '200px' }).observe(sentinel);
+        }
+    })();
+    </script>
+
+    <?php else: ?>
+    <!-- ── Visualização em Grade (cards + rolagem infinita) ── -->
+    <div class="tbl-toolbar">
+        <div class="tbl-tl"><span id="os-count-label" style="color:#e8eaf0;font-weight:600;"><?= isset($results) ? count($results) : 0 ?> de <?= (int)($configuration['total_rows'] ?? 0) ?> OS carregadas</span></div>
+        <div class="tbl-ts"><input type="text" placeholder="Filtrar o que já carregou..." oninput="filterCards(this.value)"></div>
+    </div>
+
+    <!-- Grade de OS -->
+    <div class="os-grid" id="os-grid">
+        <?php echo $this->load->view('os/_cards_partial', ['results' => $results ?? []], true); ?>
+
+        <div id="os-sentinel" style="grid-column:1/-1;display:flex;justify-content:center;padding:24px 0;">
+            <div id="os-loading" style="display:none;align-items:center;gap:8px;color:#9ca3af;font-size:13px;">
+                <i class='bx bx-loader-alt bx-spin'></i> Carregando mais OS...
+            </div>
+            <div id="os-fim" style="display:none;color:#6b7280;font-size:12px;">
+                Isso é tudo — não há mais OS para carregar com esses filtros.
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal Excluir -->
@@ -156,9 +302,97 @@
 </div>
 
 <script>
-function ft(q){q=q.toLowerCase();$("#tabela tbody tr").each(function(){$(this).toggle($(this).text().toLowerCase().indexOf(q)>-1);});}
-function fs(n){var i=0;$("#tabela tbody tr").each(function(){i++;$(this).toggle(i<=parseInt(n));});}
 $(document).ready(function(){
     $(document).on("click","a[os]",function(){$("#idOS").val($(this).attr("os"));});
 });
+
+function filterCards(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#os-grid .os-card').forEach(function(card) {
+        var alvo = card.getAttribute('data-search') || '';
+        card.style.display = alvo.indexOf(q) > -1 ? '' : 'none';
+    });
+}
+
+// ── Rolagem infinita (paginação por cursor — mais rápida em bases grandes) ──
+(function() {
+    var grid = document.getElementById('os-grid');
+    var loadingEl = document.getElementById('os-loading');
+    var fimEl = document.getElementById('os-fim');
+    var countLabel = document.getElementById('os-count-label');
+    var perPage = 24;
+    var totalGeral = <?= (int)($configuration['total_rows'] ?? 0) ?>;
+    var qtdCarregada = <?= (int)count($results ?? []) ?>;
+    var carregando = false;
+    var acabou = qtdCarregada >= totalGeral;
+
+    // Mesmos filtros da URL atual, repassados pra cada chamada de "carregar mais"
+    var filtros = {
+        pesquisa: <?= json_encode($this->input->get('pesquisa') ?? '') ?>,
+        status: <?= json_encode($this->input->get('status') ?? '') ?>,
+        data: <?= json_encode($this->input->get('data') ?? '') ?>,
+        data2: <?= json_encode($this->input->get('data2') ?? '') ?>,
+        numero_os: <?= json_encode($this->input->get('numero_os') ?? '') ?>,
+        entregue: <?= json_encode($this->input->get('entregue') ?? '') ?>,
+        entrega_hoje: <?= json_encode($this->input->get('entrega_hoje') ?? '') ?>,
+        vencidas: <?= json_encode($this->input->get('vencidas') ?? '') ?>
+    };
+
+    function ultimoIdCarregado() {
+        var cards = grid.querySelectorAll('.os-card');
+        if (!cards.length) return 0;
+        return parseInt(cards[cards.length - 1].getAttribute('data-id'), 10) || 0;
+    }
+
+    function atualizarContador() {
+        var qtd = document.querySelectorAll('#os-grid .os-card').length;
+        if (countLabel) countLabel.textContent = qtd + ' de ' + totalGeral + ' OS carregadas';
+    }
+
+    function carregarMais() {
+        if (carregando || acabou) return;
+        carregando = true;
+        loadingEl.style.display = 'flex';
+
+        var params = new URLSearchParams(filtros);
+        params.set('antes_de', ultimoIdCarregado());
+        var url = '<?= site_url("os/carregarMais") ?>?' + params.toString();
+
+        fetch(url)
+            .then(function(res) { return res.text(); })
+            .then(function(html) {
+                if (html.trim() === '') {
+                    acabou = true;
+                    fimEl.style.display = 'block';
+                } else {
+                    var temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    var novosCards = temp.querySelectorAll('.os-card');
+                    novosCards.forEach(function(card) { grid.insertBefore(card, document.getElementById('os-sentinel')); });
+                    qtdCarregada += novosCards.length;
+                    if (novosCards.length < perPage) {
+                        acabou = true;
+                        fimEl.style.display = 'block';
+                    }
+                    atualizarContador();
+                }
+            })
+            .catch(function() {})
+            .finally(function() {
+                carregando = false;
+                loadingEl.style.display = 'none';
+
+            });
+    }
+
+    if (acabou) { fimEl.style.display = 'block'; }
+
+    var sentinel = document.getElementById('os-sentinel');
+    if (sentinel && 'IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) { if (entry.isIntersecting) carregarMais(); });
+        }, { rootMargin: '200px' });
+        observer.observe(sentinel);
+    }
+})();
 </script>

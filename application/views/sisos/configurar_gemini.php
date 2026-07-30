@@ -927,6 +927,19 @@
                                                     <option value="gemini-1.5-flash"     <?=($configuration['gemini_model']??'')=='gemini-1.5-flash'    ?'selected':''?>>🔥 gemini-1.5-flash (estável)</option>
                                                     <option value="gemini-1.5-flash-8b"  <?=($configuration['gemini_model']??'')=='gemini-1.5-flash-8b' ?'selected':''?>>💡 gemini-1.5-flash-8b (gratuito)</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text"
+                                                           id="gemini_model_custom"
+                                                           placeholder="Ex: gemini-2.0-flash-exp, gemini-2.5-pro..."
+                                                           value="<?= htmlspecialchars($configuration['gemini_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('gemini', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="gemini_model_custom" value="<?= htmlspecialchars($configuration['gemini_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -950,6 +963,19 @@
                                                     <option value="gpt-4-turbo"  <?=($configuration['openai_model']??'')=='gpt-4-turbo' ?'selected':''?>>🔥 gpt-4-turbo</option>
                                                     <option value="gpt-3.5-turbo"<?=($configuration['openai_model']??'')=='gpt-3.5-turbo'?'selected':''?>>💡 gpt-3.5-turbo</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text" 
+                                                           id="openai_model_custom"
+                                                           placeholder="Ex: gpt-4o-mini-exp, novo-modelo-2025..."
+                                                           value="<?= htmlspecialchars($configuration['openai_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('openai', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="openai_model_custom" value="<?= htmlspecialchars($configuration['openai_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -972,6 +998,19 @@
                                                     <option value="claude-sonnet-4-6"<?=($configuration['claude_model']??'')=='claude-sonnet-4-6'?'selected':''?>>🚀 claude-sonnet-4-6 (recomendado)</option>
                                                     <option value="claude-opus-4-6"  <?=($configuration['claude_model']??'')=='claude-opus-4-6'  ?'selected':''?>>🔥 claude-opus-4-6 (mais capaz)</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text" 
+                                                           id="claude_model_custom"
+                                                           placeholder="Ex: claude-sonnet-4-6-exp, novo-modelo-2025..."
+                                                           value="<?= htmlspecialchars($configuration['claude_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('claude', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="claude_model_custom" value="<?= htmlspecialchars($configuration['claude_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -994,6 +1033,19 @@
                                                     <option value="llama-3.1-sonar-large-128k-online"<?=($configuration['perplexity_model']??'')=='llama-3.1-sonar-large-128k-online'?'selected':''?>>🚀 sonar-large (com web)</option>
                                                     <option value="llama-3.1-sonar-huge-128k-online" <?=($configuration['perplexity_model']??'')=='llama-3.1-sonar-huge-128k-online' ?'selected':''?>>🔥 sonar-huge</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text" 
+                                                           id="perplexity_model_custom"
+                                                           placeholder="Ex: llama-3.1-sonar-small-128k-online-exp, novo-modelo-2025..."
+                                                           value="<?= htmlspecialchars($configuration['perplexity_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('perplexity', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="perplexity_model_custom" value="<?= htmlspecialchars($configuration['perplexity_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -1015,6 +1067,19 @@
                                                     <option value="deepseek-chat"    <?=($configuration['deepseek_model']??'deepseek-chat')=='deepseek-chat'   ?'selected':''?>>🚀 deepseek-chat (recomendado)</option>
                                                     <option value="deepseek-reasoner"<?=($configuration['deepseek_model']??'')=='deepseek-reasoner'?'selected':''?>>🧠 deepseek-reasoner</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text" 
+                                                           id="deepseek_model_custom"
+                                                           placeholder="Ex: deepseek-chat-exp, novo-modelo-2025..."
+                                                           value="<?= htmlspecialchars($configuration['deepseek_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('deepseek', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="deepseek_model_custom" value="<?= htmlspecialchars($configuration['deepseek_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -1037,6 +1102,19 @@
                                                     <option value="mistral-medium-latest"<?=($configuration['mistral_model']??'')=='mistral-medium-latest'?'selected':''?>>🚀 mistral-medium</option>
                                                     <option value="mistral-large-latest" <?=($configuration['mistral_model']??'')=='mistral-large-latest' ?'selected':''?>>🔥 mistral-large</option>
                                                 </select>
+                                                <div style="margin-top:8px;">
+                                                    <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">
+                                                        <i class='bx bx-plus-circle' style="color:#a78bfa;"></i> Modelo personalizado (opcional)
+                                                    </label>
+                                                    <input type="text" 
+                                                           id="mistral_model_custom"
+                                                           placeholder="Ex: mistral-small-latest-exp, novo-modelo-2025..."
+                                                           value="<?= htmlspecialchars($configuration['mistral_model_custom']??'') ?>"
+                                                           oninput="applyCustomModel('mistral', this.value)"
+                                                           style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid #6366f1;background:#2a2d3e;color:#e8eaf0;font-size:13px;" />
+                                                    <small style="color:#6e728f;font-size:10px;">Se preenchido, substitui o modelo selecionado acima.</small>
+                                                    <input type="hidden" name="mistral_model_custom" value="<?= htmlspecialchars($configuration['mistral_model_custom']??'') ?>">
+                                                </div>
                                             </div>
                                             <div>
                                                 <label style="color:#9ca0b8;font-size:12px;margin-bottom:4px;display:block;">🔑 Chave API</label>
@@ -1358,6 +1436,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var primeiro = document.querySelector('#configTabs li:first-child');
     if (primeiro) primeiro.classList.add('active');
+});
+
+function applyCustomModel(prov, val) {
+    var hiddenName = prov + '_model';
+    var selId = prov + '_model_sel';
+    var hidden = document.querySelector('input[name="' + hiddenName + '"]');
+    if (!hidden) return;
+    if (val && val.trim() !== '') {
+        // Modelo personalizado sobrescreve o select
+        hidden.value = val.trim();
+        var sel = document.getElementById(selId);
+        if (sel) sel.style.opacity = '0.4';
+    } else {
+        // Sem modelo personalizado, volta ao select
+        var sel = document.getElementById(selId);
+        if (sel) {
+            sel.style.opacity = '1';
+            hidden.value = sel.value;
+        }
+    }
+}
+
+// Ao carregar, aplicar modelos personalizados já salvos
+document.addEventListener('DOMContentLoaded', function() {
+    ['gemini','openai','claude','perplexity','deepseek','mistral'].forEach(function(prov) {
+        var customInput = document.getElementById(prov + '_model_custom');
+        if (customInput && customInput.value.trim() !== '') {
+            applyCustomModel(prov, customInput.value.trim());
+        }
+    });
 });
 
 function updateHidden(name, val) {
