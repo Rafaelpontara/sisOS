@@ -1,6 +1,6 @@
 # SISOS — Sistema de Ordens de Serviço
 
-![version](https://img.shields.io/badge/version-4.53.2-blue.svg?longCache=true&style=flat-square)
+![version](https://img.shields.io/badge/version-2.0.0-blue.svg?longCache=true&style=flat-square)
 ![license](https://img.shields.io/badge/license-Apache-green.svg?longCache=true&style=flat-square)
 ![theme](https://img.shields.io/badge/theme-Matrix--Admin-lightgrey.svg?longCache=true&style=flat-square)
 ![issues](https://img.shields.io/github/issues/Rafaelpontara/sisOS.svg?longCache=true&style=flat-square)
@@ -14,6 +14,14 @@
 ## O que é o SISOS?
 
 O **SISOS** é um sistema web open source para **gerenciamento de ordens de serviço**, desenvolvido para assistências técnicas, oficinas e prestadores de serviço. Controle clientes, OS, estoque, financeiro, cobranças, compras e muito mais em um único sistema.
+
+---
+
+## 🆕 Funcionalidades Adicionais
+
+- 🛠️ **Soluções Técnicas** — biblioteca de soluções e procedimentos para consulta rápida durante o reparo, com permissões próprias de acesso (visualizar/adicionar/editar/excluir).
+- 🛒 **Pedidos & Anotações** — quadro Kanban (Pendente → Comprado → Entregue) para registrar pedidos de peças e produtos. Vínculo com cliente sempre opcional, busca de produto cadastrado (com opção de texto livre para itens não cadastrados), foto do produto e notificação via WhatsApp quando o pedido é comprado.
+- ⭐ **Pesquisa de Satisfação** — envio de pesquisa de satisfação ao cliente após o atendimento (pelo botão na OS ou pelo placeholder `{pesquisa}` no Pós-Venda), com painel de resultados para a equipe acompanhar.
 
 ---
 
