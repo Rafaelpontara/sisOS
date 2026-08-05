@@ -1,3 +1,62 @@
+<?php $temaClaro = in_array($configuration['app_theme'] ?? '', ['white','whitegreen','whiteblack']); ?>
+<?php if ($temaClaro): ?>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   TEMA CLARO — Dashboard (sisos/painel.php)
+   Esta view usa paleta escura fixa (#1a1d2e/#1e2235/#e8eaf0) direto
+   nos elementos, sem depender das variáveis do tema. Este bloco
+   sobrescreve só quando o tema ativo é claro (white/whitegreen/
+   whiteblack) — não altera nada do tema escuro.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* KPIs do topo (OS abertas hoje / Receita / Vencidas / Estoque baixo) */
+.sisos-kpi-card{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.sisos-kpi-value{ color:#1f2937 !important; }
+
+/* Atalhos (Clientes/Produtos/PDV/Ordens/Vendas/Assistente IA) */
+.cardBox .card{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.cardBox .numbers{ color:#1f2937 !important; }
+.cardBox .cardName{ color:#6b7280 !important; opacity:1 !important; }
+
+/* Agenda de OS (calendário) */
+.sisos-agenda-card{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.sisos-agenda-header{ background:rgba(249,115,22,0.04) !important; border-bottom-color:rgba(0,0,0,0.06) !important; }
+.sisos-agenda-title{ color:#1f2937 !important; }
+.sisos-agenda-select-wrap select{ background:#f9fafb !important; border-color:#d1d5db !important; color:#1f2937 !important; }
+.sisos-agenda-legenda{ background:rgba(0,0,0,0.02) !important; border-bottom-color:rgba(0,0,0,0.05) !important; }
+.sisos-leg{ background:#f3f4f6 !important; border-color:rgba(0,0,0,0.07) !important; color:#4b5563 !important; }
+.sisos-fullcalendar-wrap .fc{ color:#1f2937 !important; }
+.sisos-fullcalendar-wrap .fc-toolbar-title{ color:#1f2937 !important; }
+.sisos-fullcalendar-wrap .fc-col-header-cell{ background:rgba(249,115,22,0.04) !important; color:#6b7280 !important; }
+.sisos-fullcalendar-wrap .fc-daygrid-day-number{ color:#4b5563 !important; }
+.sisos-fullcalendar-wrap .fc-scrollgrid{ border-color:rgba(0,0,0,0.08) !important; }
+.sisos-fullcalendar-wrap .fc-scrollgrid td,.sisos-fullcalendar-wrap .fc-scrollgrid th{ border-color:rgba(0,0,0,0.06) !important; }
+
+/* Estatísticas do Sistema (widget ao lado da agenda) */
+.widget-box-new.widbox-blak{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.cardHeader{ color:#1f2937 !important; }
+.new-bottons .card{ background:#f9fafb !important; border-color:rgba(0,0,0,0.06) !important; }
+.new-bottons .cardName2,.new-bottons .cardName1{ color:#1f2937 !important; }
+.new-bottons .cardName{ color:#6b7280 !important; }
+
+/* Tabelas (OS por status, Vendas, Lançamentos, Estoque mínimo, Técnico) */
+.widget-box0{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.widget-box0 table thead th{ background:#f3f4f6 !important; color:#6b7280 !important; border-color:rgba(0,0,0,0.08) !important; }
+.widget-box0 table tbody td{ color:#374151 !important; border-color:rgba(0,0,0,0.05) !important; }
+.widget-box0 table tbody tr:hover td{ background:rgba(0,0,0,0.02) !important; }
+.widget-box0 .cli1{ color:#1f2937 !important; }
+.widget-box-statist{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+
+/* Modal de detalhe da OS (clique num evento da agenda) */
+.sisos-modal-box{ background:#ffffff !important; border-color:rgba(0,0,0,0.08) !important; }
+.sisos-modal-head{ background:#f9fafb !important; border-bottom-color:rgba(0,0,0,0.08) !important; }
+.sisos-modal-row{ color:#1f2937 !important; }
+.sisos-modal-divider{ background:rgba(0,0,0,0.06) !important; }
+.sisos-modal-info span{ color:#1f2937 !important; }
+.sisos-modal-info-full p{ color:#4b5563 !important; }
+.sisos-modal-foot{ background:#f9fafb !important; border-top-color:rgba(0,0,0,0.08) !important; }
+</style>
+<?php endif; ?>
 
 <style>
 /* ── Agenda Card ──────────────────────────────────────── */
@@ -310,14 +369,14 @@ $pctVencidas = sisosPctVsOntem($os_vencidas ?? 0, $os_vencidas_ontem ?? 0);
 ?>
 
 <!-- KPI Cards Row -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+<div class="sisos-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
 
-    <div style="background:#1e2235;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+    <div class="sisos-kpi-card" style="background:#1e2235;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
         <div style="width:46px;height:46px;border-radius:12px;background:rgba(249,115,22,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class='bx bx-file' style="font-size:22px;color:#f97316;"></i>
         </div>
         <div>
-            <div style="font-size:26px;font-weight:800;color:#e8eaf0;line-height:1;"><?= $os_hoje ?? 0 ?></div>
+            <div class="sisos-kpi-value" style="font-size:26px;font-weight:800;color:#e8eaf0;line-height:1;"><?= $os_hoje ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">OS abertas hoje</div>
             <div style="font-size:11px;color:#6b7280;margin-top:4px;">
                 <span style="color:<?= $pctOs > 0 ? '#4ade80' : ($pctOs < 0 ? '#f87171' : '#6b7280') ?>;">●</span>
@@ -326,13 +385,13 @@ $pctVencidas = sisosPctVsOntem($os_vencidas ?? 0, $os_vencidas_ontem ?? 0);
         </div>
     </div>
 
-    <div style="background:#1e2235;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+    <div class="sisos-kpi-card" style="background:#1e2235;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
         <div style="width:46px;height:46px;border-radius:12px;background:rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class='bx <?= ($pode_ver_financeiro ?? false) ? "bx-trending-up" : "bx-lock-alt" ?>' style="font-size:22px;color:#22c55e;"></i>
         </div>
         <?php if ($pode_ver_financeiro ?? false): ?>
         <div>
-            <div style="font-size:22px;font-weight:800;color:#e8eaf0;line-height:1;">R$ <?= number_format($receita_hoje ?? 0, 2, ',', '.') ?></div>
+            <div class="sisos-kpi-value" style="font-size:22px;font-weight:800;color:#e8eaf0;line-height:1;">R$ <?= number_format($receita_hoje ?? 0, 2, ',', '.') ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">Receita de hoje</div>
             <div style="font-size:11px;color:#6b7280;margin-top:4px;">
                 <span style="color:<?= $pctReceita > 0 ? '#4ade80' : ($pctReceita < 0 ? '#f87171' : '#6b7280') ?>;">●</span>
@@ -347,12 +406,12 @@ $pctVencidas = sisosPctVsOntem($os_vencidas ?? 0, $os_vencidas_ontem ?? 0);
         <?php endif; ?>
     </div>
 
-    <div style="background:#1e2235;border:1px solid <?= ($os_vencidas ?? 0) > 0 ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.07)' ?>;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+    <div class="sisos-kpi-card" style="background:#1e2235;border:1px solid <?= ($os_vencidas ?? 0) > 0 ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.07)' ?>;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
         <div style="width:46px;height:46px;border-radius:12px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class='bx bx-time-five' style="font-size:22px;color:#ef4444;"></i>
         </div>
         <div>
-            <div style="font-size:26px;font-weight:800;color:<?= ($os_vencidas ?? 0) > 0 ? '#ef4444' : '#e8eaf0' ?>;line-height:1;"><?= $os_vencidas ?? 0 ?></div>
+            <div class="sisos-kpi-value" style="font-size:26px;font-weight:800;color:<?= ($os_vencidas ?? 0) > 0 ? '#ef4444' : '#e8eaf0' ?>;line-height:1;"><?= $os_vencidas ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">OS vencidas</div>
             <div style="font-size:11px;color:#6b7280;margin-top:4px;">
                 <span style="color:<?= $pctVencidas > 0 ? '#f87171' : ($pctVencidas < 0 ? '#4ade80' : '#6b7280') ?>;">●</span>
@@ -361,12 +420,12 @@ $pctVencidas = sisosPctVsOntem($os_vencidas ?? 0, $os_vencidas_ontem ?? 0);
         </div>
     </div>
 
-    <div style="background:#1e2235;border:1px solid <?= ($estoque_baixo ?? 0) > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.07)' ?>;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+    <div class="sisos-kpi-card" style="background:#1e2235;border:1px solid <?= ($estoque_baixo ?? 0) > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.07)' ?>;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
         <div style="width:46px;height:46px;border-radius:12px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class='bx bx-package' style="font-size:22px;color:#f59e0b;"></i>
         </div>
         <div>
-            <div style="font-size:26px;font-weight:800;color:<?= ($estoque_baixo ?? 0) > 0 ? '#f59e0b' : '#e8eaf0' ?>;line-height:1;"><?= $estoque_baixo ?? 0 ?></div>
+            <div class="sisos-kpi-value" style="font-size:26px;font-weight:800;color:<?= ($estoque_baixo ?? 0) > 0 ? '#f59e0b' : '#e8eaf0' ?>;line-height:1;"><?= $estoque_baixo ?? 0 ?></div>
             <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;">Estoque baixo</div>
             <div style="font-size:11px;color:#6b7280;margin-top:4px;">
                 <span style="color:<?= ($estoque_zerado ?? 0) > 0 ? '#f59e0b' : '#6b7280' ?>;">●</span>

@@ -106,20 +106,27 @@
 <!-- Modal Excluir -->
 <div id="modal-excluir" class="modal hide fade" tabindex="-1">
     <form action="<?= base_url() ?>index.php/produtos/excluir" method="post">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h5><i class='bx bx-trash' style="color:#f87171;"></i> Excluir Produto</h5>
-        </div>
-        <div class="modal-body" style="text-align:center;padding:20px;">
-            <div style="width:60px;height:60px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-                <i class='bx bx-package' style="font-size:28px;color:#f87171;"></i>
+        <div class="oxm-wrap">
+            <button type="button" class="oxm-close" data-dismiss="modal" aria-label="Fechar"><i class='bx bx-x'></i></button>
+
+            <div class="oxm-icon-circle">
+                <i class='bx bx-package'></i>
             </div>
-            <p style="color:#e8eaf0;font-weight:600;margin-bottom:6px;">Deseja excluir este produto?</p>
+
+            <h5 class="oxm-title">Excluir Produto</h5>
+            <p class="oxm-question">Tem certeza que deseja excluir este produto?</p>
+            <p class="oxm-hint"><i class='bx bx-error-circle'></i> Essa ação não pode ser desfeita.</p>
+
             <input type="hidden" id="idProduto" class="idProduto" name="id" value="">
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content:center;gap:10px;">
-            <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
-            <button type="submit" class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span><span class="button__text2">Excluir</span></button>
+
+            <div class="oxm-actions">
+                <button type="button" class="oxm-btn oxm-btn-cancel" data-dismiss="modal">
+                    <i class='bx bx-x'></i> Cancelar
+                </button>
+                <button type="submit" class="oxm-btn oxm-btn-danger">
+                    <i class='bx bx-trash'></i> Excluir
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -127,29 +134,116 @@
 <!-- Modal Estoque -->
 <div id="atualizar-estoque" class="modal hide fade" tabindex="-1">
     <form action="<?= base_url() ?>index.php/produtos/atualizar_estoque" method="post" id="formEstoque">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h5><i class='bx bx-sync' style="color:#fbbf24;"></i> Atualizar Estoque</h5>
-        </div>
-        <div class="modal-body">
-            <div class="control-group">
-                <label class="control-label">Estoque Atual</label>
-                <div class="controls"><input id="estoqueAtual" type="text" name="estoqueAtual" value="" readonly></div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Adicionar Quantidade <span class="required">*</span></label>
-                <div class="controls">
-                    <input type="hidden" id="idProduto2" class="idProduto" name="id" value="">
-                    <input id="estoque" type="text" name="estoque" value="" placeholder="Quantidade a adicionar">
+        <div class="fm-wrap">
+            <button type="button" class="fm-close" data-dismiss="modal" aria-label="Fechar"><i class='bx bx-x'></i></button>
+
+            <div class="fm-header">
+                <div class="fm-header-icon fm-header-icon-amber"><i class='bx bx-sync'></i></div>
+                <div>
+                    <h5 class="fm-title">Atualizar Estoque</h5>
+                    <span class="fm-subtitle">Adicione uma quantidade ao estoque atual</span>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content:center;gap:10px;">
-            <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-            <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+
+            <div class="fm-field">
+                <label class="fm-label">Estoque Atual</label>
+                <input id="estoqueAtual" type="text" name="estoqueAtual" value="" readonly class="fm-input">
+            </div>
+            <div class="fm-field">
+                <label class="fm-label">Adicionar Quantidade *</label>
+                <input type="hidden" id="idProduto2" class="idProduto" name="id" value="">
+                <input id="estoque" type="text" name="estoque" value="" placeholder="Quantidade a adicionar" class="fm-input">
+            </div>
+
+            <div class="fm-footer">
+                <button type="button" class="fm-btn fm-btn-cancel" data-dismiss="modal">
+                    <i class="bx bx-x"></i> Cancelar
+                </button>
+                <button type="submit" class="fm-btn fm-btn-primary">
+                    <i class="bx bx-sync"></i> Atualizar
+                </button>
+            </div>
         </div>
     </form>
 </div>
+
+<style>
+/* Modais "Excluir Produto" e "Atualizar Estoque" — redesenhados, cada um
+   escopado só ao próprio id, sem tocar em .modal-header/.modal-body/
+   .modal-footer/.close/.btn-warning/.btn-danger globais (usados pelo
+   modal "Etiquetas" logo abaixo, que continua com o visual padrão). */
+#modal-excluir{ background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important; }
+#modal-excluir .oxm-wrap{
+    max-width:380px; margin:0 auto; position:relative;
+    background:linear-gradient(180deg,#22263a 0%,#1a1d2e 100%);
+    border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.3);
+    padding:30px 26px 24px; text-align:center;
+}
+#modal-excluir .oxm-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:8px;
+    border:none; background:rgba(255,255,255,0.05); color:#8a90a2; font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s;
+}
+#modal-excluir .oxm-close:hover{ background:rgba(255,255,255,0.1); color:#e8eaf0; }
+#modal-excluir .oxm-icon-circle{
+    width:68px; height:68px; margin:0 auto 18px; border-radius:50%;
+    background:radial-gradient(circle, rgba(248,113,113,0.18) 0%, rgba(248,113,113,0.06) 100%);
+    border:1px solid rgba(248,113,113,0.25); display:flex; align-items:center; justify-content:center;
+}
+#modal-excluir .oxm-icon-circle i{ font-size:30px; color:#f87171; }
+#modal-excluir .oxm-title{ font-size:16.5px; font-weight:800; color:#e8eaf0; margin:0 0 8px; }
+#modal-excluir .oxm-question{ font-size:13.5px; color:#c9cad6; margin:0 0 6px; line-height:1.5; }
+#modal-excluir .oxm-hint{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:11.5px; color:#f59e0b; margin:0 0 22px; }
+#modal-excluir .oxm-actions{ display:flex; gap:10px; }
+#modal-excluir .oxm-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 14px; border-radius:10px; border:1px solid transparent;
+    font-size:13px; font-weight:700; cursor:pointer; transition:all .15s;
+}
+#modal-excluir .oxm-btn-cancel{ background:rgba(255,255,255,0.05); color:#c9cad6; border-color:rgba(255,255,255,0.08); }
+#modal-excluir .oxm-btn-cancel:hover{ background:rgba(255,255,255,0.09); color:#e8eaf0; }
+#modal-excluir .oxm-btn-danger{ background:linear-gradient(135deg,#f87171 0%,#ef4444 100%); color:#fff; box-shadow:0 6px 16px rgba(239,68,68,0.3); }
+#modal-excluir .oxm-btn-danger:hover{ filter:brightness(1.08); box-shadow:0 8px 20px rgba(239,68,68,0.4); }
+
+#atualizar-estoque{ background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important; }
+#atualizar-estoque .fm-wrap{
+    max-width:400px; margin:0 auto; position:relative;
+    background:linear-gradient(180deg,#22263a 0%,#1a1d2e 100%);
+    border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.3);
+    padding:26px 26px 22px;
+}
+#atualizar-estoque .fm-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:8px;
+    border:none; background:rgba(255,255,255,0.05); color:#8a90a2; font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s;
+}
+#atualizar-estoque .fm-close:hover{ background:rgba(255,255,255,0.1); color:#e8eaf0; }
+#atualizar-estoque .fm-header{ display:flex; align-items:center; gap:14px; margin-bottom:20px; padding-right:30px; }
+#atualizar-estoque .fm-header-icon{ width:46px; height:46px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#atualizar-estoque .fm-header-icon i{ font-size:22px; }
+#atualizar-estoque .fm-header-icon-amber{ background:radial-gradient(circle, rgba(251,191,36,0.22) 0%, rgba(251,191,36,0.08) 100%); border:1px solid rgba(251,191,36,0.3); }
+#atualizar-estoque .fm-header-icon-amber i{ color:#fbbf24; }
+#atualizar-estoque .fm-title{ font-size:16.5px; font-weight:800; color:#e8eaf0; margin:0; }
+#atualizar-estoque .fm-subtitle{ font-size:12px; color:#8a90a2; margin-top:2px; display:block; }
+#atualizar-estoque .fm-field{ margin-bottom:16px; }
+#atualizar-estoque .fm-field:last-of-type{ margin-bottom:0; }
+#atualizar-estoque .fm-label{ display:block; font-size:10.5px; font-weight:800; color:#8a90a2; text-transform:uppercase; letter-spacing:.6px; margin-bottom:7px; }
+#atualizar-estoque .fm-input{ width:100%; box-sizing:border-box; background:#1e2133; border:1px solid #444860; color:#e8eaf0; border-radius:8px; padding:10px 12px; font-size:13.5px; }
+#atualizar-estoque .fm-input:focus{ outline:none; border-color:#a78bfa; }
+#atualizar-estoque .fm-input[readonly]{ opacity:.65; cursor:not-allowed; }
+#atualizar-estoque .fm-footer{ display:flex; gap:10px; margin-top:22px; }
+#atualizar-estoque .fm-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 14px; border-radius:10px; border:1px solid transparent;
+    font-size:13px; font-weight:700; cursor:pointer; transition:all .15s;
+}
+#atualizar-estoque .fm-btn-cancel{ background:rgba(255,255,255,0.05); color:#c9cad6; border-color:rgba(255,255,255,0.08); }
+#atualizar-estoque .fm-btn-cancel:hover{ background:rgba(255,255,255,0.09); color:#e8eaf0; }
+#atualizar-estoque .fm-btn-primary{ background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%); color:#fff; box-shadow:0 6px 16px rgba(59,130,246,0.3); }
+#atualizar-estoque .fm-btn-primary:hover{ filter:brightness(1.08); box-shadow:0 8px 20px rgba(59,130,246,0.4); }
+</style>
 
 <!-- Modal Etiquetas -->
 <div id="modal-etiquetas" class="modal hide fade" tabindex="-1">

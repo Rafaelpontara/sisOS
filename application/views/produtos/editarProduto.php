@@ -1,3 +1,4 @@
+<?php $temaClaro = in_array($configuration['app_theme'] ?? '', ['white','whitegreen','whiteblack']); ?>
 <script src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
 <script src="<?= base_url() ?>assets/js/maskmoney.js"></script>
 
@@ -54,6 +55,24 @@
 label.error{color:#f87171!important;font-size:11px!important;}
 input.error,select.error{border-color:#f87171!important;}
 </style>
+<?php if ($temaClaro): ?>
+<style>
+/* ── Tema claro: sobrescreve a edição de produto (paleta escura fixa) ── */
+.ep-card{background:#ffffff;border-color:rgba(0,0,0,0.08);box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.ep-card-head{background:#f3f4f6;border-bottom-color:rgba(0,0,0,0.06);}
+.ep-card-head span{color:#6b7280;}
+.ep-label{color:#6b7280;}
+.ep-input,.ep-select,.ep-textarea{background:#f9fafb;border-color:#d1d5db;color:#1f2937;}
+.ep-input.readonly-field{background:#f3f4f6;color:#b45309;}
+.ep-toggle-label{background:#f9fafb;border-color:#d1d5db;color:#6b7280;}
+.ep-foto-preview{background:#f3f4f6;border-color:rgba(0,0,0,0.06);}
+.ep-foto-preview div div{color:#374151 !important;}
+.ep-btn-back{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb;}
+.ep-btn-back:hover{color:#1f2937;}
+.ep-title{color:#1f2937;}
+</style>
+<?php endif; ?>
+
 
 <div class="ep-wrap new122">
 
@@ -92,6 +111,14 @@ input.error,select.error{border-color:#f87171!important;}
                     <div class="ep-field">
                         <label class="ep-label">Modelo</label>
                         <input type="text" name="modelo" class="ep-input" value="<?= htmlspecialchars($result->modelo??'') ?>" />
+                    </div>
+                    <div class="ep-field">
+                        <label class="ep-label">IMEI</label>
+                        <input type="text" name="imei" class="ep-input" value="<?= htmlspecialchars($result->imei??'') ?>" maxlength="20" placeholder="Ex: 356938035643809" />
+                    </div>
+                    <div class="ep-field">
+                        <label class="ep-label">Número de Série (SN)</label>
+                        <input type="text" name="numero_serie" class="ep-input" value="<?= htmlspecialchars($result->numero_serie??'') ?>" placeholder="Ex: SN123456789" />
                     </div>
                     <div class="ep-field">
                         <label class="ep-label">NCM</label>
@@ -230,7 +257,7 @@ input.error,select.error{border-color:#f87171!important;}
                         <?php else: ?>
                         <div id="previewFoto"></div>
                         <?php endif; ?>
-                        <input type="file" name="foto" accept="image/*" id="inputFoto"
+                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.gif" id="inputFoto"
                             style="background:#13151f;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:7px 12px;font-size:12px;width:100%;" />
                         <div style="font-size:11px;color:#6b7280;margin-top:4px;">Deixe vazio para manter a foto atual.</div>
                     </div>

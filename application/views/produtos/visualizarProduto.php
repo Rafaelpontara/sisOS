@@ -2,6 +2,7 @@
 $margem = ($result->precoVenda > 0) ? round(($result->precoVenda - $result->precoCompra) / $result->precoVenda * 100, 1) : 0;
 $estoqueOk = $result->estoque > ($result->estoqueMinimo ?? 0);
 $estoqueCritico = $result->estoque <= ($result->estoqueMinimo ?? 0) && ($result->estoqueMinimo ?? 0) > 0;
+$temaClaro = in_array($configuration['app_theme'] ?? '', ['white','whitegreen','whiteblack']);
 ?>
 <style>
 .vp-wrap *,.vp-wrap *::before,.vp-wrap *::after{box-sizing:border-box;}
@@ -27,6 +28,20 @@ $estoqueCritico = $result->estoque <= ($result->estoqueMinimo ?? 0) && ($result-
 .vp-kpi-val{font-size:22px;font-weight:800;color:#e8eaf0;line-height:1;}
 .vp-kpi-label{font-size:11px;color:#9ca3af;font-weight:600;margin-top:3px;}
 </style>
+<?php if ($temaClaro): ?>
+<style>
+/* ── Tema claro: sobrescreve a visualização de produto (paleta escura fixa) ── */
+.vp-card{background:#ffffff;border-color:rgba(0,0,0,0.08);box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.vp-card-head{background:#f3f4f6;border-bottom-color:rgba(0,0,0,0.06);}
+.vp-card-head span{color:#6b7280;}
+.vp-lbl{color:#6b7280;}
+.vp-val{color:#1f2937;}
+.vp-kpi{background:#ffffff;}
+.vp-kpi-val{color:#1f2937;}
+h2{color:#1f2937 !important;}
+</style>
+<?php endif; ?>
+
 
 <div class="vp-wrap new122">
 
@@ -78,6 +93,8 @@ $estoqueCritico = $result->estoque <= ($result->estoqueMinimo ?? 0) && ($result-
                 <div class="vp-row"><span class="vp-lbl">Unidade</span><span class="vp-val"><?= htmlspecialchars($result->unidade??'—') ?></span></div>
                 <?php if (!empty($result->marca)): ?><div class="vp-row"><span class="vp-lbl">Marca</span><span class="vp-val"><?= htmlspecialchars($result->marca) ?></span></div><?php endif; ?>
                 <?php if (!empty($result->modelo)): ?><div class="vp-row"><span class="vp-lbl">Modelo</span><span class="vp-val"><?= htmlspecialchars($result->modelo) ?></span></div><?php endif; ?>
+                <?php if (!empty($result->imei)): ?><div class="vp-row"><span class="vp-lbl">IMEI</span><span class="vp-val"><?= htmlspecialchars($result->imei) ?></span></div><?php endif; ?>
+                <?php if (!empty($result->numero_serie)): ?><div class="vp-row"><span class="vp-lbl">Número de Série</span><span class="vp-val"><?= htmlspecialchars($result->numero_serie) ?></span></div><?php endif; ?>
                 <?php if (!empty($result->ncm)): ?><div class="vp-row"><span class="vp-lbl">NCM</span><span class="vp-val"><?= htmlspecialchars($result->ncm) ?></span></div><?php endif; ?>
                 <?php if (!empty($result->localizacao)): ?><div class="vp-row"><span class="vp-lbl">Localização</span><span class="vp-val"><?= htmlspecialchars($result->localizacao) ?></span></div><?php endif; ?>
                 <div class="vp-row"><span class="vp-lbl">Estoque Mínimo</span><span class="vp-val"><?= $result->estoqueMinimo??0 ?></span></div>

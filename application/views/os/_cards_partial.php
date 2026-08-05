@@ -36,7 +36,7 @@
     $spC = isset($spMap[$r->status]) ? 'sp-'.$spMap[$r->status] : 'sp-ot';
     $total = $r->totalProdutos + $r->totalServicos;
 ?>
-<div class="os-card" data-search="<?= htmlspecialchars(mb_strtolower($r->idOs . ' ' . $r->nomeCliente . ' ' . $r->nome . ' ' . $r->status)) ?>">
+<div class="os-card" data-id="<?= $r->idOs ?>" data-search="<?= htmlspecialchars(mb_strtolower($r->idOs . ' ' . $r->nomeCliente . ' ' . $r->nome . ' ' . $r->status)) ?>">
     <div class="os-card-top">
         <span class="os-num">#<?= str_pad($r->idOs, 4, '0', STR_PAD_LEFT) ?></span>
         <span class="sp <?= $spC ?>"><?= htmlspecialchars($r->status) ?></span>

@@ -27,6 +27,9 @@
         <?php else: ?>
         <span class="badge-cliente">Cliente</span>
         <?php endif; ?>
+        <?php foreach (($tagsPorCliente[$r->idClientes] ?? []) as $tg): ?>
+        <span class="badge-tag" style="background:<?= htmlspecialchars($tg->cor) ?>22;color:<?= htmlspecialchars($tg->cor) ?>;border:1px solid <?= htmlspecialchars($tg->cor) ?>55;"><?= htmlspecialchars($tg->tag) ?></span>
+        <?php endforeach; ?>
     </td>
     <td>
         <div class="act-btns">
@@ -41,6 +44,7 @@
         <?php endif; ?>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eCliente')): ?>
             <a href="<?= base_url() ?>index.php/clientes/editar/<?= $r->idClientes ?>" class="act-btn act-btn-edit" title="Editar"><i class='bx bx-edit'></i></a>
+            <a href="#" onclick="cliAbrirModalTags(<?= $r->idClientes ?>, '<?= htmlspecialchars(addslashes($r->nomeCliente)) ?>'); return false;" class="act-btn act-btn-tags" title="Tags / Categoria"><i class='bx bx-purchase-tag'></i></a>
         <?php endif; ?>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dCliente')): ?>
             <a href="#modal-excluir" role="button" data-toggle="modal" cliente="<?= $r->idClientes ?>" class="act-btn act-btn-del" title="Excluir"><i class='bx bx-trash-alt'></i></a>

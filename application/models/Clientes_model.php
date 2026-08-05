@@ -7,10 +7,18 @@ class Clientes_model extends CI_Model
         parent::__construct();
     }
 
-    public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array', $antesDe = 0)
+    public function get($table, $fields, $where = '', $perpage = 0, $start = 0, $one = false, $array = 'array', $antesDe = 0, $apenasFornecedor = false, $tagId = 0)
     {
         $this->db->select($fields);
         $this->db->from($table);
+
+        // Filtro por tag (categoria do cliente) — só aplica o JOIN se a tabela
+        // de tags já existir (SQL cliente_tags_add_tables.sql precisa ter sido
+        // rodado); senão ignora o filtro em vez de quebrar a query inteira.
+        if ($tagId > 0 && $this->db->table_exists('clientes_tags')) {
+            $this->db->join('clientes_tags ctf', 'ctf.clientes_id = ' . $table . '.idClientes');
+            $this->db->where('ctf.cliente_tags_id', $tagId);
+        }
 
         // Agrupa as condições de busca (nome/documento/email/telefone) entre
         // parênteses — sem isso, combinar com outro WHERE (como o cursor
@@ -22,7 +30,17 @@ class Clientes_model extends CI_Model
             $this->db->or_like('documento', $where);
             $this->db->or_like('email', $where);
             $this->db->or_like('telefone', $where);
+            // Pesquisa por ID do cliente — se o termo digitado for só números,
+            // também considera bater exatamente com o idClientes.
+            if (ctype_digit((string) $where)) {
+                $this->db->or_where('idClientes', (int) $where);
+            }
             $this->db->group_end();
+        }
+
+        // Filtro "somente fornecedores"
+        if ($apenasFornecedor) {
+            $this->db->where('fornecedor', 1);
         }
 
         // Paginação por cursor (mais rápida que OFFSET em bases grandes,
@@ -43,6 +61,38 @@ class Clientes_model extends CI_Model
         $result = ! $one ? $query->result() : $query->row();
 
         return $result;
+    }
+
+    /**
+     * Tags de uma lista de clientes, agrupadas por clientes_id — usado na
+     * tela de listagem pra não precisar de 1 query por card.
+     */
+    public function getTagsPorCliente($idsClientes)
+    {
+        if (empty($idsClientes)) {
+            return [];
+        }
+
+        // Mesma guarda: sem as tabelas de tags criadas, retorna vazio em vez
+        // de quebrar a listagem inteira de clientes.
+        if (! $this->db->table_exists('clientes_tags') || ! $this->db->table_exists('cliente_tags')) {
+            return [];
+        }
+
+        // ct.id/ct.nome são os nomes reais no banco — aliasados pra idTag/tag
+        // pra não precisar mudar a view que já espera esses nomes.
+        $this->db->select('clt.clientes_id, ct.id AS idTag, ct.nome AS tag, ct.cor');
+        $this->db->from('clientes_tags clt');
+        $this->db->join('cliente_tags ct', 'ct.id = clt.cliente_tags_id');
+        $this->db->where_in('clt.clientes_id', $idsClientes);
+        $rows = $this->db->get()->result();
+
+        $porCliente = [];
+        foreach ($rows as $r) {
+            $porCliente[$r->clientes_id][] = $r;
+        }
+
+        return $porCliente;
     }
 
     public function getById($id)

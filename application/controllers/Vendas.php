@@ -45,6 +45,12 @@ class Vendas extends MY_Controller
         $this->data['results'] = $this->vendas_model->get('vendas', '*', $where_array, $perPage, 0);
         $this->_enriquecerVendas($this->data['results']);
 
+        $permissao = $this->session->userdata('permissao');
+        $this->data['permissao_aVenda'] = $this->permission->checkPermission($permissao, 'aVenda');
+        $this->data['permissao_vVenda'] = $this->permission->checkPermission($permissao, 'vVenda');
+        $this->data['permissao_eVenda'] = $this->permission->checkPermission($permissao, 'eVenda');
+        $this->data['permissao_dVenda'] = $this->permission->checkPermission($permissao, 'dVenda');
+
         $this->data['perPage'] = $perPage;
         $this->data['view'] = 'vendas/vendas';
 
@@ -77,7 +83,14 @@ class Vendas extends MY_Controller
         $results = $this->vendas_model->get('vendas', '*', $where_array, $perPage, 0, false, 'array', $antesDe);
         $this->_enriquecerVendas($results);
 
-        echo $this->load->view('vendas/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+        $permissao = $this->session->userdata('permissao');
+        echo $this->load->view('vendas/_table_rows_partial', [
+            'results' => $results,
+            'semResultadosOculto' => true,
+            'permissao_vVenda' => $this->permission->checkPermission($permissao, 'vVenda'),
+            'permissao_eVenda' => $this->permission->checkPermission($permissao, 'eVenda'),
+            'permissao_dVenda' => $this->permission->checkPermission($permissao, 'dVenda'),
+        ], true);
     }
 
     /**
@@ -347,7 +360,159 @@ class Vendas extends MY_Controller
         $this->data['result']   = $this->vendas_model->getById($this->uri->segment(3));
         $this->data['emitente'] = $this->sisos_model->getEmitente();
 
+        // Se já foram geradas/salvas parcelas de promissória pra essa venda
+        // (ver gerarPromissorias()), manda também pra view poder imprimir uma
+        // nota por parcela em vez de só a nota única de sempre. Se a tabela
+        // não existir ainda (SQL não rodado) ou não houver parcelas, fica
+        // igual a antes (array vazio — view não precisa mudar nada).
+        $this->data['promissorias'] = [];
+        if ($this->db->table_exists('vendas_promissorias')) {
+            $this->data['promissorias'] = $this->db
+                ->where('vendas_id', $this->uri->segment(3))
+                ->order_by('numero_parcela', 'asc')
+                ->get('vendas_promissorias')
+                ->result();
+        }
+
         $this->load->view('vendas/imprimirPromissoria', $this->data);
+    }
+
+    /**
+     * Gera (ou regenera) as parcelas de promissória de uma venda.
+     * Espera via POST: vendas_id, parcelas (int), primeiro_vencimento (dd/mm/yyyy),
+     * intervalo_dias (opcional, padrão 30), valor_total (opcional — se não vier,
+     * usa o valorTotal já salvo na venda).
+     *
+     * Autocontido: cria a própria tabela de apoio na hora se ainda não
+     * existir (não depende do SQL ter sido rodado antes), mas o ideal é
+     * rodar o vendas_promissorias_add_tabela.sql já na entrega.
+     */
+    public function gerarPromissorias()
+    {
+        header('Content-Type: application/json');
+
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eVenda')) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Sem permissão.']);
+            return;
+        }
+
+        $vendaId = (int) $this->input->post('vendas_id');
+        $parcelas = max(1, (int) $this->input->post('parcelas'));
+        $intervaloDias = (int) $this->input->post('intervalo_dias') ?: 30;
+        $primeiroVencimento = $this->input->post('primeiro_vencimento');
+
+        $venda = $this->vendas_model->getById($vendaId);
+        if (! $venda) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Venda não encontrada.']);
+            return;
+        }
+
+        $valorTotal = $this->input->post('valor_total');
+        $valorTotal = $valorTotal ? getAmount($valorTotal) : (float) ($venda->valorTotal ?: $this->getTotalVendas($vendaId));
+
+        try {
+            $dataBase = DateTime::createFromFormat('d/m/Y', $primeiroVencimento) ?: new DateTime();
+        } catch (Exception $e) {
+            $dataBase = new DateTime();
+        }
+
+        if (! $this->db->table_exists('vendas_promissorias')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `vendas_promissorias` (
+                `idPromissoria` INT AUTO_INCREMENT PRIMARY KEY,
+                `vendas_id` INT NOT NULL,
+                `numero_parcela` INT NOT NULL,
+                `total_parcelas` INT NOT NULL,
+                `valor` DECIMAL(10,2) NOT NULL,
+                `data_vencimento` DATE NOT NULL,
+                `pago` TINYINT(1) NOT NULL DEFAULT 0,
+                `criado_em` DATETIME NOT NULL,
+                INDEX `idx_vendas_id` (`vendas_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        }
+
+        $this->db->trans_start();
+
+        // Regenerar do zero pra não duplicar se o usuário gerar de novo
+        $this->db->where('vendas_id', $vendaId)->delete('vendas_promissorias');
+
+        $valorParcela = round($valorTotal / $parcelas, 2);
+        $somaParcelas = 0;
+        for ($i = 1; $i <= $parcelas; $i++) {
+            $valor = ($i < $parcelas) ? $valorParcela : round($valorTotal - $somaParcelas, 2); // última parcela ajusta arredondamento
+            $somaParcelas += $valor;
+
+            $vencimento = clone $dataBase;
+            $vencimento->modify('+' . ($intervaloDias * ($i - 1)) . ' days');
+
+            $this->db->insert('vendas_promissorias', [
+                'vendas_id' => $vendaId,
+                'numero_parcela' => $i,
+                'total_parcelas' => $parcelas,
+                'valor' => $valor,
+                'data_vencimento' => $vencimento->format('Y-m-d'),
+                'pago' => 0,
+                'criado_em' => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Erro ao salvar as parcelas.']);
+            return;
+        }
+
+        log_info('Gerou ' . $parcelas . ' parcela(s) de promissória pra Venda ID: ' . $vendaId);
+
+        echo json_encode(['sucesso' => true, 'parcelas' => $parcelas]);
+    }
+
+    /**
+     * Marca/desmarca uma parcela de promissória como paga.
+     */
+    public function marcarPromissoriaPaga()
+    {
+        header('Content-Type: application/json');
+
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eVenda')) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Sem permissão.']);
+            return;
+        }
+
+        $id = (int) $this->input->post('idPromissoria');
+        $pago = $this->input->post('pago') == '1' ? 1 : 0;
+
+        if (! $this->db->table_exists('vendas_promissorias')) {
+            echo json_encode(['sucesso' => false, 'erro' => 'Tabela de promissórias não existe. Rode o SQL primeiro.']);
+            return;
+        }
+
+        $this->db->where('idPromissoria', $id)->update('vendas_promissorias', ['pago' => $pago]);
+
+        echo json_encode(['sucesso' => true]);
+    }
+
+    /**
+     * Lista as parcelas de promissória de uma venda — pra montar telas/relatórios.
+     */
+    public function listarPromissorias()
+    {
+        header('Content-Type: application/json');
+
+        $vendaId = (int) $this->input->get('vendas_id');
+
+        if (! $this->db->table_exists('vendas_promissorias')) {
+            echo json_encode(['promissorias' => []]);
+            return;
+        }
+
+        $result = $this->db
+            ->where('vendas_id', $vendaId)
+            ->order_by('numero_parcela', 'asc')
+            ->get('vendas_promissorias')
+            ->result();
+
+        echo json_encode(['promissorias' => $result]);
     }
 
     public function imprimirTermica()
@@ -718,29 +883,114 @@ class Vendas extends MY_Controller
             $valorDesconto = min($valorTotal, $valorDesconto);
             $valorComDesconto = $valorTotal - $valorDesconto;
 
-            $data = [
-                'vendas_id' => $venda_id,
-                'descricao' => $this->input->post('descricao'),
-                'valor' => $valorTotal,
-                'desconto' => $vendas->desconto,
-                'tipo_desconto' => 'real',
-                'valor_desconto' => $valorComDesconto,
-                'clientes_id' => $this->input->post('clientes_id'),
-                'data_vencimento' => $vencimento,
-                'data_pagamento' => $recebimento,
-                'baixado' => $this->input->post('recebido') == 1 ? true : false,
-                'cliente_fornecedor' => $this->input->post('cliente'),
-                'forma_pgto' => $this->input->post('formaPgto'),
-                'tipo' => 'receita',
-                'usuarios_id' => $this->session->userdata('id_admin'),
-            ];
+            // Pagamento parcial / múltiplas formas de pagamento (opcional) — mesmo
+            // mecanismo usado em Os::faturar(). Se 'pagamentos' (JSON:
+            // [{forma_pgto,valor}, ...]) vier preenchido, cada item vira um
+            // lançamento já baixado; se a soma for menor que o total da venda, o
+            // restante vira mais um lançamento em aberto (baixado=0), pendente no
+            // financeiro. Sem 'pagamentos', funciona exatamente como antes.
+            $pagamentosRaw = json_decode((string) $this->input->post('pagamentos'), true);
+            $usarSplit = is_array($pagamentosRaw) && count($pagamentosRaw) > 0;
+
+            $descricao = $this->input->post('descricao');
+            $clientesId = $this->input->post('clientes_id');
+            $clienteFornecedor = $this->input->post('cliente');
+            $usuarioId = $this->session->userdata('id_admin');
+
+            $linhasLancamento = [];
+
+            if ($usarSplit) {
+                $somaPagamentos = 0;
+                foreach ($pagamentosRaw as $p) {
+                    $valorItem = round((float) ($p['valor'] ?? 0), 2);
+                    if ($valorItem <= 0) {
+                        continue;
+                    }
+                    $valorItem = min($valorItem, max(0, $valorComDesconto - $somaPagamentos));
+                    if ($valorItem <= 0) {
+                        continue;
+                    }
+                    $somaPagamentos += $valorItem;
+
+                    $linhasLancamento[] = [
+                        'vendas_id' => $venda_id,
+                        'descricao' => $descricao,
+                        'valor' => $valorItem,
+                        'desconto' => 0,
+                        'tipo_desconto' => 'real',
+                        'valor_desconto' => $valorItem,
+                        'clientes_id' => $clientesId,
+                        'data_vencimento' => $vencimento,
+                        'data_pagamento' => $recebimento ?: date('Y-m-d'),
+                        'baixado' => true,
+                        'cliente_fornecedor' => $clienteFornecedor,
+                        'forma_pgto' => $p['forma_pgto'] ?? null,
+                        'tipo' => 'receita',
+                        'usuarios_id' => $usuarioId,
+                    ];
+                }
+
+                $restante = round($valorComDesconto - $somaPagamentos, 2);
+                if ($restante > 0.009) {
+                    $linhasLancamento[] = [
+                        'vendas_id' => $venda_id,
+                        'descricao' => $descricao,
+                        'valor' => $restante,
+                        'desconto' => 0,
+                        'tipo_desconto' => 'real',
+                        'valor_desconto' => $restante,
+                        'clientes_id' => $clientesId,
+                        'data_vencimento' => $vencimento,
+                        'data_pagamento' => null,
+                        'baixado' => false,
+                        'cliente_fornecedor' => $clienteFornecedor,
+                        'forma_pgto' => null,
+                        'tipo' => 'receita',
+                        'usuarios_id' => $usuarioId,
+                    ];
+                }
+
+                if (empty($linhasLancamento)) {
+                    $usarSplit = false;
+                }
+            }
+
+            if (!$usarSplit) {
+                $linhasLancamento = [[
+                    'vendas_id' => $venda_id,
+                    'descricao' => $descricao,
+                    'valor' => $valorTotal,
+                    'desconto' => $vendas->desconto,
+                    'tipo_desconto' => 'real',
+                    'valor_desconto' => $valorComDesconto,
+                    'clientes_id' => $clientesId,
+                    'data_vencimento' => $vencimento,
+                    'data_pagamento' => $recebimento,
+                    'baixado' => $this->input->post('recebido') == 1 ? true : false,
+                    'cliente_fornecedor' => $clienteFornecedor,
+                    'forma_pgto' => $this->input->post('formaPgto'),
+                    'tipo' => 'receita',
+                    'usuarios_id' => $usuarioId,
+                ]];
+            }
 
             $this->db->trans_start();
 
-            $this->db->insert('lancamentos', $data);
-            $idLancamentos = $this->db->insert_id();
+            $idLancamentos = null;
+            $todosInseridos = true;
+            foreach ($linhasLancamento as $linha) {
+                $this->db->insert('lancamentos', $linha);
+                $idInserido = $this->db->insert_id();
+                if (!$idInserido) {
+                    $todosInseridos = false;
+                    break;
+                }
+                if ($idLancamentos === null) {
+                    $idLancamentos = $idInserido;
+                }
+            }
 
-            if ($idLancamentos) {
+            if ($todosInseridos && $idLancamentos) {
                 $this->db->set('faturado', 1);
                 $this->db->set('valorTotal', $valorTotal);
                 $this->db->set('desconto', $vendas->desconto);

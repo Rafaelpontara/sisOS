@@ -447,7 +447,14 @@ $config['csrf_token_name'] = $_ENV['APP_CSRF_TOKEN_NAME'] ?? 'SISOS_TOKEN';
 $config['csrf_cookie_name'] = $_ENV['APP_CSRF_COOKIE_NAME'] ?? 'MAPOS_COOKIE';
 $config['csrf_expire'] = $_ENV['APP_CSRF_EXPIRE'] ?? 7200;
 $config['csrf_regenerate'] = isset($_ENV['APP_CSRF_REGENERATE']) ? filter_var($_ENV['APP_CSRF_REGENERATE'], FILTER_VALIDATE_BOOLEAN) : true;
-$config['csrf_exclude_uris'] = ['api.*+'];
+// Chat adicionado à mesma exclusão que a "api" já tinha — o chat faz várias
+// chamadas seguidas na mesma página (enviar, marcar como lido, polling),
+// e com csrf_regenerate=true cada uma delas invalidava o token da anterior,
+// causando "HTTP 403 / Erro de conexão" ao enviar mensagens ou chamar
+// atenção. Excluir do CSRF é o mesmo tipo de solução que já existia pra
+// "api.*+" — mantém a página funcionando; em troca, essas rotas ficam sem
+// a checagem de CSRF (mitigado pelo fato de exigirem sessão logada).
+$config['csrf_exclude_uris'] = ['api.*+', 'chat.*+'];
 
 /*
 |--------------------------------------------------------------------------

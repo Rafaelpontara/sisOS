@@ -425,6 +425,24 @@ $(document).ready(function() {
         pedMoverStatus(id, novoStatus, null);
     });
 
+    // ── Destacar um pedido específico (chega, por exemplo, de um link
+    // compartilhado no Chat da Equipe: pedidos?destaque=ID) ──────────────
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var destaque = params.get('destaque');
+        if (!destaque) return;
+        var card = document.querySelector('.ped-card[data-id="' + destaque + '"]');
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.transition = 'box-shadow .3s, border-color .3s';
+        card.style.borderColor = '#a78bfa';
+        card.style.boxShadow = '0 0 0 3px rgba(167,139,250,0.35)';
+        setTimeout(function() {
+            card.style.borderColor = '';
+            card.style.boxShadow = '';
+        }, 3000);
+    })();
+
 });
 
 function pedMoverStatus(id, novoStatus, $botao) {

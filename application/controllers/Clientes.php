@@ -29,6 +29,23 @@ class Clientes extends MY_Controller
         $pesquisa = $this->input->get('pesquisa');
         $perPage  = 24; // tamanho de cada "lote" carregado, tanto no 1º carregamento quanto na rolagem
 
+        // Filtro "somente fornecedores" (?fornecedor=1 na URL)
+        $apenasFornecedor = $this->input->get('fornecedor') === '1';
+        $this->data['apenasFornecedor'] = $apenasFornecedor;
+
+        // Filtro por tag/categoria (?tag=idTag na URL)
+        $tagFiltro = (int) $this->input->get('tag');
+        $this->data['tagFiltro'] = $tagFiltro;
+        // Guarda: se o SQL de tags (sql/cliente_tags_add_tables.sql) ainda não
+        // foi rodado no banco, a tabela não existe — evita crash e só mostra
+        // a tela sem tags em vez de dar erro fatal.
+        // Nomes de coluna reais no banco são id/nome (versão antiga da tabela);
+        // os aliases abaixo (AS idTag, AS tag) mantêm o resto do código (views,
+        // JS, model) funcionando sem precisar mudar nada mais.
+        $this->data['tagsDisponiveis'] = $this->db->table_exists('cliente_tags')
+            ? $this->db->select('id AS idTag, nome AS tag, cor')->order_by('nome')->get('cliente_tags')->result()
+            : [];
+
         // Preferência de visualização (lista/grade) — igual à da tela de OS
         $visualizacaoParam = $this->input->get('visualizacao');
         if (in_array($visualizacaoParam, ['lista', 'grade'], true)) {
@@ -36,9 +53,10 @@ class Clientes extends MY_Controller
         }
         $this->data['visualizacaoAtual'] = $this->session->userdata('clientes_visualizacao') ?: 'grade';
 
-        $this->data['results']  = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0);
+        $this->data['results']  = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0, false, 'array', 0, $apenasFornecedor, $tagFiltro);
         $this->data['perPage']  = $perPage;
         $this->data['pesquisa'] = $pesquisa;
+        $this->data['tagsPorCliente'] = $this->clientes_model->getTagsPorCliente(array_column($this->data['results'], 'idClientes'));
 
         // Estatísticas do cabeçalho (contagens simples e seguras — sem
         // valores financeiros, pra não arriscar mostrar número errado)
@@ -49,6 +67,12 @@ class Clientes extends MY_Controller
         $this->data['statFornecedores'] = $this->db
             ->where('fornecedor', 1)
             ->count_all_results('clientes');
+
+        // Total respeitando o filtro atual — usado no "X de Y carregados"
+        // e pra rolagem infinita saber quando parar (mesmo padrão do Vendas.php)
+        $this->data['statTotalFiltrado'] = $apenasFornecedor
+            ? $this->data['statFornecedores']
+            : $this->data['statTotalClientes'];
 
         $this->data['view'] = 'clientes/clientes';
 
@@ -68,15 +92,18 @@ class Clientes extends MY_Controller
 
         $pesquisa = $this->input->get('pesquisa');
         $antesDe  = (int) $this->input->get('antes_de');
+        $apenasFornecedor = $this->input->get('fornecedor') === '1';
+        $tagFiltro = (int) $this->input->get('tag');
         $perPage  = 24;
 
-        $results = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0, false, 'array', $antesDe);
+        $results = $this->clientes_model->get('clientes', '*', $pesquisa, $perPage, 0, false, 'array', $antesDe, $apenasFornecedor, $tagFiltro);
+        $tagsPorCliente = $this->clientes_model->getTagsPorCliente(array_column($results, 'idClientes'));
 
         $modo = $this->input->get('modo') === 'lista' ? 'lista' : 'grade';
         if ($modo === 'lista') {
-            echo $this->load->view('clientes/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+            echo $this->load->view('clientes/_table_rows_partial', ['results' => $results, 'semResultadosOculto' => true, 'tagsPorCliente' => $tagsPorCliente], true);
         } else {
-            echo $this->load->view('clientes/_cards_partial', ['results' => $results, 'semResultadosOculto' => true], true);
+            echo $this->load->view('clientes/_cards_partial', ['results' => $results, 'semResultadosOculto' => true, 'tagsPorCliente' => $tagsPorCliente], true);
         }
     }
 
@@ -384,7 +411,8 @@ class Clientes extends MY_Controller
     /** Lista todas as tags disponíveis */
     public function getTags()
     {
-        $tags = $this->db->order_by('tag')->get('cliente_tags')->result();
+        // Mesmo alias de id/nome -> idTag/tag (ver comentário em gerenciar())
+        $tags = $this->db->select('id AS idTag, nome AS tag, cor')->order_by('nome')->get('cliente_tags')->result();
         header('Content-Type: application/json');
         echo json_encode($tags);
     }
@@ -392,9 +420,11 @@ class Clientes extends MY_Controller
     /** Tags de um cliente específico */
     public function getTagsCliente($id)
     {
-        $this->db->select('ct.*');
+        // ct.id/ct.nome são os nomes reais no banco — aliasados pra idTag/tag
+        // pra não precisar mudar a view/JS que já espera esses nomes.
+        $this->db->select('ct.id AS idTag, ct.nome AS tag, ct.cor');
         $this->db->from('cliente_tags ct');
-        $this->db->join('clientes_tags clt', 'clt.cliente_tags_id = ct.idTag');
+        $this->db->join('clientes_tags clt', 'clt.cliente_tags_id = ct.id');
         $this->db->where('clt.clientes_id', $id);
         $tags = $this->db->get()->result();
         header('Content-Type: application/json');
@@ -412,7 +442,19 @@ class Clientes extends MY_Controller
         $acao      = $this->input->post('acao'); // 'add' ou 'remove'
 
         if ($acao === 'add') {
-            $this->db->ignore(true)->insert('clientes_tags', ['clientes_id' => $clienteId, 'cliente_tags_id' => $tagId]);
+            // ->ignore(true) não existe nesse driver do CodeIgniter instalado
+            // aqui (dava "Call to undefined method CI_DB_mysqli_driver::ignore()"
+            // e a requisição inteira quebrava com erro 500). Em vez de depender
+            // desse método, só insere se o vínculo ainda não existir — mesmo
+            // efeito (idempotente), sem risco de duplicar nem de estourar erro.
+            $jaVinculado = $this->db
+                ->where('clientes_id', $clienteId)
+                ->where('cliente_tags_id', $tagId)
+                ->get('clientes_tags')
+                ->row();
+            if (! $jaVinculado) {
+                $this->db->insert('clientes_tags', ['clientes_id' => $clienteId, 'cliente_tags_id' => $tagId]);
+            }
         } else {
             $this->db->where('clientes_id', $clienteId)->where('cliente_tags_id', $tagId)->delete('clientes_tags');
         }
@@ -427,9 +469,9 @@ class Clientes extends MY_Controller
         }
         $tag  = trim($this->input->post('tag'));
         $cor  = $this->input->post('cor') ?: '#2980b9';
-        $desc = $this->input->post('descricao');
         if (!$tag) { echo json_encode(['result' => false, 'erro' => 'Nome obrigatório']); return; }
-        $this->db->insert('cliente_tags', ['tag' => $tag, 'cor' => $cor, 'descricao' => $desc]);
+        // Tabela real só tem id/nome/cor (sem coluna 'descricao') — grava em 'nome'.
+        $this->db->insert('cliente_tags', ['nome' => $tag, 'cor' => $cor]);
         echo json_encode(['result' => true, 'id' => $this->db->insert_id(), 'tag' => $tag, 'cor' => $cor]);
     }
 

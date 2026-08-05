@@ -6,6 +6,7 @@
         <?php
         $logoCustom = $configuration['app_logo'] ?? '';
         $iconCustom = $configuration['app_favicon'] ?? '';
+        $temaClaro  = in_array($configuration['app_theme'] ?? '', ['white','whitegreen','whiteblack']);
         ?>
         <div class="icon2">
             <img src="<?= $iconCustom ?>" alt="icone" style="width:42px;height:42px;object-fit:contain;">
@@ -173,6 +174,26 @@
     .botton-content li a:hover { background: rgba(248,113,113,0.15) !important; color: #f87171 !important; }
     .botton-content li a:hover i { color: #f87171 !important; }
     </style>
+
+    <?php if ($temaClaro): ?>
+    <style>
+    /* ══════════════════════════════════════════════════════════════
+       TEMA CLARO — Menu lateral (menu.php). O fundo do #sidebar e a
+       cor padrão dos itens vêm de estilos fixos fora deste arquivo;
+       sobrescreve só quando o tema ativo é claro. Os estados coloridos
+       de hover/ativo (data-g="blue/green/yellow/purple/red" acima) são
+       mais específicos e continuam funcionando normalmente por cima
+       disso.
+       ══════════════════════════════════════════════════════════════ */
+    #sidebar{ background:#ffffff !important; border-right:1px solid rgba(0,0,0,0.08) !important; }
+    #sidebar .menu-links > li > a{ color:#374151 !important; }
+    #sidebar .menu-links > li > a i{ color:#6b7280 !important; }
+    #sidebar .menu-links > li > a .title-tooltip{ color:#374151 !important; background:#ffffff !important; border:1px solid rgba(0,0,0,0.08) !important; }
+    .botton-content li a{ color:#374151 !important; }
+    .botton-content li a i{ color:#6b7280 !important; }
+    .search-box{ background:#f9fafb !important; border:1px solid rgba(0,0,0,0.08) !important; border-radius:8px !important; }
+    </style>
+    <?php endif; ?>
 
     <div class="menu-bar">
         <div class="menu">

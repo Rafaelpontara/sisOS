@@ -77,21 +77,30 @@
         </div>
     </div>
 </div>
-<!-- Modal -->
+<!-- Modal Excluir -->
 <div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <form action="<?php echo base_url() ?>index.php/vendas/excluir" method="post">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h5 id="myModalLabel">Excluir Venda</h5>
-        </div>
-        <div class="modal-body">
+        <div class="oxm-wrap">
+            <button type="button" class="oxm-close" data-dismiss="modal" aria-label="Fechar"><i class='bx bx-x'></i></button>
+
+            <div class="oxm-icon-circle">
+                <i class='bx bx-cart-alt'></i>
+            </div>
+
+            <h5 class="oxm-title" id="myModalLabel">Excluir Venda</h5>
+            <p class="oxm-question">Tem certeza que deseja excluir esta venda?</p>
+            <p class="oxm-hint"><i class='bx bx-error-circle'></i> Essa ação não pode ser desfeita.</p>
+
             <input type="hidden" id="idVenda" name="id" value="" />
-            <h5 style="text-align: center">Deseja realmente excluir esta Venda?</h5>
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
-              <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
-            <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
+
+            <div class="oxm-actions">
+                <button type="button" class="oxm-btn oxm-btn-cancel" data-dismiss="modal" aria-hidden="true">
+                    <i class="bx bx-x"></i> Cancelar
+                </button>
+                <button class="oxm-btn oxm-btn-danger">
+                    <i class='bx bx-trash'></i> Excluir
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -99,30 +108,120 @@
 <!-- Modal Cancelar Venda -->
 <div id="modal-cancelar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabelCancelar" aria-hidden="true">
     <form action="<?php echo base_url() ?>index.php/vendas/cancelar" method="post">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h5 id="myModalLabelCancelar">Cancelar Venda</h5>
-        </div>
-        <div class="modal-body">
+        <div class="fm-wrap">
+            <button type="button" class="fm-close" data-dismiss="modal" aria-hidden="true"><i class='bx bx-x'></i></button>
+
+            <div class="fm-header">
+                <div class="fm-header-icon fm-header-icon-orange"><i class='bx bx-x-circle'></i></div>
+                <div>
+                    <h5 class="fm-title" id="myModalLabelCancelar">Cancelar Venda</h5>
+                    <span class="fm-subtitle">Deseja realmente cancelar esta venda?</span>
+                </div>
+            </div>
+
             <input type="hidden" id="idVendaCancelar" name="id" value="" />
-            <h5 style="text-align: center">Deseja realmente cancelar esta venda?</h5>
-            <p style="text-align:center;color:#9ca3af;font-size:12.5px;margin-top:8px;">
+
+            <div class="fm-alert">
                 O estoque dos produtos será <strong>devolvido automaticamente</strong>
                 e o lançamento financeiro vinculado será <strong>excluído</strong>.
-            </p>
-            <div style="margin-top:14px;">
-                <label style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Motivo (opcional)</label>
-                <input type="text" name="motivo" class="ev-input" style="width:100%;background:#1e2133;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:8px 12px;box-sizing:border-box;" placeholder="Ex: cliente desistiu, erro de lançamento...">
             </div>
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content: center">
-            <button type="button" class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
-              <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Voltar</span></button>
-            <button class="button btn btn-danger" style="background:#fb923c;border-color:#fb923c;">
-              <span class="button__icon"><i class='bx bx-x-circle'></i></span> <span class="button__text2">Confirmar Cancelamento</span></button>
+
+            <div class="fm-field">
+                <label class="fm-label">Motivo (opcional)</label>
+                <input type="text" name="motivo" class="fm-input" placeholder="Ex: cliente desistiu, erro de lançamento...">
+            </div>
+
+            <div class="fm-footer">
+                <button type="button" class="fm-btn fm-btn-cancel" data-dismiss="modal" aria-hidden="true">
+                    <i class="bx bx-x"></i> Voltar
+                </button>
+                <button class="fm-btn fm-btn-orange">
+                    <i class='bx bx-x-circle'></i> Confirmar Cancelamento
+                </button>
+            </div>
         </div>
     </form>
 </div>
+
+<style>
+/* Modais "Excluir Venda" e "Cancelar Venda" — redesenhados, cada um
+   escopado só ao próprio id, sem tocar em .modal-header/.modal-body/
+   .modal-footer/.close/.btn-warning/.btn-danger globais. */
+#modal-excluir{ background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important; }
+#modal-excluir .oxm-wrap{
+    max-width:380px; margin:0 auto; position:relative;
+    background:linear-gradient(180deg,#22263a 0%,#1a1d2e 100%);
+    border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.3);
+    padding:30px 26px 24px; text-align:center;
+}
+#modal-excluir .oxm-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:8px;
+    border:none; background:rgba(255,255,255,0.05); color:#8a90a2; font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s;
+}
+#modal-excluir .oxm-close:hover{ background:rgba(255,255,255,0.1); color:#e8eaf0; }
+#modal-excluir .oxm-icon-circle{
+    width:68px; height:68px; margin:0 auto 18px; border-radius:50%;
+    background:radial-gradient(circle, rgba(248,113,113,0.18) 0%, rgba(248,113,113,0.06) 100%);
+    border:1px solid rgba(248,113,113,0.25); display:flex; align-items:center; justify-content:center;
+}
+#modal-excluir .oxm-icon-circle i{ font-size:30px; color:#f87171; }
+#modal-excluir .oxm-title{ font-size:16.5px; font-weight:800; color:#e8eaf0; margin:0 0 8px; }
+#modal-excluir .oxm-question{ font-size:13.5px; color:#c9cad6; margin:0 0 6px; line-height:1.5; }
+#modal-excluir .oxm-hint{ display:flex; align-items:center; justify-content:center; gap:5px; font-size:11.5px; color:#f59e0b; margin:0 0 22px; }
+#modal-excluir .oxm-actions{ display:flex; gap:10px; }
+#modal-excluir .oxm-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 14px; border-radius:10px; border:1px solid transparent;
+    font-size:13px; font-weight:700; cursor:pointer; transition:all .15s;
+}
+#modal-excluir .oxm-btn-cancel{ background:rgba(255,255,255,0.05); color:#c9cad6; border-color:rgba(255,255,255,0.08); }
+#modal-excluir .oxm-btn-cancel:hover{ background:rgba(255,255,255,0.09); color:#e8eaf0; }
+#modal-excluir .oxm-btn-danger{ background:linear-gradient(135deg,#f87171 0%,#ef4444 100%); color:#fff; box-shadow:0 6px 16px rgba(239,68,68,0.3); }
+#modal-excluir .oxm-btn-danger:hover{ filter:brightness(1.08); box-shadow:0 8px 20px rgba(239,68,68,0.4); }
+
+#modal-cancelar{ background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important; }
+#modal-cancelar .fm-wrap{
+    max-width:420px; margin:0 auto; position:relative;
+    background:linear-gradient(180deg,#22263a 0%,#1a1d2e 100%);
+    border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.3);
+    padding:26px 26px 22px;
+}
+#modal-cancelar .fm-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:8px;
+    border:none; background:rgba(255,255,255,0.05); color:#8a90a2; font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s;
+}
+#modal-cancelar .fm-close:hover{ background:rgba(255,255,255,0.1); color:#e8eaf0; }
+#modal-cancelar .fm-header{ display:flex; align-items:center; gap:14px; margin-bottom:18px; padding-right:30px; }
+#modal-cancelar .fm-header-icon{ width:46px; height:46px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#modal-cancelar .fm-header-icon i{ font-size:22px; }
+#modal-cancelar .fm-header-icon-orange{ background:radial-gradient(circle, rgba(251,146,60,0.22) 0%, rgba(251,146,60,0.08) 100%); border:1px solid rgba(251,146,60,0.3); }
+#modal-cancelar .fm-header-icon-orange i{ color:#fb923c; }
+#modal-cancelar .fm-title{ font-size:16.5px; font-weight:800; color:#e8eaf0; margin:0; }
+#modal-cancelar .fm-subtitle{ font-size:12px; color:#8a90a2; margin-top:2px; display:block; }
+#modal-cancelar .fm-alert{
+    background:rgba(251,146,60,0.1); border:1px solid rgba(251,146,60,0.25); color:#fdba74;
+    border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.65; margin-bottom:18px;
+}
+#modal-cancelar .fm-alert strong{ color:#fed7aa; }
+#modal-cancelar .fm-field{ margin-bottom:4px; }
+#modal-cancelar .fm-label{ display:block; font-size:10.5px; font-weight:800; color:#8a90a2; text-transform:uppercase; letter-spacing:.6px; margin-bottom:7px; }
+#modal-cancelar .fm-input{ width:100%; box-sizing:border-box; background:#1e2133; border:1px solid #444860; color:#e8eaf0; border-radius:8px; padding:10px 12px; font-size:13.5px; }
+#modal-cancelar .fm-input:focus{ outline:none; border-color:#a78bfa; }
+#modal-cancelar .fm-footer{ display:flex; gap:10px; margin-top:22px; }
+#modal-cancelar .fm-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 14px; border-radius:10px; border:1px solid transparent;
+    font-size:13px; font-weight:700; cursor:pointer; transition:all .15s;
+}
+#modal-cancelar .fm-btn-cancel{ background:rgba(255,255,255,0.05); color:#c9cad6; border-color:rgba(255,255,255,0.08); }
+#modal-cancelar .fm-btn-cancel:hover{ background:rgba(255,255,255,0.09); color:#e8eaf0; }
+#modal-cancelar .fm-btn-orange{ background:linear-gradient(135deg,#fb923c 0%,#f97316 100%); color:#fff; box-shadow:0 6px 16px rgba(251,146,60,0.3); }
+#modal-cancelar .fm-btn-orange:hover{ filter:brightness(1.08); box-shadow:0 8px 20px rgba(251,146,60,0.4); }
+</style>
 
 <script type="text/javascript">
     $(document).ready(function() {

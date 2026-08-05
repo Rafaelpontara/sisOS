@@ -157,7 +157,7 @@
             <i class='bx bx-file'></i> Detalhes da OS
         </button>
         <button class="aos-tab" data-tab="tab-checklist">
-            <i class='bx bx-list-check'></i> Checklist de Entrada
+            <i class='bx bx-list-check'></i> Checklist de Entrada <span style="color:#f87171;">*</span>
         </button>
         <button class="aos-tab" data-tab="tab-recorrente">
             <i class='bx bx-refresh'></i> Recorrência
@@ -459,13 +459,6 @@
                         'Bluetooth funcionando',
                         'Sinal de rede funcionando',
                     ],
-                    'Acessórios Entregues' => [
-                        'Carregador entregue',
-                        'Cabo entregue',
-                        'Fone entregue',
-                        'Capa/película entregue',
-                        'Caixa entregue',
-                    ],
                 ];
                 ?>
 
@@ -508,6 +501,79 @@
                     margin-bottom:14px;font-size:12px;
                 }
                 .ck-resumo-item{ display:flex;align-items:center;gap:5px;font-weight:700; }
+                .ck-textos-prontos{
+                    display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;
+                }
+                .ck-texto-pronto{
+                    background:#13151f;border:1px solid rgba(255,255,255,0.08);color:#9ca3af;
+                    border-radius:20px;padding:5px 12px;font-size:11.5px;cursor:pointer;
+                    transition:all .15s;
+                }
+                .ck-texto-pronto:hover{ border-color:#a78bfa;color:#a78bfa; }
+
+                /* Marcar vários itens de uma vez (tudo, ou por seção) */
+                .ck-bulk-bar{
+                    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+                    padding:8px 12px;margin-bottom:12px;
+                    background:#13151f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+                }
+                .ck-bulk-label{ font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.5px; }
+                .ck-bulk-btn{
+                    display:flex;align-items:center;gap:5px;
+                    padding:6px 12px;border-radius:6px;border:1px solid transparent;
+                    font-size:11.5px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.05);color:#9ca3af;
+                    transition:all .15s;
+                }
+                .ck-bulk-btn:hover{ opacity:.85; }
+                .ck-bulk-ok{ border-color:rgba(74,222,128,0.35);color:#4ade80; }
+                .ck-bulk-ok:hover{ background:rgba(74,222,128,0.12); }
+                .ck-bulk-def{ border-color:rgba(248,113,113,0.35);color:#f87171; }
+                .ck-bulk-def:hover{ background:rgba(248,113,113,0.12); }
+                .ck-bulk-nvf{ border-color:rgba(107,114,128,0.35);color:#9ca3af; }
+                .ck-bulk-nvf:hover{ background:rgba(107,114,128,0.12); }
+
+                .ck-grupo-titulo{ justify-content:space-between; }
+                .ck-grupo-titulo-texto{ display:flex;align-items:center;gap:6px; }
+                .ck-grupo-acoes{ display:flex;gap:4px; }
+                .ck-mini-btn{
+                    width:24px;height:20px;border-radius:5px;border:1px solid transparent;
+                    font-size:9px;font-weight:700;cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    background:rgba(255,255,255,0.05);color:#6b7280;transition:all .15s;
+                }
+                .ck-mini-btn:hover{ opacity:.85; }
+                .ck-mini-ok:hover{ background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80; }
+                .ck-mini-def:hover{ background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171; }
+                .ck-mini-nvf:hover{ background:rgba(107,114,128,0.15);border-color:#6b7280;color:#9ca3af; }
+
+                /* Bloco dedicado de Acessórios Entregues (não é mais item de condição) */
+                .ck-acess-bloco{
+                    background:#13151f;border:1px solid rgba(255,255,255,0.06);
+                    border-radius:8px;padding:12px 14px;margin-bottom:16px;
+                }
+                .ck-acess-bloco .ck-grupo-titulo{ border-bottom:none;padding-top:0;margin-bottom:10px; }
+                .ck-acess-opcoes{ display:flex;flex-wrap:wrap;gap:16px;margin-bottom:4px; }
+                .ck-acess-opcao{
+                    display:flex;align-items:center;gap:7px;cursor:pointer;
+                    font-size:12.5px;color:#c9cad6;font-weight:600;
+                }
+                .ck-acess-opcao input[type="radio"]{ width:15px;height:15px;accent-color:#a78bfa;cursor:pointer; }
+                .ck-acess-itens{
+                    display:flex;flex-wrap:wrap;gap:10px 16px;
+                    margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);
+                }
+                .ck-acess-item{
+                    display:flex;align-items:center;gap:6px;cursor:pointer;
+                    font-size:12px;color:#c9cad6;background:#0e1017;
+                    border:1px solid rgba(255,255,255,0.06);border-radius:6px;
+                    padding:6px 10px;
+                }
+                .ck-acess-item input[type="checkbox"]{ width:14px;height:14px;accent-color:#a78bfa;cursor:pointer; }
+                .ck-acess-outro{ flex-basis:100%;margin-top:2px; }
+                .ck-acess-outro input{
+                    width:100%;max-width:320px;background:#0e1017;border:1px solid rgba(255,255,255,0.08);
+                    border-radius:6px;color:#e8eaf0;font-size:12px;padding:7px 10px;
+                }
                 </style>
 
                 <!-- Resumo dinâmico -->
@@ -517,12 +583,25 @@
                     <span class="ck-resumo-item" style="color:#6b7280;"><i class='bx bx-minus-circle'></i> <span id="rNvf">0</span> Não verificado</span>
                 </div>
 
+                <!-- Marcar TODOS os itens do checklist de uma vez -->
+                <div class="ck-bulk-bar">
+                    <span class="ck-bulk-label">Marcar tudo:</span>
+                    <button type="button" class="ck-bulk-btn ck-bulk-ok" onclick="ckMarcarTodos('ok')"><i class='bx bx-check-circle'></i> Tudo OK</button>
+                    <button type="button" class="ck-bulk-btn ck-bulk-def" onclick="ckMarcarTodos('defeito')"><i class='bx bx-error-circle'></i> Tudo com defeito</button>
+                    <button type="button" class="ck-bulk-btn ck-bulk-nvf" onclick="ckMarcarTodos('nvf')"><i class='bx bx-minus-circle'></i> Tudo não verificado</button>
+                </div>
+
                 <!-- Campo oculto que guarda o JSON do checklist -->
                 <input type="hidden" name="checklist_json" id="checklistJson" value="">
 
                 <?php foreach ($checklistGrupos as $grupo => $itens): ?>
                 <div class="ck-grupo-titulo">
-                    <i class='bx bx-chevron-right'></i> <?= $grupo ?>
+                    <span class="ck-grupo-titulo-texto"><i class='bx bx-chevron-right'></i> <?= $grupo ?></span>
+                    <span class="ck-grupo-acoes">
+                        <button type="button" class="ck-mini-btn ck-mini-ok" onclick="ckMarcarGrupo(this,'ok')" title="Marcar esta seção toda como OK">OK</button>
+                        <button type="button" class="ck-mini-btn ck-mini-def" onclick="ckMarcarGrupo(this,'defeito')" title="Marcar esta seção toda como Com defeito">⚠</button>
+                        <button type="button" class="ck-mini-btn ck-mini-nvf" onclick="ckMarcarGrupo(this,'nvf')" title="Marcar esta seção toda como Não verificado">—</button>
+                    </span>
                 </div>
                 <div class="ck-grid">
                     <?php foreach ($itens as $item): ?>
@@ -541,15 +620,48 @@
                 </div>
                 <?php endforeach; ?>
 
+                <!-- Acessórios Entregues: não deixou nenhum, ou deixou -- quais -->
+                <div class="ck-acess-bloco" id="ckAcessBloco">
+                    <div class="ck-grupo-titulo">
+                        <span class="ck-grupo-titulo-texto"><i class='bx bx-chevron-right'></i> Acessórios Entregues</span>
+                    </div>
+                    <div class="ck-acess-opcoes">
+                        <label class="ck-acess-opcao">
+                            <input type="radio" name="ck_acessorios_opcao" value="nenhum" id="ckAcessNenhum" checked onchange="ckAcessMudarOpcao()">
+                            Não deixou nenhum acessório
+                        </label>
+                        <label class="ck-acess-opcao">
+                            <input type="radio" name="ck_acessorios_opcao" value="deixou" id="ckAcessDeixou" onchange="ckAcessMudarOpcao()">
+                            Deixou acessório(s)
+                        </label>
+                    </div>
+                    <div class="ck-acess-itens" id="ckAcessItens" style="display:none;">
+                        <label class="ck-acess-item"><input type="checkbox" value="Carregador" onchange="ckSerializar()"> Carregador</label>
+                        <label class="ck-acess-item"><input type="checkbox" value="Cabo" onchange="ckSerializar()"> Cabo</label>
+                        <label class="ck-acess-item"><input type="checkbox" value="Fone" onchange="ckSerializar()"> Fone</label>
+                        <label class="ck-acess-item"><input type="checkbox" value="Capa/película" onchange="ckSerializar()"> Capa/película</label>
+                        <label class="ck-acess-item"><input type="checkbox" value="Caixa" onchange="ckSerializar()"> Caixa</label>
+                        <div class="ck-acess-outro">
+                            <input type="text" id="ckAcessOutro" class="aos-input" placeholder="Outro acessório (opcional)" oninput="ckSerializar()">
+                        </div>
+                    </div>
+                </div>
+
                 <div style="margin-bottom:14px;margin-top:4px;">
                     <label class="aos-label">Observações gerais / Acessórios / Anotações</label>
+                    <div class="ck-textos-prontos" id="ckTextosProntos">
+                        <span class="ck-texto-pronto" onclick="ckInserirTextoPronto(this)">+ Aparelho não ligou</span>
+                        <span class="ck-texto-pronto" onclick="ckInserirTextoPronto(this)">+ Não foi possível testar</span>
+                        <span class="ck-texto-pronto" onclick="ckInserirTextoPronto(this)">+ Sem imagem/vídeo na tela</span>
+                        <span class="ck-texto-pronto" onclick="ckInserirTextoPronto(this)">+ Cliente não informou a senha</span>
+                    </div>
                     <textarea name="checklist_obs" id="checklistObs" class="aos-textarea" rows="3"
                               placeholder="Riscos visíveis, avarias específicas, itens extras entregues..."></textarea>
                 </div>
 
                 <div>
                     <label class="aos-label">Fotos de Entrada (até 4 fotos)</label>
-                    <input type="file" name="checklist_fotos[]" multiple accept="image/*"
+                    <input type="file" name="checklist_fotos[]" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.gif"
                            id="inputChecklistFotos" class="aos-input" style="padding:5px;" />
                     <div id="previewChecklistFotos" class="aos-foto-preview"></div>
                 </div>
@@ -570,6 +682,55 @@
     <script>
     // ── Checklist novo ────────────────────────────────────────────────────
     var _ckEstados = {}; // { 'item': 'ok'|'defeito'|'nvf' }
+    var CK_TOTAL_ITENS = <?= array_sum(array_map('count', $checklistGrupos)) ?>; // total de itens que precisam de resposta
+
+    // Confere se todo item do checklist já tem um estado marcado. Se faltar
+    // algum, destaca visualmente os itens pendentes e devolve false.
+    function ckValidarCompleto() {
+        var faltando = [];
+        document.querySelectorAll('.ck-item').forEach(function(item) {
+            var nome = item.dataset.item;
+            if (!_ckEstados[nome]) {
+                faltando.push(item);
+                item.style.borderColor = '#f59e0b';
+                item.style.boxShadow = '0 0 0 1px rgba(245,158,11,0.4)';
+            } else {
+                item.style.boxShadow = '';
+            }
+        });
+        return faltando.length === 0 ? true : faltando;
+    }
+
+    // Bloqueio "à prova de falhas" do checklist obrigatório: um listener
+    // nativo (sem jQuery) registrado assim que a página carrega, ANTES do
+    // listener interno do jQuery Validate (que só é criado mais abaixo, na
+    // chamada .validate()). Elementos disparam os próprios listeners na
+    // ordem em que foram registrados — por isso, sendo registrado aqui, ele
+    // sempre roda primeiro e pode cancelar o envio na hora, sem depender de
+    // nenhum detalhe interno do jQuery Validate (evita qualquer brecha caso
+    // duas OS diferentes chamem submit, ou a "aba errada" seja usada pra
+    // salvar).
+    document.getElementById('formOs').addEventListener('submit', function(e) {
+        var resultadoCk = ckValidarCompleto();
+        if (resultadoCk !== true) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            var abaChecklist = document.querySelector('.aos-tab[data-tab="tab-checklist"]');
+            if (abaChecklist) abaChecklist.click();
+
+            var faltam = resultadoCk.length;
+            var mensagem = 'Marque a condição de todos os itens do checklist antes de salvar a OS (' + faltam + ' item(ns) pendente(s), destacado(s) em laranja).';
+            if (typeof swal === 'function') {
+                swal('Checklist incompleto', mensagem, 'warning');
+            } else {
+                alert(mensagem);
+            }
+            if (resultadoCk[0] && resultadoCk[0].scrollIntoView) {
+                resultadoCk[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
 
     function ckSetEstado(btn, estado) {
         var item = btn.closest('.ck-item');
@@ -593,6 +754,25 @@
         ckSerializar();
     }
 
+    // Marca de uma vez TODOS os itens do checklist com o mesmo estado.
+    function ckMarcarTodos(estado) {
+        document.querySelectorAll('.ck-item').forEach(function(item) {
+            var btn = item.querySelector('.ck-btn[data-estado="' + estado + '"]');
+            if (btn) ckSetEstado(btn, estado);
+        });
+    }
+
+    // Marca de uma vez todos os itens de UMA seção (ex: só "Tela & Display").
+    function ckMarcarGrupo(origemBtn, estado) {
+        var titulo = origemBtn.closest('.ck-grupo-titulo');
+        var grid = titulo && titulo.nextElementSibling;
+        if (!grid || !grid.classList.contains('ck-grid')) return;
+        grid.querySelectorAll('.ck-item').forEach(function(item) {
+            var btn = item.querySelector('.ck-btn[data-estado="' + estado + '"]');
+            if (btn) ckSetEstado(btn, estado);
+        });
+    }
+
     function ckAtualizarResumo() {
         var ok=0, def=0, nvf=0;
         Object.values(_ckEstados).forEach(function(v){
@@ -605,11 +785,53 @@
         document.getElementById('rNvf').textContent = nvf;
     }
 
+    // ── Textos prontos pra observação (entram na impressão junto com o resto) ──
+    var CK_TEXTOS_PRONTOS = {
+        '+ Aparelho não ligou': 'Aparelho não ligou no momento do recebimento — não foi possível realizar testes de funcionamento.',
+        '+ Não foi possível testar': 'Não foi possível testar as funcionalidades do aparelho no momento do recebimento.',
+        '+ Sem imagem/vídeo na tela': 'Aparelho não apresentou imagem/vídeo na tela no momento do recebimento — não foi possível verificar o funcionamento da tela.',
+        '+ Cliente não informou a senha': 'Cliente não informou/não quis fornecer a senha do aparelho — não foi possível testar funções que exigem desbloqueio.'
+    };
+
+    function ckInserirTextoPronto(el) {
+        var texto = CK_TEXTOS_PRONTOS[el.textContent.trim()];
+        if (!texto) return;
+        var obs = document.getElementById('checklistObs');
+        if (!obs) return;
+        if (obs.value.indexOf(texto) !== -1) return; // já foi inserido, evita duplicar
+        obs.value = obs.value ? (obs.value.replace(/\s+$/, '') + '\n• ' + texto) : ('• ' + texto);
+        ckSerializar();
+    }
+
+    // ── Acessórios Entregues (bloco separado do checklist de condição) ──
+    function ckAcessMudarOpcao() {
+        var deixouEl = document.getElementById('ckAcessDeixou');
+        var deixou = deixouEl ? deixouEl.checked : false;
+        var box = document.getElementById('ckAcessItens');
+        if (box) box.style.display = deixou ? 'flex' : 'none';
+        ckSerializar();
+    }
+
+    function ckAcessColetar() {
+        var deixouEl = document.getElementById('ckAcessDeixou');
+        var deixou = deixouEl ? deixouEl.checked : false;
+        var itens = [];
+        if (deixou) {
+            document.querySelectorAll('#ckAcessItens input[type="checkbox"]:checked').forEach(function(cb) {
+                itens.push(cb.value);
+            });
+            var outro = document.getElementById('ckAcessOutro');
+            if (outro && outro.value.trim()) itens.push(outro.value.trim());
+        }
+        return { nenhum: !deixou, itens: itens };
+    }
+
     function ckSerializar() {
         var obs = document.getElementById('checklistObs');
         var data = {
             itens: _ckEstados,
-            obs: obs ? obs.value : ''
+            obs: obs ? obs.value : '',
+            acessorios: (typeof ckAcessColetar === 'function') ? ckAcessColetar() : { nenhum: true, itens: [] }
         };
         var el = document.getElementById('checklistJson');
         if (el) el.value = JSON.stringify(data);
@@ -801,6 +1023,19 @@ $(document).ready(function() {
             dataFinal:   { required: 'Obrigatório quando status é Em Andamento.' }
         },
         submitHandler: function(form) {
+            // Checklist de entrada é obrigatório — não deixa finalizar a
+            // abertura da OS se algum item ainda não tiver sido marcado.
+            var resultadoCk = (typeof ckValidarCompleto === 'function') ? ckValidarCompleto() : true;
+            if (resultadoCk !== true) {
+                $('.aos-tab[data-tab="tab-checklist"]').click();
+                var faltam = resultadoCk.length;
+                swal('Checklist incompleto', 'Marque a condição de todos os itens do checklist antes de salvar a OS (' + faltam + ' item(ns) pendente(s), destacado(s) em laranja).', 'warning');
+                if (resultadoCk[0] && resultadoCk[0].scrollIntoView) {
+                    resultadoCk[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
             // Garante que o checklist e a senha estejam sincronizados ANTES
             // de enviar. O listener 'submit' mais abaixo no arquivo não
             // dispara aqui, porque form.submit() chamado via JavaScript não

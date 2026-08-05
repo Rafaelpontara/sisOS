@@ -73,6 +73,11 @@
             <div class="tut-toc-grupo">Pós-Atendimento</div>
             <a href="#sec-posvenda"><i class='bx bx-message-rounded-dots'></i> Pós-Venda</a>
             <a href="#sec-solucoes"><i class='bx bx-bulb'></i> Soluções Técnicas</a>
+            <a href="#sec-satisfacao"><i class='bx bx-star'></i> Pesquisa de Satisfação</a>
+
+            <div class="tut-toc-grupo">Interno / Equipe</div>
+            <a href="#sec-pedidos"><i class='bx bx-task'></i> Pedidos e Anotações</a>
+            <a href="#sec-chat"><i class='bx bx-chat'></i> Chat da Equipe</a>
 
             <div class="tut-toc-grupo">Financeiro</div>
             <a href="#sec-financeiro"><i class='bx bx-dollar-circle'></i> Lançamentos e Caixa</a>
@@ -140,6 +145,8 @@
                         <li><strong>Bloquear cliente:</strong> pra impedir que ele tenha acesso à Área do Cliente ou abra novas OS (precisa registrar o motivo).</li>
                         <li><strong>Ver Ficha:</strong> mostra o histórico completo daquele cliente — OS anteriores, vendas, dados de contato.</li>
                         <li><strong>Área do Cliente:</strong> ícone de chave leva direto pro portal que o próprio cliente usa (sem precisar da senha dele).</li>
+                        <li><strong>Tags / Categorias:</strong> dá pra criar etiquetas coloridas (ex: "Contrato Bronze", "Contrato Ouro") e atribuir a cada cliente, pra identificar rápido o tipo de contrato ou perfil dele. A lista pode ser filtrada por tag.</li>
+                        <li><strong>Filtrar por fornecedor:</strong> um filtro na listagem mostra só os clientes marcados como fornecedor.</li>
                     </ul>
                     <div class="tut-dica"><strong>Dica:</strong> antes de cadastrar um cliente novo, sempre vale buscar pelo telefone primeiro — muita gente já tem cadastro de uma visita anterior.</div>
                 </div>
@@ -186,7 +193,7 @@
                     <h4>Ao criar uma OS</h4>
                     <ul>
                         <li>Cliente, técnico responsável, equipamento, defeito relatado e datas.</li>
-                        <li><strong>Checklist de entrada:</strong> marca o estado do aparelho na chegada (tela, bateria, botões, etc.) — protege a loja em caso de reclamação futura.</li>
+                        <li><strong>Checklist de entrada (obrigatório):</strong> marca o estado do aparelho na chegada (tela, bateria, botões, etc.) — protege a loja em caso de reclamação futura. O sistema não deixa salvar a OS enquanto algum item do checklist não estiver marcado.</li>
                         <li><strong>Senha do celular:</strong> registra o tipo (PIN, Padrão, Face ID, Digital) e o valor, se precisar desbloquear pra testar.</li>
                         <li><strong>Status:</strong> Aberto, Orçamento, Em Andamento, Aguardando Peças, Finalizado, Faturado, Cancelado, entre outros.</li>
                     </ul>
@@ -258,6 +265,53 @@
                 <div class="tut-secao-body">
                     <p>Base de conhecimento da equipe — quando um técnico resolve um problema difícil ou incomum, ele registra aqui: qual era o problema, como foi resolvido, com fotos e vídeo se quiser.</p>
                     <p>A busca acha por palavras no título, equipamento, problema ou solução — útil pra quando aparecer um caso parecido no futuro, mesmo que seja outro técnico atendendo.</p>
+                </div>
+            </div>
+
+            <div class="tut-secao" id="sec-satisfacao">
+                <div class="tut-secao-head" onclick="tutToggle(this)">
+                    <div class="tut-secao-icon"><i class='bx bx-star'></i></div>
+                    <div class="tut-secao-titulo">Pesquisa de Satisfação</div>
+                    <i class='bx bx-chevron-down tut-secao-toggle'></i>
+                </div>
+                <div class="tut-secao-body">
+                    <p>Depois que uma OS é finalizada, o cliente pode receber um link pra avaliar o atendimento — dá nota e, se quiser, deixa um comentário.</p>
+                    <ul>
+                        <li>As respostas ficam registradas no sistema e ajudam a acompanhar a satisfação geral, além de sinalizar atendimentos que podem precisar de atenção.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tut-secao" id="sec-pedidos">
+                <div class="tut-secao-head" onclick="tutToggle(this)">
+                    <div class="tut-secao-icon"><i class='bx bx-task'></i></div>
+                    <div class="tut-secao-titulo">Pedidos e Anotações</div>
+                    <i class='bx bx-chevron-down tut-secao-toggle'></i>
+                </div>
+                <div class="tut-secao-body">
+                    <p>Quadro estilo Kanban pra organizar pedidos internos, encomendas de peças ou anotações da equipe, com colunas por etapa (ex: Pendente, Em Andamento, Concluído).</p>
+                    <ul>
+                        <li><strong>Fotos:</strong> cada cartão aceita uma ou mais fotos anexadas (ex: foto da peça encomendada, print de conversa).</li>
+                        <li><strong>Notificar por WhatsApp:</strong> dá pra mandar um aviso direto pro WhatsApp do responsável quando o cartão muda de status.</li>
+                        <li><strong>Arrastar cartão:</strong> igual à Mesa de Trabalho — arrastar entre colunas atualiza o status automaticamente.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tut-secao" id="sec-chat">
+                <div class="tut-secao-head" onclick="tutToggle(this)">
+                    <div class="tut-secao-icon"><i class='bx bx-chat'></i></div>
+                    <div class="tut-secao-titulo">Chat da Equipe</div>
+                    <i class='bx bx-chevron-down tut-secao-toggle'></i>
+                </div>
+                <div class="tut-secao-body">
+                    <p>Chat interno pra comunicação rápida entre os funcionários, direto pelo sistema, sem depender de WhatsApp ou outro aplicativo externo.</p>
+                    <ul>
+                        <li><strong>Geral:</strong> conversa em grupo, visível pra todos que têm acesso ao sistema.</li>
+                        <li><strong>Conversas privadas:</strong> mensagem direta entre dois usuários.</li>
+                        <li><strong>Não lidas:</strong> um contador avisa quantas mensagens novas chegaram, tanto no Geral quanto nas privadas.</li>
+                    </ul>
+                    <div class="tut-dica"><strong>Dica:</strong> o chat atualiza sozinho a cada poucos segundos — não precisa ficar recarregando a página.</div>
                 </div>
             </div>
 

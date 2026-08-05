@@ -514,7 +514,7 @@ class Os extends MY_Controller
                 foreach ($_FILES['checklist_fotos']['name'] as $i => $fname) {
                     if (!$fname) continue;
                     $_FILES['foto_tmp'] = array_map(fn($a) => $a[$i], $_FILES['checklist_fotos']);
-                    $this->upload->initialize(['upload_path'=>$pasta,'allowed_types'=>'jpg|jpeg|png|webp','max_size'=>2048,'encrypt_name'=>true]);
+                    $this->upload->initialize(['upload_path'=>$pasta,'allowed_types'=>'jpg|jpeg|png|webp|heic|heif|gif','max_size'=>4096,'encrypt_name'=>true]);
                     if ($this->upload->do_upload('foto_tmp')) {
                         $fotoUrls[] = base_url('assets/img/checklist/' . $this->upload->data('file_name'));
                     }
@@ -689,7 +689,7 @@ class Os extends MY_Controller
                 foreach ($_FILES['checklist_fotos']['name'] as $i => $fname) {
                     if (!$fname) continue;
                     $_FILES['foto_tmp'] = array_map(fn($a) => $a[$i], $_FILES['checklist_fotos']);
-                    $this->upload->initialize(['upload_path'=>$pasta,'allowed_types'=>'jpg|jpeg|png|webp','max_size'=>2048,'encrypt_name'=>true]);
+                    $this->upload->initialize(['upload_path'=>$pasta,'allowed_types'=>'jpg|jpeg|png|webp|heic|heif|gif','max_size'=>4096,'encrypt_name'=>true]);
                     if ($this->upload->do_upload('foto_tmp')) {
                         $fotoUrls[] = base_url('assets/img/checklist/' . $this->upload->data('file_name'));
                     }
@@ -1604,22 +1604,102 @@ class Os extends MY_Controller
             $valorTotal = $valorTotalServico + $valorTotalProduto;
             $valorTotalComDesconto = $valorTotal - $valorDesconto;
 
-            $data = [
-                'descricao' => $this->input->post('descricao'),
-                'valor' => $valorTotal,
-                'tipo_desconto' => 'real',
-                'desconto' => ($valorDesconto > 0) ? $valorTotalComDesconto : 0,
-                'valor_desconto' => ($valorDesconto > 0) ? $valorDesconto : $valorTotal,
-                'clientes_id' => $this->input->post('clientes_id'),
-                'data_vencimento' => $vencimento,
-                'data_pagamento' => $recebimento,
-                'baixado' => $this->input->post('recebido') ?: 0,
-                'cliente_fornecedor' => $this->input->post('cliente'),
-                'forma_pgto' => $this->input->post('formaPgto'),
-                'tipo' => $this->input->post('tipo'),
-                'observacoes' => $this->input->post('observacoes'),
-                'usuarios_id' => $this->session->userdata('id_admin'),
-            ];
+            // Pagamento parcial / múltiplas formas de pagamento (opcional).
+            // Se o campo 'pagamentos' vier preenchido (JSON: [{forma_pgto,valor}, ...]),
+            // cada item vira um lançamento próprio já baixado (recebido) com sua forma de
+            // pagamento; se a soma for menor que o total da OS, o restante vira MAIS um
+            // lançamento em aberto (baixado=0) — fica pendente no financeiro até ser
+            // recebido depois. Se 'pagamentos' não vier, funciona exatamente como antes
+            // (1 lançamento só, com os campos formaPgto/recebido de sempre).
+            $pagamentosRaw = json_decode((string) $this->input->post('pagamentos'), true);
+            $usarSplit = is_array($pagamentosRaw) && count($pagamentosRaw) > 0;
+
+            $descricao = $this->input->post('descricao');
+            $clientesId = $this->input->post('clientes_id');
+            $clienteFornecedor = $this->input->post('cliente');
+            $tipo = $this->input->post('tipo');
+            $observacoes = $this->input->post('observacoes');
+            $usuarioId = $this->session->userdata('id_admin');
+
+            $linhasLancamento = [];
+
+            if ($usarSplit) {
+                $somaPagamentos = 0;
+                foreach ($pagamentosRaw as $p) {
+                    $valorItem = round((float) ($p['valor'] ?? 0), 2);
+                    if ($valorItem <= 0) {
+                        continue;
+                    }
+                    // Não deixa a soma passar do total da OS (evita sobrar valor negativo abaixo)
+                    $valorItem = min($valorItem, max(0, $valorTotalComDesconto - $somaPagamentos));
+                    if ($valorItem <= 0) {
+                        continue;
+                    }
+                    $somaPagamentos += $valorItem;
+
+                    $linhasLancamento[] = [
+                        'descricao' => $descricao,
+                        'valor' => $valorItem,
+                        'tipo_desconto' => 'real',
+                        'desconto' => 0,
+                        'valor_desconto' => $valorItem,
+                        'clientes_id' => $clientesId,
+                        'data_vencimento' => $vencimento,
+                        'data_pagamento' => $recebimento ?: date('Y-m-d'),
+                        'baixado' => 1,
+                        'cliente_fornecedor' => $clienteFornecedor,
+                        'forma_pgto' => $p['forma_pgto'] ?? null,
+                        'tipo' => $tipo,
+                        'observacoes' => $observacoes,
+                        'usuarios_id' => $usuarioId,
+                    ];
+                }
+
+                $restante = round($valorTotalComDesconto - $somaPagamentos, 2);
+                if ($restante > 0.009) {
+                    $linhasLancamento[] = [
+                        'descricao' => $descricao,
+                        'valor' => $restante,
+                        'tipo_desconto' => 'real',
+                        'desconto' => 0,
+                        'valor_desconto' => $restante,
+                        'clientes_id' => $clientesId,
+                        'data_vencimento' => $vencimento,
+                        'data_pagamento' => null,
+                        'baixado' => 0,
+                        'cliente_fornecedor' => $clienteFornecedor,
+                        'forma_pgto' => null,
+                        'tipo' => $tipo,
+                        'observacoes' => trim(($observacoes ? $observacoes . ' — ' : '') . 'Saldo pendente (pagamento parcial)'),
+                        'usuarios_id' => $usuarioId,
+                    ];
+                }
+
+                // Se por algum motivo nada sobrou com valor válido, volta pro
+                // comportamento antigo pra nunca faturar sem nenhum lançamento.
+                if (empty($linhasLancamento)) {
+                    $usarSplit = false;
+                }
+            }
+
+            if (!$usarSplit) {
+                $linhasLancamento = [[
+                    'descricao' => $descricao,
+                    'valor' => $valorTotal,
+                    'tipo_desconto' => 'real',
+                    'desconto' => ($valorDesconto > 0) ? $valorTotalComDesconto : 0,
+                    'valor_desconto' => ($valorDesconto > 0) ? $valorDesconto : $valorTotal,
+                    'clientes_id' => $clientesId,
+                    'data_vencimento' => $vencimento,
+                    'data_pagamento' => $recebimento,
+                    'baixado' => $this->input->post('recebido') ?: 0,
+                    'cliente_fornecedor' => $clienteFornecedor,
+                    'forma_pgto' => $this->input->post('formaPgto'),
+                    'tipo' => $tipo,
+                    'observacoes' => $observacoes,
+                    'usuarios_id' => $usuarioId,
+                ]];
+            }
 
             $this->db->trans_start();
 
@@ -1632,7 +1712,15 @@ class Os extends MY_Controller
                     ->set_output(json_encode(['result' => false]));
             }
 
-            if ($this->os_model->add('lancamentos', $data)) {
+            $todosInseridos = true;
+            foreach ($linhasLancamento as $linha) {
+                if (!$this->os_model->add('lancamentos', $linha)) {
+                    $todosInseridos = false;
+                    break;
+                }
+            }
+
+            if ($todosInseridos) {
                 $this->db->set('faturado', 1);
                 $this->db->set('valorTotal', $valorTotal);
 

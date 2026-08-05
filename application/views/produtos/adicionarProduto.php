@@ -1,3 +1,4 @@
+<?php $temaClaro = in_array($configuration['app_theme'] ?? '', ['white','whitegreen','whiteblack']); ?>
 <script src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
 <script src="<?= base_url() ?>assets/js/maskmoney.js"></script>
 <style>
@@ -38,6 +39,25 @@
 span.error{color:#f87171!important;font-size:11px!important;}
 input.error,select.error{border-color:#f87171!important;}
 </style>
+<?php if ($temaClaro): ?>
+<style>
+/* ── Tema claro: sobrescreve o cadastro de produto (que foi feito com
+   paleta escura fixa) pra ficar consistente com o tema branco/escolhido. ── */
+.fp-card{background:#ffffff;border-color:rgba(0,0,0,0.08);box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.fp-card-head{background:#f3f4f6;border-bottom-color:rgba(0,0,0,0.06);}
+.fp-card-head span{color:#6b7280;}
+.fp-label{color:#6b7280;}
+.fp-input,.fp-select,.fp-textarea{background:#f9fafb;border-color:#d1d5db;color:#1f2937;}
+.fp-hint{color:#9ca3af;}
+.fp-toggle{background:#f9fafb;border-color:#d1d5db;color:#6b7280;}
+.fp-calc{background:#f9fafb;border-color:#d1d5db;}
+.fp-calc-title{color:#6b7280;}
+.fp-btn-back{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb;}
+.fp-btn-back:hover{color:#1f2937;}
+h2{color:#1f2937 !important;}
+</style>
+<?php endif; ?>
+
 
 <div class="fp-wrap new122">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
@@ -56,6 +76,8 @@ input.error,select.error{border-color:#f87171!important;}
                     <div class="fp-field"><label class="fp-label">Código de Barras</label><input id="codDeBarra" type="text" name="codDeBarra" class="fp-input" value="<?= set_value('codDeBarra') ?>"></div>
                     <div class="fp-field"><label class="fp-label">Marca</label><input type="text" name="marca" class="fp-input" value="<?= set_value('marca') ?>" placeholder="Ex: Samsung, Dell..."></div>
                     <div class="fp-field"><label class="fp-label">Modelo</label><input type="text" name="modelo" class="fp-input" value="<?= set_value('modelo') ?>" placeholder="Ex: Galaxy A54..."></div>
+                    <div class="fp-field"><label class="fp-label">IMEI</label><input type="text" name="imei" class="fp-input" value="<?= set_value('imei') ?>" placeholder="Ex: 356938035643809" maxlength="20"><div class="fp-hint">Preencha só para celulares</div></div>
+                    <div class="fp-field"><label class="fp-label">Número de Série (SN)</label><input type="text" name="numero_serie" class="fp-input" value="<?= set_value('numero_serie') ?>" placeholder="Ex: SN123456789"></div>
                     <div class="fp-field"><label class="fp-label">NCM</label><input type="text" name="ncm" class="fp-input" maxlength="10" value="<?= set_value('ncm') ?>" placeholder="00000000"><div class="fp-hint">Código fiscal para NF-e</div></div>
                     <div class="fp-field"><label class="fp-label">Localização no Estoque</label><input type="text" name="localizacao" class="fp-input" value="<?= set_value('localizacao') ?>" placeholder="Ex: Prateleira A3"><div class="fp-hint">Onde o produto está fisicamente</div></div>
                 </div>
@@ -123,7 +145,7 @@ input.error,select.error{border-color:#f87171!important;}
                 <div class="fp-grid">
                     <div class="fp-field">
                         <label class="fp-label">Foto do Produto</label>
-                        <input type="file" name="foto" accept="image/*" id="inputFoto" style="background:#13151f;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:7px 12px;font-size:13px;width:100%;">
+                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.gif" id="inputFoto" style="background:#13151f;border:1px solid #444860;color:#e8eaf0;border-radius:8px;padding:7px 12px;font-size:13px;width:100%;">
                         <div class="fp-hint">JPG, PNG ou WebP. Máx 3MB.</div>
                         <div id="previewFoto" class="fp-foto-preview"></div>
                     </div>

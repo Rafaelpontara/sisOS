@@ -15,7 +15,7 @@
     if ($totalComDesc <= 0) $totalComDesc = $subtotalBruto - $descontoValor;
     if ($totalComDesc <= 0) $totalComDesc = $subtotalBruto;
 ?>
-<div class="vd-card" data-search="<?= htmlspecialchars(mb_strtolower($r->idVendas . ' ' . ($r->nomeCliente ?? '') . ' ' . $r->status)) ?>">
+<div class="vd-card" data-id="<?= $r->idVendas ?>" data-search="<?= htmlspecialchars(mb_strtolower($r->idVendas . ' ' . ($r->nomeCliente ?? '') . ' ' . $r->status)) ?>">
     <div class="vd-card-top">
         <span class="vd-num">#<?= $r->idVendas ?></span>
         <span class="sp <?= $spC ?>"><?= htmlspecialchars($r->status) ?></span>

@@ -157,6 +157,36 @@
 
     /* ── Top bar ── */
     #header { padding-left: 56px !important; }
+
+    /* ── Corrige conflito com o CSS antigo do tema (Matrix Admin) ──
+       O tema antigo tem seu próprio sistema de menu retrátil, baseado
+       numa classe ".open" que o JS atual não usa mais (usa ".mob-open").
+       Sem isso, ao abrir o menu no celular/tablet ele ficava com os
+       itens invisíveis (opacity:0) ou reduzido a só ícone, sem texto
+       (display:none no .title), porque a classe ".open" nunca é
+       adicionada pelo JS atual. */
+    #sidebar {
+        width: 270px !important;
+        margin-left: 0 !important;
+    }
+    #sidebar .title,
+    #sidebar > ul > li > a > .label {
+        opacity: 1 !important;
+        display: inline !important;
+        font-size: 13px !important;
+    }
+    #sidebar li {
+        opacity: 1 !important;
+    }
+    #sidebar .menu-bar,
+    #sidebar #newlog,
+    #sidebar .search-box {
+        margin-left: 0 !important;
+        opacity: 1 !important;
+    }
+    .navebarn {
+        margin-left: 0 !important;
+    }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -196,5 +226,20 @@
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
+    }
+}
+
+/* ════════════════════════════════════════════════════════
+   PC PEQUENO / NOTEBOOK — botão de recolher/expandir o menu
+   O botão (ícone de setinhas) já existe e já funciona (o
+   matrix.js alterna a classe ".open" e o tema já sabe reagir
+   a ela nessas larguras) — só estava escondido porque fica
+   dentro de uma classe do Bootstrap ("visible-phone") que só
+   mostra em tela de celular. Aqui só reexibimos ele em telas
+   de PC também, sem mexer em nada do celular.
+════════════════════════════════════════════════════════ */
+@media (min-width: 993px) {
+    #sidebar > a.visible-phone {
+        display: flex !important;
     }
 }

@@ -79,12 +79,56 @@ class Produtos extends MY_Controller
             $this->db->group_start();
             $this->db->like('descricao', $pesquisa);
             $this->db->or_like('codDeBarra', $pesquisa);
+            $this->db->or_like('imei', $pesquisa);
+            $this->db->or_like('numero_serie', $pesquisa);
             $this->db->group_end();
         }
         if ($estoqueBaixo) {
             $this->db->where('estoque <= estoqueMinimo', null, false);
             $this->db->where('estoqueMinimo >', 0);
         }
+    }
+
+    /**
+     * Faz o upload da foto do produto com um padrão seguro: primeiro carrega
+     * a library SEM config, depois chama initialize() separadamente.
+     *
+     * Por quê: se `upload` já tiver sido carregada em algum outro ponto do
+     * mesmo request (o CodeIgniter não recarrega libraries já carregadas),
+     * chamar `$this->load->library('upload', $config)` com o config direto
+     * no segundo parâmetro é IGNORADO silenciosamente — o upload passa a
+     * usar upload_path/allowed_types antigos (ou vazios) e toda imagem
+     * enviada falha, mesmo sendo jpg/png/webp válidos. É exatamente esse
+     * padrão (load + initialize separados) que o Os.php já usa pro upload
+     * das fotos do checklist, então aqui ficou igual.
+     *
+     * Retorna o nome de erro (string) em caso de falha, ou null se ok/sem arquivo.
+     */
+    private function _uploadFotoProduto(&$data)
+    {
+        if (empty($_FILES['foto']['name'])) {
+            return null;
+        }
+
+        $pasta = FCPATH . 'assets/img/produtos/';
+        if (!file_exists($pasta)) {
+            mkdir($pasta, DIR_WRITE_MODE, true);
+        }
+
+        $this->load->library('upload');
+        $this->upload->initialize([
+            'upload_path'   => $pasta,
+            'allowed_types' => 'jpg|jpeg|png|webp|gif|heic|heif',
+            'max_size'      => 3072,
+            'encrypt_name'  => true,
+        ]);
+
+        if ($this->upload->do_upload('foto')) {
+            $data['foto'] = base_url('assets/img/produtos/' . $this->upload->data('file_name'));
+            return null;
+        }
+
+        return trim(strip_tags($this->upload->display_errors('', '')));
     }
 
     public function adicionar()
@@ -118,6 +162,11 @@ class Produtos extends MY_Controller
                 'unidade'       => $this->input->post('unidade'),
                 'precoCompra'   => $precoCompra,
                 'precoVenda'    => $precoVenda,
+                // IMEI/SN — opcionais, usados principalmente pra celulares.
+                // Guardados como null (em vez de string vazia) quando não
+                // informado pra não conflitar com índices/unicidade futuros.
+                'imei'          => $this->input->post('imei') ?: null,
+                'numero_serie'  => $this->input->post('numero_serie') ?: null,
                 // Começa em 0 de propósito: o valor digitado é aplicado logo abaixo via
                 // estoque_model->registrar(), que também soma ao campo 'estoque'. Salvar
                 // o valor aqui E somar de novo no registrar() era o que dobrava o estoque.
@@ -127,20 +176,7 @@ class Produtos extends MY_Controller
                 'entrada'       => $this->input->post('entrada'),
             ];
 
-            // Upload de foto
-            if (!empty($_FILES['foto']['name'])) {
-                $pasta = FCPATH . 'assets/img/produtos/';
-                if (!file_exists($pasta)) mkdir($pasta, DIR_WRITE_MODE, true);
-                $this->load->library('upload', [
-                    'upload_path'   => $pasta,
-                    'allowed_types' => 'jpg|jpeg|png|webp',
-                    'max_size'      => 3072,
-                    'encrypt_name'  => true,
-                ]);
-                if ($this->upload->do_upload('foto')) {
-                    $data['foto'] = base_url('assets/img/produtos/' . $this->upload->data('file_name'));
-                }
-            }
+            $erroUploadFoto = $this->_uploadFotoProduto($data);
 
             if ($this->produtos_model->add('produtos', $data) == true) {
                 // Registrar movimentação de estoque inicial
@@ -155,7 +191,11 @@ class Produtos extends MY_Controller
                         $this->db->where('idProdutos', $pid)->update('produtos', ['estoque' => (float)$this->input->post('estoque')]);
                     }
                 }
-                $this->session->set_flashdata('success', 'Produto adicionado com sucesso!');
+                if ($erroUploadFoto) {
+                    $this->session->set_flashdata('error', 'Produto adicionado, mas a imagem não pôde ser enviada: ' . $erroUploadFoto);
+                } else {
+                    $this->session->set_flashdata('success', 'Produto adicionado com sucesso!');
+                }
                 log_info('Adicionou um produto');
                 redirect(site_url('produtos/adicionar/'));
             } else {
@@ -202,29 +242,22 @@ class Produtos extends MY_Controller
                 'unidade'       => $this->input->post('unidade'),
                 'precoCompra'   => $precoCompra,
                 'precoVenda'    => $precoVenda,
+                'imei'          => $this->input->post('imei') ?: null,
+                'numero_serie'  => $this->input->post('numero_serie') ?: null,
                 'estoque'       => $this->input->post('estoque'),
                 'estoqueMinimo' => $this->input->post('estoqueMinimo'),
                 'saida'         => $this->input->post('saida'),
                 'entrada'       => $this->input->post('entrada'),
             ];
 
-            // Upload de foto
-            if (!empty($_FILES['foto']['name'])) {
-                $pasta = FCPATH . 'assets/img/produtos/';
-                if (!file_exists($pasta)) mkdir($pasta, DIR_WRITE_MODE, true);
-                $this->load->library('upload', [
-                    'upload_path'   => $pasta,
-                    'allowed_types' => 'jpg|jpeg|png|webp',
-                    'max_size'      => 3072,
-                    'encrypt_name'  => true,
-                ]);
-                if ($this->upload->do_upload('foto')) {
-                    $data['foto'] = base_url('assets/img/produtos/' . $this->upload->data('file_name'));
-                }
-            }
+            $erroUploadFoto = $this->_uploadFotoProduto($data);
 
             if ($this->produtos_model->edit('produtos', $data, 'idProdutos', $this->input->post('idProdutos')) == true) {
-                $this->session->set_flashdata('success', 'Produto editado com sucesso!');
+                if ($erroUploadFoto) {
+                    $this->session->set_flashdata('error', 'Produto editado, mas a imagem não pôde ser enviada: ' . $erroUploadFoto);
+                } else {
+                    $this->session->set_flashdata('success', 'Produto editado com sucesso!');
+                }
                 log_info('Alterou um produto. ID: ' . $this->input->post('idProdutos'));
                 redirect(site_url('produtos/editar/') . $this->input->post('idProdutos'));
             } else {
@@ -310,5 +343,38 @@ class Produtos extends MY_Controller
         } else {
             $this->data['custom_error'] = '<div class="alert">Ocorreu um erro.</div>';
         }
+    }
+
+    /**
+     * Autocomplete de produtos por IMEI/Número de Série — útil pra achar
+     * rápido um aparelho específico já cadastrado (ex: conferir garantia).
+     */
+    public function autoCompleteImeiSerial()
+    {
+        if (! isset($_GET['term'])) {
+            return;
+        }
+
+        $q = $_GET['term'];
+        $this->db->select('idProdutos, descricao, imei, numero_serie, marca, modelo');
+        $this->db->group_start();
+        $this->db->like('imei', $q);
+        $this->db->or_like('numero_serie', $q);
+        $this->db->group_end();
+        $this->db->limit(15);
+        $query = $this->db->get('produtos');
+
+        $row_set = [];
+        foreach ($query->result() as $row) {
+            $row_set[] = [
+                'label' => $row->descricao . (($row->marca || $row->modelo) ? ' (' . trim($row->marca . ' ' . $row->modelo) . ')' : '')
+                    . ($row->imei ? ' | IMEI: ' . $row->imei : '')
+                    . ($row->numero_serie ? ' | SN: ' . $row->numero_serie : ''),
+                'id' => $row->idProdutos,
+            ];
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($row_set);
     }
 }
